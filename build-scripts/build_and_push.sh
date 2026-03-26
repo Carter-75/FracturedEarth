@@ -5,11 +5,12 @@ set -e
 LOG_DIR="./build-scripts/logs"
 mkdir -p "$LOG_DIR"
 
-PUSH_ENABLED=1
+PUSH_ENABLED=0
 COMMIT_MESSAGE="fix: automated build sync"
 
 usage() {
-	echo "Usage: ./build-scripts/build_and_push.sh [--no-push] [--push] [--message='msg'] [commit message]"
+	echo "Usage: ./build-scripts/build_and_push.sh [--skip-git] [--no-push] [--push] [--message='msg'] [commit message]"
+	echo "  --skip-git       Build and commit, but skip git push (alias of --no-push)"
 	echo "  --no-push        Build and commit, but skip git push"
 	echo "  --push           Force push on (default behavior)"
 	echo "  --message=...    Set commit message"
@@ -17,6 +18,9 @@ usage() {
 
 for arg in "$@"; do
 	case "$arg" in
+		--skip-git)
+			PUSH_ENABLED=0
+			;;
 		--no-push)
 			PUSH_ENABLED=0
 			;;
@@ -68,7 +72,7 @@ if [[ "$PUSH_ENABLED" -eq 1 ]]; then
 	echo "[FRACTURED EARTH] Pushing to origin/main..."
 	git push -u origin main
 else
-	echo "[FRACTURED EARTH] --no-push enabled. Skipping git push."
+	echo "[FRACTURED EARTH] --skip-git/--no-push enabled. Skipping git push."
 fi
 
 echo "[FRACTURED EARTH] Build workflow complete."

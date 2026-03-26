@@ -1,8 +1,10 @@
 # Mobile-First Monorepo Architecture & Rules
 
-**For: All future Carter apps (e.g., FracturedEarth, GameX, AppY)**
+**For: All future apps (e.g., GameX, AppY)**
 
 This document defines the architectural patterns, database setup, and deployment strategy for mobile-first applications that work identically on web (Vercel) and Android.
+
+This is the only documentation file to maintain for architecture + build/deploy rules. Do not split these rules into a separate architecture document.
 
 ---
 
@@ -45,8 +47,7 @@ MyApp/
 │   ├── capacitor.json            # Capacitor bridge config
 │   └── src/main/kotlin/          # Kotlin source
 ├── package.json                  # 🎯 Root orchestration config
-├── MONOREPO_ARCHITECTURE.md      # Architecture overview
-└── APP_RULES.md                  # 👈 This file
+└── APP_RULES.md                  # 👈 Single source of truth for architecture + rules
 ```
 
 ### Key Principle
@@ -377,7 +378,7 @@ npm run build       # Build Next.js
 npm run dev         # Dev server (http://localhost:3000)
 npm run lint        # Lint code
 npm run type-check  # Type check
-npm run android:artifacts       # Build debug APK + release APK + release AAB, no push
+npm run android:artifacts       # Build debug APK + release APK + release AAB, skip push (default safe mode)
 npm run android:artifacts:push  # Build debug APK + release APK + release AAB, then push
 ```
 
@@ -392,13 +393,14 @@ Every app must include a debug-heavy artifact script in `build-scripts/build_and
   - `:android-app:bundleRelease` (release AAB)
 3. Writes logs to `build-scripts/logs/`
 4. Stages and commits changes
-5. Supports explicit push control:
-  - **Default flow for local testing**: no push
+5. Supports explicit push control in a reusable workflow style:
+  - **Default flow for local testing**: skip push
   - **Optional push flow**: push to `origin/main`
+  - PowerShell flags include `-Force` and `-SkipGit` (plus `-Push`)
 
 Mandatory no-push switch:
-- PowerShell: `-NoPush`
-- Bash: `--no-push`
+- PowerShell: `-SkipGit` (preferred) or `-NoPush`
+- Bash: `--skip-git` (preferred) or `--no-push`
 
 Mandatory push switch:
 - PowerShell: `-Push`
