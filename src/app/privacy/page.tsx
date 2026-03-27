@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { ImagePromptPlaceholder } from '@/components/ImagePromptPlaceholder';
 
 export default function PrivacyPage() {
   return (
@@ -6,6 +7,15 @@ export default function PrivacyPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Privacy Policy</h1>
         <Link href="/" className="text-sm text-gray-400 hover:text-white">Home</Link>
+      </div>
+
+      {/* AI prompt: secure archive vault with sealed data capsules, parchment records, lock iconography, warm moody lighting, detailed concept art */}
+      <ImagePromptPlaceholder label="Privacy Vault Banner" ratioClassName="aspect-[18/6]" />
+      <div className="grid sm:grid-cols-2 gap-3">
+        {/* AI prompt: privacy notice card pinned to cork board with security badge icon, analog office scene, cinematic realism */}
+        <ImagePromptPlaceholder label="Privacy Notice Card Art" ratioClassName="aspect-[16/9]" />
+        {/* AI prompt: data stream represented as sealed glass vials on shelf, no personal identifiers, atmospheric concept art */}
+        <ImagePromptPlaceholder label="Data Safety Visual Art" ratioClassName="aspect-[16/9]" />
       </div>
 
       <section className="bg-gray-800 rounded-xl p-6 space-y-3 text-sm text-gray-200 leading-relaxed">

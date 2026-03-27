@@ -3,6 +3,7 @@ package com.fracturedearth.ui
 import android.app.Activity
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -54,7 +55,7 @@ fun AppRoot() {
     val themeDao = remember(appDb) { appDb.themeDao() }
     var theme by rememberSaveable { androidx.compose.runtime.mutableStateOf(ThemeOption.OBSIDIAN) }
     var triggerInterstitial by rememberSaveable { androidx.compose.runtime.mutableStateOf(false) }
-    val adFree = billingFacade.isAdFreeActive()
+    val adFree by BillingFacade.adFreeState().collectAsState(initial = billingFacade.isAdFreeActive())
 
     LaunchedEffect(themeDao) {
         val saved = themeDao.getTheme()?.themeName ?: return@LaunchedEffect
@@ -133,10 +134,15 @@ fun AppRoot() {
                 )
             }
             composable(Routes.SUBSCRIPTION) {
+                val activity = context as? Activity
                 SubscriptionScreen(
                     onBack = { navController.popBackStack() },
                     onRestorePurchases = { billingFacade.restorePurchases() },
-                    onSubscribe = { tier: SubscriptionTier -> billingFacade.purchase(tier) },
+                    onSubscribe = { tier: SubscriptionTier ->
+                        if (activity != null) {
+                            billingFacade.purchase(activity, tier)
+                        }
+                    },
                 )
             }
             composable(Routes.GAME_OVER) {

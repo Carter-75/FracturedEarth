@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { authOptions } from '@/lib/auth';
 import { getUserProfile } from '@/lib/kv';
 import { LocalStatsPanel } from '@/components/LocalStatsPanel';
+import { ImagePromptPlaceholder } from '@/components/ImagePromptPlaceholder';
 
 export default async function GameDashboard() {
   const session = await getServerSession(authOptions);
@@ -28,6 +29,15 @@ export default async function GameDashboard() {
         <StatCard label="Games Played" value={profile?.totalGamesPlayed ?? 0} />
         <StatCard label="Total Wins"   value={profile?.totalWins ?? 0} />
         <StatCard label="Active Theme" value={profile?.theme ?? 'Obsidian'} />
+      </div>
+
+      {/* AI prompt: war-room desk with scattered survival cards, tactical notebook, radio device, warm practical lighting, realistic tabletop photography style */}
+      <ImagePromptPlaceholder label="Commander Desk Banner" ratioClassName="aspect-[16/6]" className="mb-8" />
+      <div className="grid sm:grid-cols-2 gap-4 mb-8">
+        {/* AI prompt: survivor portrait card mockup with stitched border, weathered print texture, cinematic key light, collectible card style */}
+        <ImagePromptPlaceholder label="Profile Portrait Card Art" ratioClassName="aspect-[4/3]" />
+        {/* AI prompt: overhead tactical board with route markers and hazard icons, analog map table, warm orange and teal accents */}
+        <ImagePromptPlaceholder label="Operations Map Art" ratioClassName="aspect-[4/3]" />
       </div>
 
       <section className="bg-gray-800 rounded-xl p-6">

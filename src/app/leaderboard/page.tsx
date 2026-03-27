@@ -2,6 +2,7 @@ import { getServerSession } from 'next-auth';
 import Link from 'next/link';
 import { authOptions } from '@/lib/auth';
 import { getLeaderboard } from '@/lib/kv';
+import { ImagePromptPlaceholder } from '@/components/ImagePromptPlaceholder';
 
 export default async function LeaderboardPage() {
   const session = await getServerSession(authOptions);
@@ -14,6 +15,15 @@ export default async function LeaderboardPage() {
         <Link href="/" className="text-sm text-gray-400 hover:text-white transition-colors">
           ← Home
         </Link>
+      </div>
+
+      {/* AI prompt: engraved brass scoreboard mounted above a tabletop arena, rank plates and point markers, cinematic warm contrast, realistic texture */}
+      <ImagePromptPlaceholder label="Leaderboard Crest Artwork" ratioClassName="aspect-[18/6]" className="mb-6" />
+      <div className="grid sm:grid-cols-2 gap-3 mb-6">
+        {/* AI prompt: champion badge medallions arranged by rank, burnished metal and enamel, premium board-game award style */}
+        <ImagePromptPlaceholder label="Rank Medallion Art" ratioClassName="aspect-[16/9]" />
+        {/* AI prompt: points tracker beads on a carved wooden rail, macro tabletop shot, warm cinematic bokeh */}
+        <ImagePromptPlaceholder label="Points Tracker Art" ratioClassName="aspect-[16/9]" />
       </div>
 
       {leaders.length === 0 ? (

@@ -1,3 +1,4 @@
+import java.io.File
 import java.util.Properties
 
 plugins {
@@ -13,6 +14,22 @@ val localProperties = Properties().apply {
         file.inputStream().use { load(it) }
     }
 }
+
+val keystoreProperties = Properties().apply {
+    val candidates = listOf(
+        rootProject.file("keystore.properties"),
+        rootProject.file("android/keystore.properties"),
+        project.file("keystore.properties")
+    )
+    val file = candidates.firstOrNull { it.exists() }
+    if (file != null) {
+        file.inputStream().use { load(it) }
+    }
+}
+
+fun keystoreValue(key: String): String = (keystoreProperties.getProperty(key) ?: "").trim()
+val hasReleaseSigning = listOf("storeFile", "storePassword", "keyAlias", "keyPassword")
+    .all { keystoreValue(it).isNotBlank() }
 
 fun localValue(key: String, fallback: String): String {
     return localProperties.getProperty(key) ?: fallback
@@ -44,8 +61,19 @@ android {
         )
         buildConfigField(
             "String",
+            "ADMOB_APP_ID",
+            "\"${localValue("ADMOB_APP_ID", "ca-app-pub-3940256099942544~3347511713")}\""
+        )
+        manifestPlaceholders["ADMOB_APP_ID"] = localValue("ADMOB_APP_ID", "ca-app-pub-3940256099942544~3347511713")
+        buildConfigField(
+            "String",
             "REVENUECAT_PUBLIC_KEY",
             "\"${localValue("REVENUECAT_PUBLIC_KEY", "")}\""
+        )
+        buildConfigField(
+            "String",
+            "REVENUECAT_ADFREE_ENTITLEMENT",
+            "\"${localValue("REVENUECAT_ADFREE_ENTITLEMENT", "ad_free")}\""
         )
         buildConfigField(
             "String",
@@ -70,9 +98,41 @@ android {
     }
 
     buildTypes {
+        if (hasReleaseSigning) {
+            signingConfigs {
+                create("release") {
+                    val filePath = keystoreValue("storeFile")
+                    storeFile = if (File(filePath).isAbsolute) File(filePath) else rootProject.file(filePath)
+                    storePassword = keystoreValue("storePassword")
+                    keyAlias = keystoreValue("keyAlias")
+                    keyPassword = keystoreValue("keyPassword")
+                }
+            }
+        }
+
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+            if (hasReleaseSigning) {
+                signingConfig = signingConfigs.getByName("release")
+            }
+            // Production builds must use real ad unit IDs. Empty disables ad calls safely.
+            buildConfigField(
+                "String",
+                "ADMOB_BANNER_AD_UNIT",
+                "\"${localValue("ADMOB_BANNER_AD_UNIT_RELEASE", "")}\""
+            )
+            buildConfigField(
+                "String",
+                "ADMOB_INTERSTITIAL_AD_UNIT",
+                "\"${localValue("ADMOB_INTERSTITIAL_AD_UNIT_RELEASE", "")}\""
+            )
+            buildConfigField(
+                "String",
+                "ADMOB_APP_ID",
+                "\"${localValue("ADMOB_APP_ID_RELEASE", localValue("ADMOB_APP_ID", ""))}\""
+            )
+            manifestPlaceholders["ADMOB_APP_ID"] = localValue("ADMOB_APP_ID_RELEASE", localValue("ADMOB_APP_ID", ""))
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

@@ -11,6 +11,7 @@ import {
   saveLocalSettings,
   saveRoomPin,
 } from '@/lib/localProfile';
+import { ImagePromptPlaceholder } from '@/components/ImagePromptPlaceholder';
 
 type RoomMember = {
   userId: string;
@@ -341,6 +342,15 @@ export default function LanRoomsPage() {
       </div>
 
       <section className="fe-panel rounded-3xl p-5 sm:p-6 space-y-4">
+        {/* AI prompt: overhead LAN game table with four carved seats, hand-written seat tags, warm tungsten lamp glow, tactile board-game realism */}
+        <ImagePromptPlaceholder label="Lobby Table Overhead Art" ratioClassName="aspect-[21/8]" />
+        <div className="grid sm:grid-cols-2 gap-3">
+          {/* AI prompt: close-up room code plate made of brass and enamel, engraved letters, soft tabletop shadows, premium board game component photo */}
+          <ImagePromptPlaceholder label="Room Code Plate Art" ratioClassName="aspect-[16/9]" />
+          {/* AI prompt: seat marker tokens with emojis painted on wood chips, arranged around green felt, handcrafted analog style */}
+          <ImagePromptPlaceholder label="Seat Marker Token Art" ratioClassName="aspect-[16/9]" />
+        </div>
+
         <div className="grid lg:grid-cols-[1.4fr_1fr] gap-6">
           <div className="space-y-4">
             <div className="grid sm:grid-cols-2 gap-3">
@@ -429,7 +439,7 @@ export default function LanRoomsPage() {
         {error && <p className="text-sm text-red-300">{error}</p>}
       </section>
 
-      <section className="fe-panel rounded-[2rem] p-5 sm:p-8 fe-seat-enter">
+      <section className="fe-panel fe-table-rail rounded-[2rem] p-5 sm:p-8 fe-seat-enter">
         <div className="flex items-center justify-between gap-4 flex-wrap mb-6">
           <div>
             <p className="text-xs uppercase tracking-[0.28em] fe-muted">Current Room</p>
@@ -463,7 +473,7 @@ export default function LanRoomsPage() {
         </div>
 
         <div className="relative mx-auto max-w-4xl h-[36rem] sm:h-[42rem]">
-          <div className="absolute inset-[18%] rounded-[2.5rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01))] shadow-[0_35px_100px_rgba(0,0,0,0.45)] [transform:perspective(1200px)_rotateX(56deg)]">
+          <div className="absolute inset-[18%] rounded-[2.5rem] fe-table-arena [transform:perspective(1200px)_rotateX(56deg)]">
             <div className="absolute inset-[12%] rounded-[2rem] border border-white/10 bg-black/10" />
           </div>
 
@@ -482,6 +492,9 @@ export default function LanRoomsPage() {
         </div>
 
         <div className="mt-6 grid md:grid-cols-2 gap-4">
+          {/* AI prompt: instruction panel pinned to cork board with hand-drawn arrows showing join flow, rustic game room vibe */}
+          <ImagePromptPlaceholder label="Lobby How-To Panel Art" ratioClassName="aspect-[20/6]" className="md:col-span-2" />
+
           <div className="fe-panel-alt rounded-2xl p-4">
             <h3 className="font-semibold text-lg">How This Lobby Works</h3>
             <ul className="mt-3 space-y-2 text-sm fe-muted">
@@ -532,7 +545,7 @@ function SeatCard({
 
   return (
     <div className={`absolute ${positionClass}`}>
-      <div className="fe-panel-alt rounded-3xl p-4 text-center min-h-[9rem] flex flex-col justify-center gap-2 shadow-2xl shadow-black/30">
+      <div className="fe-seat-plinth rounded-3xl p-4 text-center min-h-[9rem] flex flex-col justify-center gap-2 shadow-2xl shadow-black/30">
         <p className="text-[10px] uppercase tracking-[0.28em] fe-muted">{seat} seat</p>
         {member ? (
           <>

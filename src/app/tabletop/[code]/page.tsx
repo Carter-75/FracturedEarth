@@ -11,6 +11,7 @@ import {
   type LocalMatchOutcome,
 } from '@/lib/localProfile';
 import { cardTheme, describeCardEffect, positionOpponents } from '@/lib/tabletopShared';
+import { ImagePromptPlaceholder } from '@/components/ImagePromptPlaceholder';
 
 type RoomMember = {
   userId: string;
@@ -384,7 +385,16 @@ export default function TabletopPage() {
 
       {error && <p className="text-red-400 text-sm">{error}</p>}
 
-      <section className="fe-panel rounded-[2rem] p-4 sm:p-6 space-y-4 relative overflow-hidden">
+      <section className="fe-panel rounded-[2rem] p-4 sm:p-6 space-y-4 relative overflow-hidden fe-table-rail">
+        {/* AI prompt: dramatic post-apocalypse card table center, worn wood rail, green felt, survival tokens, cinematic rim light, photoreal style */}
+        <ImagePromptPlaceholder label="Tabletop Atmosphere Matte" ratioClassName="aspect-[24/5]" />
+        <div className="grid sm:grid-cols-2 gap-3">
+          {/* AI prompt: draw deck close-up with embossed card backs, candlelit shadows, cinematic board game photography */}
+          <ImagePromptPlaceholder label="Deck Texture Art" ratioClassName="aspect-[16/9]" />
+          {/* AI prompt: discard pile storytelling shot with torn-edge cards, ash particles, warm practical lighting, realistic macro */}
+          <ImagePromptPlaceholder label="Discard Story Art" ratioClassName="aspect-[16/9]" />
+        </div>
+
         {showIntro && payload && (
           <div className="absolute inset-0 z-20 bg-black/75 backdrop-blur-sm flex items-center justify-center fe-game-intro">
             <div className="text-center space-y-3">
@@ -420,12 +430,13 @@ export default function TabletopPage() {
             <div className="absolute right-[10%] bottom-[16%] h-48 w-48 rounded-full bg-orange-300/10 blur-3xl" />
           </div>
 
-          <div className="absolute inset-[16%] rounded-[2.75rem] border border-white/10 shadow-[0_40px_110px_rgba(0,0,0,0.5)] [transform:perspective(1500px)_rotateX(58deg)] fe-table-surface">
-            <div className="absolute inset-[9%] rounded-[2.2rem] border border-white/10 bg-black/10" />
+          <div className="absolute inset-[16%] rounded-[2.75rem] fe-table-arena [transform:perspective(1500px)_rotateX(58deg)]">
+            <div className="absolute inset-[7%] rounded-[2.2rem] border border-white/10 bg-black/10" />
+            <div className="absolute inset-x-[11%] -bottom-3 h-5 rounded-full bg-black/35 blur-md" />
           </div>
 
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 text-center fe-center-stack">
-            <div className="fe-panel-alt rounded-[2rem] px-6 py-5 min-w-[15rem] fe-center-pulse">
+            <div className="fe-center-pedestal rounded-[2rem] px-6 py-5 min-w-[15rem] fe-center-pulse">
               <p className="text-xs uppercase tracking-[0.3em] fe-muted">Center Stack</p>
               <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
                 <button
@@ -470,7 +481,7 @@ export default function TabletopPage() {
 
           {!!payload?.turnPile?.length && (
             <div className="absolute left-1/2 bottom-[29%] -translate-x-1/2 z-10">
-              <div className="fe-panel-alt rounded-xl px-3 py-2 text-center min-w-[13rem]">
+              <div className="fe-center-pedestal rounded-xl px-3 py-2 text-center min-w-[13rem]">
                 <p className="text-[10px] uppercase tracking-[0.22em] fe-muted">Played This Turn</p>
                 <div className="flex items-center justify-center gap-1.5 mt-2">
                   {payload.turnPile.slice(-5).map((card) => {
@@ -517,7 +528,8 @@ export default function TabletopPage() {
                   Active Effect: {myPlayer.twistEffect}
                 </div>
               )}
-              <div className="fe-fan-zone">
+              <div className="fe-hand-rail px-2">
+                <div className="fe-fan-zone">
                 {(myPlayer.hand ?? []).map((card, index, arr) => {
                   const theme = cardTheme(card.type);
                   const isSelected = card.id === selectedCardId;
@@ -598,13 +610,14 @@ export default function TabletopPage() {
                     </button>
                   );
                 })}
+                </div>
               </div>
             </div>
           )}
         </div>
 
         {selectedCard && (
-          <div className="absolute left-1/2 bottom-40 -translate-x-1/2 z-30 w-[20rem] sm:w-[24rem] fe-panel rounded-2xl p-4 space-y-2 border border-white/20 fe-lifted-card">
+          <div className="absolute left-1/2 bottom-40 -translate-x-1/2 z-30 w-[20rem] sm:w-[24rem] fe-center-pedestal rounded-2xl p-4 space-y-2 border border-white/20 fe-lifted-card">
             <p className="text-xs uppercase tracking-[0.2em] fe-muted">Card In Hand</p>
             <h3 className="text-xl font-bold">{selectedCard.name}</h3>
             <p className="text-sm fe-muted">Type: {selectedCard.type}{selectedCard.tier ? ` (Tier ${selectedCard.tier})` : ''}</p>
@@ -638,7 +651,7 @@ export default function TabletopPage() {
         )}
 
         {showDiscardDetails && (
-          <div className="absolute left-4 top-24 z-30 w-[24rem] fe-panel rounded-2xl p-4 space-y-2 border border-white/20">
+          <div className="absolute left-4 top-24 z-30 w-[24rem] fe-center-pedestal rounded-2xl p-4 space-y-2 border border-white/20">
             <div className="flex items-center justify-between">
               <h3 className="font-bold">Discard Pile</h3>
               <button onClick={() => setShowDiscardDetails(false)} className="px-3 py-1 rounded fe-panel-alt text-sm">Close</button>
@@ -680,7 +693,7 @@ function PlayerSeatCard({
   seatLabel: string;
 }) {
   return (
-    <div className={`fe-panel-alt rounded-[1.75rem] p-4 text-center shadow-2xl shadow-black/30 ${active ? 'ring-2 ring-amber-300/80 fe-turn-glow' : ''}`}>
+    <div className={`fe-seat-plinth rounded-[1.75rem] p-4 text-center shadow-2xl shadow-black/30 ${active ? 'ring-2 ring-amber-300/80 fe-turn-glow' : ''}`}>
       <div className="flex items-center justify-between gap-3">
         <div className="text-left">
           <div className="text-[10px] uppercase tracking-[0.28em] fe-muted">{seatLabel} seat</div>

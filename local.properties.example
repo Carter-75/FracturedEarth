@@ -1,8 +1,18 @@
 # Copy to local.properties and fill values
 sdk.dir=C:/Users/you/AppData/Local/Android/Sdk
+
+# AdMob test IDs for debug/local testing
+ADMOB_APP_ID=ca-app-pub-3940256099942544~3347511713
 ADMOB_BANNER_AD_UNIT=ca-app-pub-3940256099942544/6300978111
 ADMOB_INTERSTITIAL_AD_UNIT=ca-app-pub-3940256099942544/1033173712
+
+# AdMob production IDs for release builds
+ADMOB_APP_ID_RELEASE=
+ADMOB_BANNER_AD_UNIT_RELEASE=
+ADMOB_INTERSTITIAL_AD_UNIT_RELEASE=
+
 REVENUECAT_PUBLIC_KEY=
+REVENUECAT_ADFREE_ENTITLEMENT=ad_free
 
 # Vercel KV — from Vercel Dashboard > Storage > KV > .env.local
 VERCEL_KV_REST_URL=

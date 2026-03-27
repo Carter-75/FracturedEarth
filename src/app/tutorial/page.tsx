@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { loadLocalSettings, setTutorialDone } from '@/lib/localProfile';
 import { CARD_GROUPS } from '@/lib/cardCatalog';
 import { describeCardEffect, positionOpponents } from '@/lib/tabletopShared';
+import { ImagePromptPlaceholder } from '@/components/ImagePromptPlaceholder';
 
 type CardType = 'SURVIVAL' | 'DISASTER' | 'POWER' | 'ADAPT' | 'CHAOS' | 'ASCENDED' | 'TWIST' | 'CATACLYSM';
 
@@ -313,6 +314,15 @@ export default function TutorialPage() {
       )}
 
       <section className="fe-panel rounded-3xl p-4 space-y-2">
+        {/* AI prompt: illustrated training manual spread, survival symbols, card anatomy callouts, clean but gritty educational art style */}
+        <ImagePromptPlaceholder label="Tutorial Manual Illustration" ratioClassName="aspect-[20/7]" />
+        <div className="grid sm:grid-cols-2 gap-3">
+          {/* AI prompt: card anatomy blueprint with labeled zones, icon legend, soft parchment background, educational game art */}
+          <ImagePromptPlaceholder label="Card Anatomy Blueprint" ratioClassName="aspect-[16/9]" />
+          {/* AI prompt: turn-order wheel carved in wood with arrow indicators, top-down tabletop render, warm cinematic light */}
+          <ImagePromptPlaceholder label="Turn Order Wheel Art" ratioClassName="aspect-[16/9]" />
+        </div>
+
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <h2 className="font-semibold">Full Card Tour ({tourIndex + 1}/{CARD_TOUR.length})</h2>
           <div className="flex gap-2">

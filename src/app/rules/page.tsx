@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { CARD_GROUPS } from '@/lib/cardCatalog';
+import { ImagePromptPlaceholder } from '@/components/ImagePromptPlaceholder';
 
 export default function RulesPage() {
   const sections = [
@@ -61,6 +62,15 @@ export default function RulesPage() {
           <p className="fe-muted text-sm mt-1">Fast reference for turn order, card effects, and combat logic.</p>
         </div>
         <Link href="/settings" className="fe-panel-alt rounded-xl px-4 py-2 text-sm">Back to settings</Link>
+      </div>
+
+      {/* AI prompt: ancient survival codex opened on a wooden table, illustrated card symbols and disaster sketches, high-detail parchment texture, dramatic side light */}
+      <ImagePromptPlaceholder label="Rules Codex Header Art" ratioClassName="aspect-[20/7]" />
+      <div className="grid sm:grid-cols-2 gap-3">
+        {/* AI prompt: icon legend board for eight card families, hand-painted symbols on aged paper, clean educational layout */}
+        <ImagePromptPlaceholder label="Card Family Legend Art" ratioClassName="aspect-[16/9]" />
+        {/* AI prompt: battle timeline strip showing draw play end phases with arrows and tokens, tabletop infographics style */}
+        <ImagePromptPlaceholder label="Turn Timeline Strip Art" ratioClassName="aspect-[16/9]" />
       </div>
 
       <section className="fe-panel rounded-3xl p-6 space-y-3 text-sm text-gray-200 leading-relaxed">
