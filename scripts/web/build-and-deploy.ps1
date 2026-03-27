@@ -163,6 +163,36 @@ function Backup-AndCopyArtifact {
   Write-Status "Copied $Label to $destination" "SUCCESS"
 }
 
+function Push-WithRebaseRetry {
+  param(
+    [string]$Remote = "origin",
+    [string]$Branch = "main"
+  )
+
+  & git push -u $Remote $Branch
+  if ($LASTEXITCODE -eq 0) {
+    return
+  }
+
+  Write-Status "Push was rejected. Attempting fetch + rebase + retry..." "WARNING"
+
+  & git fetch $Remote
+  if ($LASTEXITCODE -ne 0) {
+    throw "git fetch failed during push retry"
+  }
+
+  & git rebase "$Remote/$Branch"
+  if ($LASTEXITCODE -ne 0) {
+    Write-Status "Rebase failed. Resolve conflicts, run 'git rebase --continue' (or '--abort'), then re-run script." "ERROR"
+    throw "git rebase failed during push retry"
+  }
+
+  & git push -u $Remote $Branch
+  if ($LASTEXITCODE -ne 0) {
+    throw "git push failed after rebase retry"
+  }
+}
+
 Sync-VercelRedisEnv
 
 $gradleArgs = @("--stacktrace", "--warning-mode", "summary", "--console", "plain")
@@ -232,10 +262,7 @@ else {
 
 if ($pushEnabled) {
   Write-Status "Pushing to origin/main (upstream mode, no force push)..." "INFO"
-  & git push -u origin main
-  if ($LASTEXITCODE -ne 0) {
-    throw "git push failed"
-  }
+  Push-WithRebaseRetry -Remote "origin" -Branch "main"
   Write-Status "Push completed." "SUCCESS"
 }
 else {
