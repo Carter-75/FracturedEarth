@@ -65,7 +65,8 @@ Current status:
 
 ## Build & Push Script
 Use:
-- `build-scripts/build_and_push.sh`
+- `scripts/web/build-and-deploy.ps1` (Windows)
+- `scripts/web/build-and-deploy.sh` (bash)
 
 It will:
 - clean
@@ -73,4 +74,5 @@ It will:
 - build release APK
 - build release AAB
 - commit changes
-- push to `main`
+- push to `main` by default
+- skip push only when using the no-push flags

@@ -378,24 +378,25 @@ npm run build       # Build Next.js
 npm run dev         # Dev server (http://localhost:3000)
 npm run lint        # Lint code
 npm run type-check  # Type check
-npm run android:artifacts       # Build debug APK + release APK + release AAB, skip push (default safe mode)
-npm run android:artifacts:push  # Build debug APK + release APK + release AAB, then push
+npm run android:artifacts         # Build debug APK + release APK + release AAB, then push (default)
+npm run android:artifacts:no-push # Build debug APK + release APK + release AAB, skip push
+npm run android:artifacts:push    # Build debug APK + release APK + release AAB, then push
 ```
 
 ### Required Android Artifact Script Pattern
 
-Every app must include a debug-heavy artifact script in `build-scripts/build_and_push.ps1` and (optionally) `build-scripts/build_and_push.sh` that:
+Every app must include a debug-heavy artifact script in `scripts/web/build-and-deploy.ps1` and (optionally) `scripts/web/build-and-deploy.sh` that:
 
 1. Runs clean + build tasks with verbose logging (`--stacktrace --info --debug --warning-mode all`)
 2. Builds all release artifacts in one pass:
   - `:android-app:assembleDebug` (debug APK)
   - `:android-app:assembleRelease` (release APK)
   - `:android-app:bundleRelease` (release AAB)
-3. Writes logs to `build-scripts/logs/`
+3. Writes logs to `scripts/build-scripts/logs/`
 4. Stages and commits changes
 5. Supports explicit push control in a reusable workflow style:
-  - **Default flow for local testing**: skip push
-  - **Optional push flow**: push to `origin/main`
+  - **Default flow**: push to `origin/main`
+  - **Optional local-safe flow**: skip push
   - PowerShell flags include `-Force` and `-SkipGit` (plus `-Push`)
 
 Mandatory no-push switch:
@@ -415,8 +416,8 @@ npm run build
 
 **Step 2**: Build Android
 ```bash
-npm run android:artifacts       # Recommended default (no push)
-npm run android:artifacts:push  # Use when you explicitly want to push
+npm run android:artifacts         # Recommended default (push)
+npm run android:artifacts:no-push # Use when you explicitly want local-only changes
 ```
 
 **Step 3**: Sign and upload to Play Store (manual)

@@ -11,8 +11,9 @@
     "lint": "cd src && npm run lint",
     "type-check": "cd src && tsc --noEmit",
     "android:build": "npm run build && echo 'Android can now call API endpoints at /api/*'",
-    "android:artifacts": "powershell -ExecutionPolicy Bypass -File ./build-scripts/build_and_push.ps1 -SkipGit -Force",
-    "android:artifacts:push": "powershell -ExecutionPolicy Bypass -File ./build-scripts/build_and_push.ps1 -Push -Force",
+    "android:artifacts": "powershell -ExecutionPolicy Bypass -File ./scripts/web/build-and-deploy.ps1 -Force",
+    "android:artifacts:push": "powershell -ExecutionPolicy Bypass -File ./scripts/web/build-and-deploy.ps1 -Push -Force",
+    "android:artifacts:no-push": "powershell -ExecutionPolicy Bypass -File ./scripts/web/build-and-deploy.ps1 -SkipGit -Force",
     "android": "echo 'Build the web app with: npm run build'",
     "clean": "cd src && npm run clean"
   },
