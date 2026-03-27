@@ -25,5 +25,10 @@
     "android"
   ],
   "author": "Carter",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "next": "14.2.5",
+    "react": "^18",
+    "react-dom": "^18"
+  }
 }

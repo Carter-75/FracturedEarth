@@ -385,9 +385,10 @@ npm run android:artifacts:push    # Build debug APK + release APK + release AAB,
 
 ### Required Android Artifact Script Pattern
 
-Every app must include a debug-heavy artifact script in `scripts/web/build-and-deploy.ps1` and (optionally) `scripts/web/build-and-deploy.sh` that:
+Every app must include the PowerShell artifact script in `scripts/web/build-and-deploy.ps1` that:
 
-1. Runs clean + build tasks with verbose logging (`--stacktrace --info --debug --warning-mode all`)
+1. Runs clean + build tasks with summary logging by default (`--stacktrace --warning-mode summary --console plain`)
+2. Supports opt-in `--info` (`-VerboseBuild`) and opt-in `--debug` (`-DebugBuild`) modes only when needed
 2. Builds all release artifacts in one pass:
   - `:android-app:assembleDebug` (debug APK)
   - `:android-app:assembleRelease` (release APK)
