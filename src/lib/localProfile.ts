@@ -1,8 +1,10 @@
+import { isThemeName, type ThemeName } from '@/lib/gameConfig';
+
 export interface LocalUserSettings {
   userId: string;
   displayName: string;
   emoji: string;
-  theme: string;
+  theme: ThemeName;
   soundEnabled: boolean;
 }
 
@@ -49,7 +51,9 @@ export function loadLocalSettings(): LocalUserSettings {
       userId: parsed.userId?.trim() || defaultSettings.userId,
       displayName: parsed.displayName?.trim() || defaultSettings.displayName,
       emoji: parsed.emoji?.trim() || defaultSettings.emoji,
-      theme: parsed.theme?.trim() || defaultSettings.theme,
+      theme: isThemeName(String(parsed.theme ?? '').trim())
+        ? String(parsed.theme).trim() as ThemeName
+        : defaultSettings.theme,
       soundEnabled: parsed.soundEnabled ?? defaultSettings.soundEnabled,
     };
   } catch {
@@ -60,6 +64,7 @@ export function loadLocalSettings(): LocalUserSettings {
 export function saveLocalSettings(next: LocalUserSettings): void {
   if (typeof window === 'undefined') return;
   window.localStorage.setItem(SETTINGS_KEY, JSON.stringify(next));
+  window.dispatchEvent(new CustomEvent('fe:settings-changed', { detail: next }));
 }
 
 export function loadMatchHistory(): LocalMatchOutcome[] {

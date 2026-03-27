@@ -16,7 +16,7 @@ usage() {
 	echo "Usage: ./scripts/web/build-and-deploy.sh [--skip-git] [--no-push] [--push] [--message='msg'] [commit message]"
 	echo "  --skip-git       Build and commit, but skip git push (alias of --no-push)"
 	echo "  --no-push        Build and commit, but skip git push"
-	echo "  --push           Force push on (default behavior)"
+	echo "  --push           Push with: git push -u origin main (default behavior)"
 	echo "  --message=...    Set commit message"
 }
 
@@ -73,7 +73,7 @@ else
 fi
 
 if [[ "$PUSH_ENABLED" -eq 1 ]]; then
-	echo "[FRACTURED EARTH] Pushing to origin/main..."
+	echo "[FRACTURED EARTH] Pushing to origin/main using upstream mode (no force push)..."
 	git push -u origin main
 else
 	echo "[FRACTURED EARTH] --skip-git/--no-push enabled. Skipping git push."

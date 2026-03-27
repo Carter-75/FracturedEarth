@@ -184,7 +184,7 @@ Status legend: [ ] not started, [~] in progress, [x] done
 - [ ] Add CI test tasks and baseline thresholds
 
 ## 15) CI/CD and Automation
-- [x] Create /build-scripts/build_and_push.sh with required steps
+- [x] Create scripts/web/build-and-deploy.sh with required steps
 - [x] Add executable permissions guidance for Windows+Git Bash
 - [x] Add CI workflow:
   - [x] build debug APK

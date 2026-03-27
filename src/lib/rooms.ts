@@ -1,4 +1,5 @@
-import { kv } from '@vercel/kv';
+import { getRedis } from '@/lib/redis';
+import { EMOJI_OPTIONS } from '@/lib/gameConfig';
 
 export type RoomStatus = 'OPEN' | 'IN_GAME' | 'CLOSED';
 export type RoomMode = 'LOCAL_WIFI';
@@ -36,6 +37,41 @@ export interface RoomGameState {
 
 function normalizeCode(code: string): string {
   return code.trim().toUpperCase();
+}
+
+function normalizeEmoji(emoji?: string): string {
+  const next = String(emoji ?? '').trim();
+  if (EMOJI_OPTIONS.includes(next as (typeof EMOJI_OPTIONS)[number])) return next;
+  return EMOJI_OPTIONS[0];
+}
+
+function isActiveMember(member: RoomMember): boolean {
+  return !member.disconnectedAtEpochMs;
+}
+
+function usedEmojiSet(members: RoomMember[], excludeUserId?: string): Set<string> {
+  return new Set(
+    members
+      .filter((member) => isActiveMember(member) && member.userId !== excludeUserId)
+      .map((member) => member.emoji),
+  );
+}
+
+function isEmojiAvailable(members: RoomMember[], emoji: string, excludeUserId?: string): boolean {
+  return !usedEmojiSet(members, excludeUserId).has(emoji);
+}
+
+function pickAvailableEmoji(members: RoomMember[], preferred?: string, excludeUserId?: string): string {
+  const normalizedPreferred = normalizeEmoji(preferred);
+  if (isEmojiAvailable(members, normalizedPreferred, excludeUserId)) {
+    return normalizedPreferred;
+  }
+
+  return EMOJI_OPTIONS.find((candidate) => isEmojiAvailable(members, candidate, excludeUserId)) ?? normalizedPreferred;
+}
+
+function countActiveMembers(members: RoomMember[]): number {
+  return members.filter(isActiveMember).length;
 }
 
 function generateCode(): string {
@@ -80,6 +116,7 @@ function normalizeMember(raw: Partial<RoomMember>): RoomMember {
 function pruneMembers(input: RoomMember[], now = Date.now()): RoomMember[] {
   const pruned = input
     .map((member) => {
+      if (member.isBot) return member;
       const disconnectedAt = member.disconnectedAtEpochMs;
       if (disconnectedAt) return member;
       if (now - member.lastHeartbeatEpochMs > RECONNECT_GRACE_MS) {
@@ -96,9 +133,10 @@ function pruneMembers(input: RoomMember[], now = Date.now()): RoomMember[] {
 }
 
 async function generateUniqueCode(maxAttempts = 12): Promise<string> {
+  const redis = await getRedis();
   for (let i = 0; i < maxAttempts; i++) {
     const code = generateCode();
-    const exists = await kv.exists(lobbyMetaKey(code));
+    const exists = await redis.exists(lobbyMetaKey(code));
     if (!exists) return code;
   }
   throw new Error('Unable to allocate unique room code');
@@ -119,13 +157,14 @@ export async function createRoom(input: {
     {
       userId: input.hostUserId,
       displayName: hostDisplayName,
-      emoji: input.hostEmoji || '🌍',
+      emoji: normalizeEmoji(input.hostEmoji),
       joinedAtEpochMs: now,
       lastHeartbeatEpochMs: now,
     },
   ];
 
-  await kv.hset(lobbyMetaKey(code), {
+  const redis = await getRedis();
+  await redis.hSet(lobbyMetaKey(code), {
     hostUserId: input.hostUserId,
     hostDisplayName,
     mode: 'LOCAL_WIFI',
@@ -134,7 +173,7 @@ export async function createRoom(input: {
     createdAtEpochMs: String(now),
     updatedAtEpochMs: String(now),
   });
-  await kv.set(lobbyMembersKey(code), JSON.stringify(members));
+  await redis.set(lobbyMembersKey(code), JSON.stringify(members));
 
   return {
     code,
@@ -151,10 +190,11 @@ export async function createRoom(input: {
 
 export async function getRoom(codeRaw: string): Promise<RoomSnapshot | null> {
   const code = normalizeCode(codeRaw);
-  const meta = await kv.hgetall<Record<string, string>>(lobbyMetaKey(code));
-  if (!meta) return null;
+  const redis = await getRedis();
+  const meta = await redis.hGetAll(lobbyMetaKey(code));
+  if (!meta || Object.keys(meta).length === 0) return null;
 
-  const membersRaw = (await kv.get<string>(lobbyMembersKey(code))) ?? '[]';
+  const membersRaw = (await redis.get(lobbyMembersKey(code))) ?? '[]';
   const parsedMembers = (JSON.parse(membersRaw) as Array<Partial<RoomMember>>).map(normalizeMember);
   const members = pruneMembers(parsedMembers);
   const hostUserId = pickNextHost(meta.hostUserId ?? '', members);
@@ -165,8 +205,8 @@ export async function getRoom(codeRaw: string): Promise<RoomSnapshot | null> {
     members.length !== parsedMembers.length ||
     JSON.stringify(members) !== JSON.stringify(parsedMembers)
   ) {
-    await kv.set(lobbyMembersKey(code), JSON.stringify(members));
-    await kv.hset(lobbyMetaKey(code), {
+    await redis.set(lobbyMembersKey(code), JSON.stringify(members));
+    await redis.hSet(lobbyMetaKey(code), {
       hostUserId,
       updatedAtEpochMs: String(updatedAtEpochMs),
       status: members.length === 0 ? 'CLOSED' : (meta.status ?? 'OPEN'),
@@ -196,7 +236,12 @@ export async function joinRoom(input: {
   if (!current || current.status !== 'OPEN') return null;
 
   const exists = current.members.some((m) => m.userId === input.userId);
-  if (!exists && current.members.length >= current.maxPlayers) return null;
+  if (!exists && countActiveMembers(current.members) >= current.maxPlayers) return null;
+
+  const requestedEmoji = normalizeEmoji(input.emoji);
+  if (!isEmojiAvailable(current.members, requestedEmoji, exists ? input.userId : undefined)) {
+    throw new Error('Emoji already taken');
+  }
 
   const nextMembers = exists
     ? current.members.map((m) =>
@@ -204,7 +249,7 @@ export async function joinRoom(input: {
           ? {
               ...m,
               displayName: input.displayName || m.displayName,
-              emoji: input.emoji || m.emoji,
+              emoji: requestedEmoji,
               disconnectedAtEpochMs: undefined,
               lastHeartbeatEpochMs: Date.now(),
             }
@@ -215,7 +260,7 @@ export async function joinRoom(input: {
         {
           userId: input.userId,
           displayName: input.displayName || 'Player',
-          emoji: input.emoji || '🌍',
+          emoji: requestedEmoji,
           joinedAtEpochMs: Date.now(),
           lastHeartbeatEpochMs: Date.now(),
         },
@@ -223,8 +268,9 @@ export async function joinRoom(input: {
 
   const code = normalizeCode(input.code);
   const updatedAtEpochMs = Date.now();
-  await kv.set(lobbyMembersKey(code), JSON.stringify(nextMembers));
-  await kv.hset(lobbyMetaKey(code), { updatedAtEpochMs: String(updatedAtEpochMs) });
+  const redis = await getRedis();
+  await redis.set(lobbyMembersKey(code), JSON.stringify(nextMembers));
+  await redis.hSet(lobbyMetaKey(code), { updatedAtEpochMs: String(updatedAtEpochMs) });
 
   return { ...current, members: nextMembers, updatedAtEpochMs };
 }
@@ -249,8 +295,9 @@ export async function leaveRoom(input: {
   const nextHostUserId = pickNextHost(current.hostUserId, prunedMembers);
   const updatedAtEpochMs = Date.now();
 
-  await kv.set(lobbyMembersKey(code), JSON.stringify(prunedMembers));
-  await kv.hset(lobbyMetaKey(code), {
+  const redis = await getRedis();
+  await redis.set(lobbyMembersKey(code), JSON.stringify(prunedMembers));
+  await redis.hSet(lobbyMetaKey(code), {
     updatedAtEpochMs: String(updatedAtEpochMs),
     hostUserId: nextHostUserId,
     status: prunedMembers.length === 0 ? 'CLOSED' : current.status,
@@ -272,11 +319,13 @@ export async function startRoomMatch(input: {
   const current = await getRoom(input.code);
   if (!current) return null;
   if (current.hostUserId !== input.hostUserId) return null;
-  if (current.members.length < 2 || current.members.length > 4) return null;
+  const activeMembers = current.members.filter(isActiveMember);
+  if (activeMembers.length < 2 || activeMembers.length > 4) return null;
 
   const code = normalizeCode(input.code);
   const updatedAtEpochMs = Date.now();
-  await kv.hset(lobbyMetaKey(code), {
+  const redis = await getRedis();
+  await redis.hSet(lobbyMetaKey(code), {
     status: 'IN_GAME',
     updatedAtEpochMs: String(updatedAtEpochMs),
   });
@@ -288,9 +337,76 @@ export async function startRoomMatch(input: {
   };
 }
 
+export async function addBotToRoom(input: {
+  code: string;
+  hostUserId: string;
+}): Promise<RoomSnapshot | null> {
+  const current = await getRoom(input.code);
+  if (!current || current.status !== 'OPEN') return null;
+  if (current.hostUserId !== input.hostUserId) return null;
+
+  const activeMembers = current.members.filter(isActiveMember);
+  if (activeMembers.length >= current.maxPlayers) return null;
+
+  const botIndex = current.members.filter((member) => member.isBot).length + 1;
+  const now = Date.now();
+  const nextMembers = [
+    ...current.members,
+    {
+      userId: `bot_${botIndex}_${now}`,
+      displayName: `Bot ${botIndex}`,
+      emoji: pickAvailableEmoji(current.members),
+      joinedAtEpochMs: now,
+      lastHeartbeatEpochMs: now,
+      isBot: true,
+    },
+  ];
+
+  const code = normalizeCode(input.code);
+  const updatedAtEpochMs = Date.now();
+  const redis = await getRedis();
+  await redis.set(lobbyMembersKey(code), JSON.stringify(nextMembers));
+  await redis.hSet(lobbyMetaKey(code), { updatedAtEpochMs: String(updatedAtEpochMs) });
+
+  return { ...current, members: nextMembers, updatedAtEpochMs };
+}
+
+export async function removeRoomMember(input: {
+  code: string;
+  hostUserId: string;
+  targetUserId: string;
+}): Promise<RoomSnapshot | null> {
+  const current = await getRoom(input.code);
+  if (!current || current.status !== 'OPEN') return null;
+  if (current.hostUserId !== input.hostUserId) return null;
+  if (input.targetUserId === current.hostUserId) return null;
+  if (!current.members.some((member) => member.userId === input.targetUserId)) return null;
+
+  const nextMembers = current.members.filter((member) => member.userId !== input.targetUserId);
+  const nextHostUserId = pickNextHost(current.hostUserId, nextMembers);
+  const updatedAtEpochMs = Date.now();
+  const code = normalizeCode(input.code);
+  const redis = await getRedis();
+  await redis.set(lobbyMembersKey(code), JSON.stringify(nextMembers));
+  await redis.hSet(lobbyMetaKey(code), {
+    updatedAtEpochMs: String(updatedAtEpochMs),
+    hostUserId: nextHostUserId,
+    status: nextMembers.length === 0 ? 'CLOSED' : current.status,
+  });
+
+  return {
+    ...current,
+    hostUserId: nextHostUserId,
+    status: nextMembers.length === 0 ? 'CLOSED' : current.status,
+    members: nextMembers,
+    updatedAtEpochMs,
+  };
+}
+
 export async function getRoomGameState(codeRaw: string): Promise<RoomGameState | null> {
   const code = normalizeCode(codeRaw);
-  const raw = await kv.get<string>(lobbyStateKey(code));
+  const redis = await getRedis();
+  const raw = await redis.get(lobbyStateKey(code));
   if (!raw) return null;
 
   return JSON.parse(raw) as RoomGameState;
@@ -323,8 +439,9 @@ export async function putRoomGameState(input: {
     payload: input.payload,
   };
 
-  await kv.set(lobbyStateKey(code), JSON.stringify(nextState));
-  await kv.hset(lobbyMetaKey(code), { updatedAtEpochMs: String(nextState.updatedAtEpochMs) });
+  const redis = await getRedis();
+  await redis.set(lobbyStateKey(code), JSON.stringify(nextState));
+  await redis.hSet(lobbyMetaKey(code), { updatedAtEpochMs: String(nextState.updatedAtEpochMs) });
   return nextState;
 }
 
@@ -348,8 +465,9 @@ export async function heartbeatRoom(input: {
   if (!nextMembers.some((m) => m.userId === input.userId)) return null;
 
   const code = normalizeCode(input.code);
-  await kv.set(lobbyMembersKey(code), JSON.stringify(nextMembers));
-  await kv.hset(lobbyMetaKey(code), { updatedAtEpochMs: String(updatedAtEpochMs) });
+  const redis = await getRedis();
+  await redis.set(lobbyMembersKey(code), JSON.stringify(nextMembers));
+  await redis.hSet(lobbyMetaKey(code), { updatedAtEpochMs: String(updatedAtEpochMs) });
 
   return {
     ...room,

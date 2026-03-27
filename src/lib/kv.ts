@@ -1,4 +1,4 @@
-import { kv } from '@vercel/kv';
+import { getRedis } from '@/lib/redis';
 
 export interface UserProfile {
   userId: string;
@@ -16,8 +16,9 @@ export interface LeaderboardEntry {
 
 export async function getUserProfile(userId: string): Promise<UserProfile | null> {
   if (!userId) return null;
-  const data = await kv.hgetall<Record<string, string>>(`user:${userId}`);
-  if (!data) return null;
+  const redis = await getRedis();
+  const data = await redis.hGetAll(`user:${userId}`);
+  if (!data || Object.keys(data).length === 0) return null;
   return {
     userId,
     displayName: data.displayName ?? '',
@@ -32,7 +33,8 @@ export async function upsertUserProfile(
   profile: Partial<UserProfile> & { userId: string },
 ): Promise<void> {
   const { userId, ...rest } = profile;
-  await kv.hset(`user:${userId}`, rest as Record<string, string>);
+  const redis = await getRedis();
+  await redis.hSet(`user:${userId}`, rest as Record<string, string>);
 }
 
 export async function recordGameResult(
@@ -40,18 +42,16 @@ export async function recordGameResult(
   won: boolean,
   survivalPoints: number,
 ): Promise<void> {
-  const pipe = kv.pipeline();
-  pipe.hincrby(`user:${userId}`, 'totalGamesPlayed', 1);
-  if (won) pipe.hincrby(`user:${userId}`, 'totalWins', 1);
-  pipe.zadd('leaderboard', { score: survivalPoints, member: userId });
+  const redis = await getRedis();
+  const pipe = redis.multi();
+  pipe.hIncrBy(`user:${userId}`, 'totalGamesPlayed', 1);
+  if (won) pipe.hIncrBy(`user:${userId}`, 'totalWins', 1);
+  pipe.zAdd('leaderboard', { score: survivalPoints, value: userId });
   await pipe.exec();
 }
 
 export async function getLeaderboard(limit = 10): Promise<LeaderboardEntry[]> {
-  const raw = await kv.zrange<string[]>('leaderboard', 0, limit - 1, { rev: true, withScores: true });
-  const entries: LeaderboardEntry[] = [];
-  for (let i = 0; i < raw.length; i += 2) {
-    entries.push({ member: raw[i], score: Number(raw[i + 1]) });
-  }
-  return entries;
+  const redis = await getRedis();
+  const raw = await redis.zRangeWithScores('leaderboard', 0, limit - 1, { REV: true });
+  return raw.map((entry) => ({ member: entry.value, score: entry.score }));
 }

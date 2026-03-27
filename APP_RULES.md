@@ -406,6 +406,7 @@ Mandatory no-push switch:
 Mandatory push switch:
 - PowerShell: `-Push`
 - Bash: `--push`
+- Push policy: always use `git push -u origin main`; do not use force-push unless explicitly required for emergency recovery.
 
 ### Android Deployment
 

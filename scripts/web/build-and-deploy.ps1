@@ -82,7 +82,7 @@ else {
 }
 
 if ($pushEnabled) {
-  Write-Host "[FRACTURED EARTH] Pushing to origin/main..."
+  Write-Host "[FRACTURED EARTH] Pushing to origin/main using upstream mode (no force push)..."
   & git push -u origin main
   if ($LASTEXITCODE -ne 0) {
     throw "git push failed"

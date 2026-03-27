@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { EMOJI_OPTIONS, THEME_OPTIONS } from '@/lib/gameConfig';
 import {
   clearRoomPin,
   loadLocalSettings,
@@ -10,6 +12,16 @@ import {
   saveRoomPin,
 } from '@/lib/localProfile';
 
+type RoomMember = {
+  userId: string;
+  displayName: string;
+  emoji: string;
+  joinedAtEpochMs: number;
+  disconnectedAtEpochMs?: number | null;
+  lastHeartbeatEpochMs?: number;
+  isBot?: boolean;
+};
+
 type Room = {
   code: string;
   hostUserId: string;
@@ -17,27 +29,43 @@ type Room = {
   mode: 'LOCAL_WIFI';
   status: 'OPEN' | 'IN_GAME' | 'CLOSED';
   maxPlayers: number;
-  members: Array<{ userId: string; displayName: string; emoji: string; joinedAtEpochMs: number }>;
+  members: RoomMember[];
   createdAtEpochMs: number;
   updatedAtEpochMs: number;
 };
 
-const EMOJIS = ['🌍', '🔥', '⚡', '🌊', '🪨', '🌪️', '🌙', '☀️', '🛰️', '🦾'];
+type SeatPosition = 'bottom' | 'left' | 'top' | 'right';
+
+const SEAT_ORDER: SeatPosition[] = ['bottom', 'left', 'top', 'right'];
 
 export default function LanRoomsPage() {
   const router = useRouter();
   const [userId, setUserId] = useState('web_player');
   const [displayName, setDisplayName] = useState('Web Player');
   const [emoji, setEmoji] = useState('🌍');
-  const [theme, setTheme] = useState('Obsidian');
+  const [theme, setTheme] = useState<(typeof THEME_OPTIONS)[number]>('Obsidian');
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [roomCode, setRoomCode] = useState('');
   const [room, setRoom] = useState<Room | null>(null);
-  const [error, setError] = useState<string>('');
-  const [isStarting, setIsStarting] = useState(false);
+  const [error, setError] = useState('');
+  const [busyAction, setBusyAction] = useState('');
+  const [copied, setCopied] = useState(false);
 
-  const roomLabel = useMemo(() => (room ? `${room.code} (${room.status})` : 'No active room'), [room]);
   const amHost = room?.hostUserId === userId;
+  const activeMembers = useMemo(
+    () => (room?.members ?? []).filter((member) => !member.disconnectedAtEpochMs),
+    [room],
+  );
+  const canStart = Boolean(amHost && room?.status === 'OPEN' && activeMembers.length >= 2);
+  const takenEmojis = useMemo(() => new Set(activeMembers.map((member) => member.emoji)), [activeMembers]);
+
+  const seats = useMemo(() => {
+    const orderedMembers = activeMembers.slice(0, 4);
+    return SEAT_ORDER.map((position, index) => ({
+      position,
+      member: orderedMembers[index] ?? null,
+    }));
+  }, [activeMembers]);
 
   useEffect(() => {
     const settings = loadLocalSettings();
@@ -62,51 +90,112 @@ export default function LanRoomsPage() {
 
   useEffect(() => {
     if (!room) return;
-    const me = room.members.some((m) => m.userId === userId);
-    if (me && room.status !== 'CLOSED') {
-      saveRoomPin({
-        code: room.code,
-        userId,
-        displayName,
-        emoji,
-        ttlMs: 60_000,
-      });
-      return;
+    const isMember = activeMembers.some((member) => member.userId === userId);
+    if (isMember && room.status !== 'CLOSED') {
+      saveRoomPin({ code: room.code, userId, displayName, emoji, ttlMs: 60_000 });
+    } else {
+      clearRoomPin();
     }
-    clearRoomPin();
-  }, [room, userId, displayName, emoji]);
+  }, [room, activeMembers, userId, displayName, emoji]);
+
+  useEffect(() => {
+    if (!roomCode.trim()) return;
+
+    let pollTimer: ReturnType<typeof setTimeout> | undefined;
+    let cancelled = false;
+
+    const refresh = async () => {
+      try {
+        const code = roomCode.trim().toUpperCase();
+        const res = await fetch(`/api/rooms/${code}`, { cache: 'no-store' });
+        if (!res.ok) {
+          if (!cancelled) {
+            setRoom(null);
+          }
+          return;
+        }
+
+        const nextRoom = (await res.json()) as Room;
+        if (cancelled) return;
+        setRoom(nextRoom);
+        setError('');
+
+        const isMember = nextRoom.members.some(
+          (member) => member.userId === userId && !member.disconnectedAtEpochMs,
+        );
+
+        if (isMember) {
+          await fetch(`/api/rooms/${code}/heartbeat`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId }),
+          });
+        }
+
+        if (nextRoom.status === 'IN_GAME' && isMember) {
+          router.push(`/tabletop/${code}?userId=${encodeURIComponent(userId)}`);
+          return;
+        }
+      } catch {
+        if (!cancelled) setError('Unable to sync room');
+      } finally {
+        if (!cancelled) {
+          pollTimer = setTimeout(refresh, 1600);
+        }
+      }
+    };
+
+    refresh();
+    return () => {
+      cancelled = true;
+      clearTimeout(pollTimer);
+    };
+  }, [roomCode, userId, router]);
 
   async function createRoom() {
+    setBusyAction('create');
     setError('');
-    const res = await fetch('/api/rooms', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ hostUserId: userId, hostDisplayName: displayName, hostEmoji: emoji, maxPlayers: 4 }),
-    });
-    if (!res.ok) {
-      setError('Failed to create room');
-      return;
+    try {
+      const res = await fetch('/api/rooms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          hostUserId: userId.trim(),
+          hostDisplayName: displayName.trim() || 'Host',
+          hostEmoji: emoji,
+          maxPlayers: 4,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(String(data?.error ?? 'Failed to create room'));
+      setRoom(data as Room);
+      setRoomCode((data as Room).code);
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError.message : 'Failed to create room');
+    } finally {
+      setBusyAction('');
     }
-    const data = (await res.json()) as Room;
-    setRoom(data);
-    setRoomCode(data.code);
   }
 
   async function joinRoom() {
+    setBusyAction('join');
     setError('');
-    const code = roomCode.trim().toUpperCase();
-    const res = await fetch(`/api/rooms/${code}/join`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId, displayName, emoji }),
-    });
-    if (!res.ok) {
-      setError('Unable to join room');
-      return;
+    try {
+      const code = roomCode.trim().toUpperCase();
+      const res = await fetch(`/api/rooms/${code}/join`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: userId.trim(), displayName: displayName.trim() || 'Player', emoji }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(String(data?.error ?? 'Unable to join room'));
+      setRoom(data as Room);
+      setRoomCode((data as Room).code);
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError.message : 'Unable to join room');
+    } finally {
+      setBusyAction('');
     }
-    const data = (await res.json()) as Room;
-    setRoom(data);
-    setRoomCode(data.code);
   }
 
   async function rejoinSavedRoom() {
@@ -115,136 +204,359 @@ export default function LanRoomsPage() {
       setError('No saved room code available');
       return;
     }
-
-    setUserId(pin.userId);
-    setDisplayName(pin.displayName || displayName);
-    setEmoji(pin.emoji || emoji);
-    setRoomCode(pin.code);
+    setBusyAction('join');
     setError('');
+    try {
+      setUserId(pin.userId);
+      setDisplayName(pin.displayName || displayName);
+      setEmoji(pin.emoji || emoji);
+      setRoomCode(pin.code);
 
-    const res = await fetch(`/api/rooms/${pin.code}/join`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        userId: pin.userId,
-        displayName: pin.displayName || displayName,
-        emoji: pin.emoji || emoji,
-      }),
-    });
-    if (!res.ok) {
+      const res = await fetch(`/api/rooms/${pin.code}/join`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: pin.userId,
+          displayName: pin.displayName || displayName,
+          emoji: pin.emoji || emoji,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(String(data?.error ?? 'Unable to rejoin room'));
+      setRoom(data as Room);
+    } catch (nextError) {
       clearRoomPin();
-      setError('Saved room has expired or is unavailable');
-      return;
+      setError(nextError instanceof Error ? nextError.message : 'Unable to rejoin room');
+    } finally {
+      setBusyAction('');
     }
-    const data = (await res.json()) as Room;
-    setRoom(data);
   }
 
-  async function refreshRoom() {
-    if (!roomCode.trim()) return;
-    const code = roomCode.trim().toUpperCase();
-    const res = await fetch(`/api/rooms/${code}`);
-    if (!res.ok) {
-      setError('Room not found');
-      return;
-    }
+  async function leaveCurrentRoom() {
+    if (!room) return;
+    setBusyAction('leave');
     setError('');
-    setRoom((await res.json()) as Room);
+    try {
+      const res = await fetch(`/api/rooms/${room.code}/leave`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(String(data?.error ?? 'Unable to leave room'));
+      setRoom(data as Room);
+      clearRoomPin();
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError.message : 'Unable to leave room');
+    } finally {
+      setBusyAction('');
+    }
+  }
+
+  async function addBot() {
+    if (!room || !amHost) return;
+    setBusyAction('bot');
+    setError('');
+    try {
+      const res = await fetch(`/api/rooms/${room.code}/lobby`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ hostUserId: userId, operation: 'ADD_BOT' }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(String(data?.error ?? 'Unable to add bot'));
+      setRoom(data as Room);
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError.message : 'Unable to add bot');
+    } finally {
+      setBusyAction('');
+    }
+  }
+
+  async function removeMember(targetUserId: string) {
+    if (!room || !amHost) return;
+    setBusyAction(`kick:${targetUserId}`);
+    setError('');
+    try {
+      const res = await fetch(`/api/rooms/${room.code}/lobby`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ hostUserId: userId, operation: 'REMOVE_MEMBER', targetUserId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(String(data?.error ?? 'Unable to remove member'));
+      setRoom(data as Room);
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError.message : 'Unable to remove member');
+    } finally {
+      setBusyAction('');
+    }
   }
 
   async function startRoom() {
     if (!room || !amHost) return;
+    setBusyAction('start');
     setError('');
-    setIsStarting(true);
-    const code = room.code.trim().toUpperCase();
     try {
-      const res = await fetch(`/api/rooms/${code}/start`, {
+      const res = await fetch(`/api/rooms/${room.code}/start`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ hostUserId: userId }),
       });
-      if (!res.ok) {
-        setError('Unable to start room. Need 2 to 4 players.');
-        return;
-      }
-      router.push(`/tabletop/${code}?userId=${encodeURIComponent(userId)}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(String(data?.error ?? 'Need 2 to 4 players to start'));
+      setRoom(data as Room);
+      router.push(`/tabletop/${room.code}?userId=${encodeURIComponent(userId)}`);
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError.message : 'Unable to start room');
     } finally {
-      setIsStarting(false);
+      setBusyAction('');
+    }
+  }
+
+  async function copyCode() {
+    if (!room?.code) return;
+    try {
+      await navigator.clipboard.writeText(room.code);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1200);
+    } catch {
+      setError('Unable to copy room code');
     }
   }
 
   return (
-    <main className="min-h-screen p-8 max-w-3xl mx-auto space-y-6">
-      <h1 className="text-3xl font-bold">Cross-Platform Rooms</h1>
-      <p className="text-sm text-gray-400">
-        Create or join with room code. Any player on app or web can join this room.
-      </p>
+    <main className="min-h-screen px-4 py-8 sm:px-8 max-w-6xl mx-auto space-y-6">
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-4xl font-bold tracking-tight">Room Lobby</h1>
+          <p className="fe-muted mt-2 max-w-2xl text-sm sm:text-base">
+            Host a local Wi-Fi room, share the six-character code, fill up to four seats with friends or bots,
+            and start once two or more seats are occupied.
+          </p>
+        </div>
+        <Link href="/settings" className="fe-panel-alt rounded-xl px-4 py-2 text-sm hover:opacity-90">
+          Open Settings
+        </Link>
+      </div>
 
-      <section className="bg-gray-800 rounded-xl p-4 space-y-3">
-        <div className="grid sm:grid-cols-2 gap-3">
-          <input
-            className="bg-gray-900 rounded px-3 py-2"
-            value={userId}
-            onChange={(e) => setUserId(e.target.value)}
-            placeholder="user id"
-          />
-          <input
-            className="bg-gray-900 rounded px-3 py-2"
-            value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
-            placeholder="display name"
-          />
-          <select className="bg-gray-900 rounded px-3 py-2" value={emoji} onChange={(e) => setEmoji(e.target.value)}>
-            {EMOJIS.map((x) => <option key={x} value={x}>{x}</option>)}
-          </select>
-          <input
-            className="bg-gray-900 rounded px-3 py-2"
-            value={theme}
-            onChange={(e) => setTheme(e.target.value)}
-            placeholder="theme"
-          />
+      <section className="fe-panel rounded-3xl p-5 sm:p-6 space-y-4">
+        <div className="grid lg:grid-cols-[1.4fr_1fr] gap-6">
+          <div className="space-y-4">
+            <div className="grid sm:grid-cols-2 gap-3">
+              <input
+                className="fe-panel-alt rounded-xl px-3 py-3 outline-none"
+                value={userId}
+                onChange={(event) => setUserId(event.target.value)}
+                placeholder="Your player id"
+              />
+              <input
+                className="fe-panel-alt rounded-xl px-3 py-3 outline-none"
+                value={displayName}
+                onChange={(event) => setDisplayName(event.target.value)}
+                placeholder="Display name"
+              />
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-3">
+              <select
+                className="fe-panel-alt rounded-xl px-3 py-3 outline-none"
+                value={emoji}
+                onChange={(event) => setEmoji(event.target.value)}
+              >
+                {EMOJI_OPTIONS.map((candidate) => {
+                  const disabled = takenEmojis.has(candidate) && !activeMembers.some((member) => member.userId === userId && member.emoji === candidate);
+                  return (
+                    <option key={candidate} value={candidate} disabled={disabled}>
+                      {candidate} {disabled ? 'taken' : ''}
+                    </option>
+                  );
+                })}
+              </select>
+
+              <select
+                className="fe-panel-alt rounded-xl px-3 py-3 outline-none"
+                value={theme}
+                onChange={(event) => setTheme(event.target.value as (typeof THEME_OPTIONS)[number])}
+              >
+                {THEME_OPTIONS.map((candidate) => (
+                  <option key={candidate} value={candidate}>
+                    {candidate}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <label className="inline-flex items-center gap-2 text-sm fe-muted">
+              <input type="checkbox" checked={soundEnabled} onChange={(event) => setSoundEnabled(event.target.checked)} />
+              Sound enabled
+            </label>
+          </div>
+
+          <div className="fe-panel-alt rounded-2xl p-4 space-y-3">
+            <div>
+              <p className="text-xs uppercase tracking-[0.24em] fe-muted">Room Code</p>
+              <div className="mt-2 flex items-center gap-3">
+                <input
+                  className="fe-panel rounded-xl px-3 py-3 w-full tracking-[0.35em] font-semibold uppercase"
+                  value={roomCode}
+                  onChange={(event) => setRoomCode(event.target.value.toUpperCase())}
+                  placeholder="ABC123"
+                  maxLength={6}
+                />
+                <button onClick={joinRoom} disabled={busyAction !== ''} className="fe-button-primary rounded-xl px-4 py-3 font-semibold disabled:opacity-50">
+                  Join
+                </button>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <button onClick={createRoom} disabled={busyAction !== ''} className="fe-button-primary rounded-xl px-4 py-3 font-semibold disabled:opacity-50">
+                Create Room
+              </button>
+              <button onClick={rejoinSavedRoom} disabled={busyAction !== ''} className="fe-panel rounded-xl px-4 py-3 font-semibold disabled:opacity-50">
+                Rejoin Saved
+              </button>
+              {room && (
+                <button onClick={leaveCurrentRoom} disabled={busyAction !== ''} className="fe-panel rounded-xl px-4 py-3 font-semibold disabled:opacity-50">
+                  Leave Room
+                </button>
+              )}
+            </div>
+          </div>
         </div>
 
-        <label className="inline-flex items-center gap-2 text-sm text-gray-300">
-          <input type="checkbox" checked={soundEnabled} onChange={(e) => setSoundEnabled(e.target.checked)} />
-          Sound enabled
-        </label>
-
-        <div className="flex flex-wrap gap-2">
-          <button onClick={createRoom} className="px-4 py-2 rounded bg-emerald-700 hover:bg-emerald-600">Create Room</button>
-          <input
-            className="bg-gray-900 rounded px-3 py-2"
-            value={roomCode}
-            onChange={(e) => setRoomCode(e.target.value)}
-            placeholder="ROOMCODE"
-          />
-          <button onClick={joinRoom} className="px-4 py-2 rounded bg-blue-700 hover:bg-blue-600">Join Room</button>
-          <button onClick={rejoinSavedRoom} className="px-4 py-2 rounded bg-teal-700 hover:bg-teal-600">Rejoin Saved</button>
-          <button onClick={refreshRoom} className="px-4 py-2 rounded bg-gray-700 hover:bg-gray-600">Refresh</button>
-          <button
-            onClick={startRoom}
-            disabled={!room || !amHost || isStarting}
-            className="px-4 py-2 rounded bg-orange-700 hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isStarting ? 'Starting...' : 'Play'}
-          </button>
-        </div>
-        {error && <p className="text-red-400 text-sm">{error}</p>}
+        {error && <p className="text-sm text-red-300">{error}</p>}
       </section>
 
-      <section className="bg-gray-800 rounded-xl p-4 space-y-3">
-        <h2 className="font-semibold">Current Room: {roomLabel}</h2>
-        {room && (
-          <ul className="space-y-2">
-            {room.members.map((m) => (
-              <li key={m.userId} className="bg-gray-900 rounded px-3 py-2 flex justify-between">
-                <span>{m.emoji} {m.displayName}</span>
-                <span className="text-gray-400 text-sm">{m.userId}</span>
-              </li>
-            ))}
-          </ul>
-        )}
+      <section className="fe-panel rounded-[2rem] p-5 sm:p-8 fe-seat-enter">
+        <div className="flex items-center justify-between gap-4 flex-wrap mb-6">
+          <div>
+            <p className="text-xs uppercase tracking-[0.28em] fe-muted">Current Room</p>
+            <div className="flex items-center gap-3 mt-2 flex-wrap">
+              <h2 className="text-3xl font-black tracking-[0.2em]">{room?.code ?? '------'}</h2>
+              {room?.code && (
+                <button onClick={copyCode} className="fe-panel-alt rounded-xl px-3 py-2 text-sm font-medium">
+                  {copied ? 'Copied' : 'Copy Code'}
+                </button>
+              )}
+            </div>
+            <p className="fe-muted mt-2 text-sm">
+              {room ? `${activeMembers.length} / ${room.maxPlayers} seats filled` : 'Create a room or join one with a share code.'}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3 flex-wrap">
+            {amHost && room?.status === 'OPEN' && activeMembers.length < 4 && (
+              <button onClick={addBot} disabled={busyAction !== ''} className="fe-panel-alt rounded-xl px-4 py-3 font-semibold disabled:opacity-50">
+                Add Bot
+              </button>
+            )}
+            <button
+              onClick={startRoom}
+              disabled={!canStart || busyAction !== ''}
+              className={`rounded-xl px-5 py-3 font-semibold transition ${canStart ? 'fe-button-primary shadow-lg shadow-black/30' : 'fe-panel-alt opacity-60 cursor-not-allowed'}`}
+            >
+              {busyAction === 'start' ? 'Starting...' : 'Start Match'}
+            </button>
+          </div>
+        </div>
+
+        <div className="relative mx-auto max-w-4xl h-[36rem] sm:h-[42rem]">
+          <div className="absolute inset-[18%] rounded-[2.5rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01))] shadow-[0_35px_100px_rgba(0,0,0,0.45)] [transform:perspective(1200px)_rotateX(56deg)]">
+            <div className="absolute inset-[12%] rounded-[2rem] border border-white/10 bg-black/10" />
+          </div>
+
+          {seats.map((seat) => (
+            <SeatCard
+              key={seat.position}
+              seat={seat.position}
+              member={seat.member}
+              isHost={seat.member?.userId === room?.hostUserId}
+              amHost={Boolean(amHost && room?.status === 'OPEN')}
+              onKick={seat.member && seat.member.userId !== room?.hostUserId ? () => removeMember(seat.member!.userId) : undefined}
+              onAddBot={seat.member ? undefined : amHost && room?.status === 'OPEN' && activeMembers.length < 4 ? addBot : undefined}
+              busy={busyAction !== ''}
+            />
+          ))}
+        </div>
+
+        <div className="mt-6 grid md:grid-cols-2 gap-4">
+          <div className="fe-panel-alt rounded-2xl p-4">
+            <h3 className="font-semibold text-lg">How This Lobby Works</h3>
+            <ul className="mt-3 space-y-2 text-sm fe-muted">
+              <li>Share the six-character code with anyone on the same local network or any reachable client.</li>
+              <li>The host always owns the bottom seat and can add bots or remove occupied seats before starting.</li>
+              <li>Only one player can hold each emoji. Bots auto-pick from the remaining emoji pool.</li>
+              <li>The start button activates once at least two total seats are filled.</li>
+            </ul>
+          </div>
+
+          <div className="fe-panel-alt rounded-2xl p-4">
+            <h3 className="font-semibold text-lg">Seat Order</h3>
+            <p className="mt-3 text-sm fe-muted">
+              Play proceeds clockwise around the square table: bottom, left, top, then right. That seat order is the same order passed into the match engine.
+            </p>
+          </div>
+        </div>
       </section>
     </main>
+  );
+}
+
+function SeatCard({
+  seat,
+  member,
+  isHost,
+  amHost,
+  onKick,
+  onAddBot,
+  busy,
+}: {
+  seat: SeatPosition;
+  member: RoomMember | null;
+  isHost: boolean;
+  amHost: boolean;
+  onKick?: () => void;
+  onAddBot?: () => void;
+  busy: boolean;
+}) {
+  const positionClass =
+    seat === 'bottom'
+      ? 'left-1/2 -translate-x-1/2 bottom-0 w-[16rem]'
+      : seat === 'top'
+        ? 'left-1/2 -translate-x-1/2 top-0 w-[16rem]'
+        : seat === 'left'
+          ? 'left-0 top-1/2 -translate-y-1/2 w-[14rem]'
+          : 'right-0 top-1/2 -translate-y-1/2 w-[14rem]';
+
+  return (
+    <div className={`absolute ${positionClass}`}>
+      <div className="fe-panel-alt rounded-3xl p-4 text-center min-h-[9rem] flex flex-col justify-center gap-2 shadow-2xl shadow-black/30">
+        <p className="text-[10px] uppercase tracking-[0.28em] fe-muted">{seat} seat</p>
+        {member ? (
+          <>
+            <div className="text-4xl">{member.emoji}</div>
+            <div className="font-semibold text-lg leading-tight">{member.displayName}</div>
+            <div className="text-xs fe-muted">{member.isBot ? 'Bot' : 'Player'}{isHost ? ' • Host' : ''}</div>
+            {amHost && onKick && (
+              <button onClick={onKick} disabled={busy} className="mx-auto mt-2 h-9 w-9 rounded-full bg-red-700 text-white text-lg disabled:opacity-50">
+                -
+              </button>
+            )}
+          </>
+        ) : (
+          <>
+            <div className="text-3xl fe-muted">Empty</div>
+            <div className="text-sm fe-muted">Open seat for a friend or bot</div>
+            {amHost && onAddBot && (
+              <button onClick={onAddBot} disabled={busy} className="mx-auto mt-2 h-10 w-10 rounded-full fe-button-primary text-xl disabled:opacity-50">
+                +
+              </button>
+            )}
+          </>
+        )}
+      </div>
+    </div>
   );
 }

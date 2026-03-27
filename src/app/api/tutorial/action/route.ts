@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { applyTutorialAction, getTutorialStep, type TutorialSession } from '@/lib/tutorialEngine';
+import { applyTutorialAction, getTutorialStep, type TutorialAction, type TutorialSession } from '@/lib/tutorialEngine';
 import type { MatchAction } from '@/lib/matchEngine';
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
   const session = body?.session as TutorialSession | undefined;
-  const action = body?.action as MatchAction | undefined;
+  const action = body?.action as (MatchAction | TutorialAction) | undefined;
   const actorUserId = String(body?.actorUserId ?? '').trim();
 
   if (!session || !action?.type || !actorUserId) {

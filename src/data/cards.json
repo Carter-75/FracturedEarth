@@ -1,0 +1,1199 @@
+{
+  "SURVIVAL": [
+    {
+      "id": "survival_agriculture",
+      "name": "Agriculture",
+      "type": "SURVIVAL",
+      "pointsDelta": 3,
+      "drawCount": 0
+    },
+    {
+      "id": "survival_trade_route",
+      "name": "Trade Route",
+      "type": "SURVIVAL",
+      "pointsDelta": 2,
+      "drawCount": 1
+    },
+    {
+      "id": "survival_mining",
+      "name": "Mining",
+      "type": "SURVIVAL",
+      "pointsDelta": 1,
+      "drawCount": 2
+    },
+    {
+      "id": "survival_sanctuary",
+      "name": "Sanctuary",
+      "type": "SURVIVAL",
+      "pointsDelta": 2,
+      "drawCount": 0,
+      "gainHealth": 1
+    },
+    {
+      "id": "survival_harvest",
+      "name": "Harvest",
+      "type": "SURVIVAL",
+      "pointsDelta": 4,
+      "drawCount": 0
+    },
+    {
+      "id": "survival_healing_springs",
+      "name": "Healing Springs",
+      "type": "SURVIVAL",
+      "pointsDelta": 1,
+      "drawCount": 0,
+      "gainHealth": 2
+    },
+    {
+      "id": "survival_meditation",
+      "name": "Meditation",
+      "type": "SURVIVAL",
+      "pointsDelta": 0,
+      "drawCount": 1,
+      "gainHealth": 1
+    },
+    {
+      "id": "survival_herb_garden",
+      "name": "Herb Garden",
+      "type": "SURVIVAL",
+      "pointsDelta": 1,
+      "drawCount": 0,
+      "gainHealth": 1
+    },
+    {
+      "id": "survival_settlement",
+      "name": "Settlement",
+      "type": "SURVIVAL",
+      "pointsDelta": 2,
+      "drawCount": 1
+    },
+    {
+      "id": "survival_feast",
+      "name": "Feast",
+      "type": "SURVIVAL",
+      "pointsDelta": 3,
+      "drawCount": 0,
+      "gainHealth": 1
+    },
+    {
+      "id": "survival_supply_cache",
+      "name": "Supply Cache",
+      "type": "SURVIVAL",
+      "pointsDelta": 1,
+      "drawCount": 1
+    },
+    {
+      "id": "survival_coalition",
+      "name": "Coalition",
+      "type": "SURVIVAL",
+      "pointsDelta": 2,
+      "drawCount": 0
+    },
+    {
+      "id": "survival_library",
+      "name": "Library",
+      "type": "SURVIVAL",
+      "pointsDelta": 1,
+      "drawCount": 3
+    },
+    {
+      "id": "survival_trade_ship",
+      "name": "Trade Ship",
+      "type": "SURVIVAL",
+      "pointsDelta": 2,
+      "drawCount": 1
+    },
+    {
+      "id": "survival_granary",
+      "name": "Granary",
+      "type": "SURVIVAL",
+      "pointsDelta": 2,
+      "drawCount": 0,
+      "gainHealth": 1
+    },
+    {
+      "id": "survival_lookout_tower",
+      "name": "Lookout Tower",
+      "type": "SURVIVAL",
+      "pointsDelta": 1,
+      "drawCount": 1
+    },
+    {
+      "id": "survival_windmill",
+      "name": "Windmill",
+      "type": "SURVIVAL",
+      "pointsDelta": 3,
+      "drawCount": 0
+    },
+    {
+      "id": "survival_water_well",
+      "name": "Water Well",
+      "type": "SURVIVAL",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "gainHealth": 3
+    },
+    {
+      "id": "survival_bakery",
+      "name": "Bakery",
+      "type": "SURVIVAL",
+      "pointsDelta": 2,
+      "drawCount": 0,
+      "gainHealth": 1
+    },
+    {
+      "id": "survival_forge",
+      "name": "Forge",
+      "type": "SURVIVAL",
+      "pointsDelta": 1,
+      "drawCount": 2
+    }
+  ],
+  "DISASTER": [
+    {
+      "id": "disaster_earthquake_1",
+      "name": "Tremor",
+      "type": "DISASTER",
+      "pointsDelta": -1,
+      "drawCount": 0,
+      "disasterKind": "EARTHQUAKE",
+      "blocksDisaster": null
+    },
+    {
+      "id": "disaster_earthquake_2",
+      "name": "Earthquake",
+      "type": "DISASTER",
+      "pointsDelta": -2,
+      "drawCount": 0,
+      "disasterKind": "EARTHQUAKE",
+      "blocksDisaster": null
+    },
+    {
+      "id": "disaster_earthquake_3",
+      "name": "Aftershock",
+      "type": "DISASTER",
+      "pointsDelta": -1,
+      "drawCount": 0,
+      "disasterKind": "EARTHQUAKE",
+      "blocksDisaster": null
+    },
+    {
+      "id": "disaster_plague_1",
+      "name": "Sickness",
+      "type": "DISASTER",
+      "pointsDelta": -1,
+      "drawCount": 0,
+      "disasterKind": "PLAGUE",
+      "blocksDisaster": null
+    },
+    {
+      "id": "disaster_plague_2",
+      "name": "Plague",
+      "type": "DISASTER",
+      "pointsDelta": -3,
+      "drawCount": 0,
+      "disasterKind": "PLAGUE",
+      "blocksDisaster": null
+    },
+    {
+      "id": "disaster_plague_3",
+      "name": "Contagion",
+      "type": "DISASTER",
+      "pointsDelta": -1,
+      "drawCount": 0,
+      "disasterKind": "PLAGUE",
+      "blocksDisaster": null
+    },
+    {
+      "id": "disaster_flood_1",
+      "name": "Downpour",
+      "type": "DISASTER",
+      "pointsDelta": -1,
+      "drawCount": 0,
+      "disasterKind": "FLOOD",
+      "blocksDisaster": null
+    },
+    {
+      "id": "disaster_flood_2",
+      "name": "Flood",
+      "type": "DISASTER",
+      "pointsDelta": -2,
+      "drawCount": 0,
+      "disasterKind": "FLOOD",
+      "blocksDisaster": null
+    },
+    {
+      "id": "disaster_flood_3",
+      "name": "Deluge",
+      "type": "DISASTER",
+      "pointsDelta": -2,
+      "drawCount": 0,
+      "disasterKind": "FLOOD",
+      "blocksDisaster": null
+    },
+    {
+      "id": "disaster_wildfire_1",
+      "name": "Spark",
+      "type": "DISASTER",
+      "pointsDelta": -1,
+      "drawCount": 0,
+      "disasterKind": "WILDFIRE",
+      "blocksDisaster": null
+    },
+    {
+      "id": "disaster_wildfire_2",
+      "name": "Wildfire",
+      "type": "DISASTER",
+      "pointsDelta": -2,
+      "drawCount": 0,
+      "disasterKind": "WILDFIRE",
+      "blocksDisaster": null
+    },
+    {
+      "id": "disaster_wildfire_3",
+      "name": "Inferno",
+      "type": "DISASTER",
+      "pointsDelta": -2,
+      "drawCount": 0,
+      "disasterKind": "WILDFIRE",
+      "blocksDisaster": null
+    },
+    {
+      "id": "disaster_quake_2",
+      "name": "Crack",
+      "type": "DISASTER",
+      "pointsDelta": -1,
+      "drawCount": 0,
+      "disasterKind": "EARTHQUAKE",
+      "blocksDisaster": null
+    },
+    {
+      "id": "disaster_plague_4",
+      "name": "Fever",
+      "type": "DISASTER",
+      "pointsDelta": -1,
+      "drawCount": 0,
+      "disasterKind": "PLAGUE",
+      "blocksDisaster": null
+    },
+    {
+      "id": "disaster_flood_4",
+      "name": "Torrent",
+      "type": "DISASTER",
+      "pointsDelta": -1,
+      "drawCount": 0,
+      "disasterKind": "FLOOD",
+      "blocksDisaster": null
+    },
+    {
+      "id": "disaster_fire_4",
+      "name": "Blaze",
+      "type": "DISASTER",
+      "pointsDelta": -1,
+      "drawCount": 0,
+      "disasterKind": "WILDFIRE",
+      "blocksDisaster": null
+    },
+    {
+      "id": "disaster_global_1",
+      "name": "Meteor Strike",
+      "type": "DISASTER",
+      "pointsDelta": -1,
+      "drawCount": 0,
+      "disasterKind": "GLOBAL",
+      "blocksDisaster": null
+    },
+    {
+      "id": "disaster_global_2",
+      "name": "Solar Flare",
+      "type": "DISASTER",
+      "pointsDelta": -2,
+      "drawCount": 0,
+      "disasterKind": "GLOBAL",
+      "blocksDisaster": null
+    },
+    {
+      "id": "disaster_global_3",
+      "name": "Cosmic Event",
+      "type": "DISASTER",
+      "pointsDelta": -1,
+      "drawCount": 0,
+      "disasterKind": "GLOBAL",
+      "blocksDisaster": null
+    },
+    {
+      "id": "disaster_global_4",
+      "name": "Dark Ages",
+      "type": "DISASTER",
+      "pointsDelta": -2,
+      "drawCount": 0,
+      "disasterKind": "GLOBAL",
+      "blocksDisaster": null
+    }
+  ],
+  "POWER": [
+    {
+      "id": "power_shield_1",
+      "name": "Stone Shield",
+      "type": "POWER",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "blocksDisaster": "EARTHQUAKE"
+    },
+    {
+      "id": "power_shield_2",
+      "name": "Iron Armor",
+      "type": "POWER",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "blocksDisaster": "WILDFIRE"
+    },
+    {
+      "id": "power_shield_3",
+      "name": "Quarantine",
+      "type": "POWER",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "blocksDisaster": "PLAGUE"
+    },
+    {
+      "id": "power_shield_4",
+      "name": "Dam",
+      "type": "POWER",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "blocksDisaster": "FLOOD"
+    },
+    {
+      "id": "power_shield_5",
+      "name": "Fortification",
+      "type": "POWER",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "blocksDisaster": "EARTHQUAKE"
+    },
+    {
+      "id": "power_shield_6",
+      "name": "Firebreak",
+      "type": "POWER",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "blocksDisaster": "WILDFIRE"
+    },
+    {
+      "id": "power_shield_7",
+      "name": "Medical Aid",
+      "type": "POWER",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "blocksDisaster": "PLAGUE"
+    },
+    {
+      "id": "power_shield_8",
+      "name": "Levee",
+      "type": "POWER",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "blocksDisaster": "FLOOD"
+    },
+    {
+      "id": "power_shield_9",
+      "name": "Bunker",
+      "type": "POWER",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "blocksDisaster": "EARTHQUAKE"
+    },
+    {
+      "id": "power_shield_10",
+      "name": "Watchtower",
+      "type": "POWER",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "blocksDisaster": "WILDFIRE"
+    },
+    {
+      "id": "power_shield_11",
+      "name": "Herbalist",
+      "type": "POWER",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "blocksDisaster": "PLAGUE"
+    },
+    {
+      "id": "power_shield_12",
+      "name": "Sluice Gate",
+      "type": "POWER",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "blocksDisaster": "FLOOD"
+    },
+    {
+      "id": "power_shield_13",
+      "name": "Reinforced Wall",
+      "type": "POWER",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "blocksDisaster": "EARTHQUAKE"
+    },
+    {
+      "id": "power_shield_14",
+      "name": "Heat Shield",
+      "type": "POWER",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "blocksDisaster": "WILDFIRE"
+    },
+    {
+      "id": "power_shield_15",
+      "name": "Isolation Ward",
+      "type": "POWER",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "blocksDisaster": "PLAGUE"
+    },
+    {
+      "id": "power_shield_16",
+      "name": "Aqueduct",
+      "type": "POWER",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "blocksDisaster": "FLOOD"
+    },
+    {
+      "id": "power_shield_17",
+      "name": "Bastion",
+      "type": "POWER",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "blocksDisaster": "EARTHQUAKE"
+    },
+    {
+      "id": "power_shield_18",
+      "name": "Smoke Tower",
+      "type": "POWER",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "blocksDisaster": "WILDFIRE"
+    },
+    {
+      "id": "power_shield_19",
+      "name": "Healing House",
+      "type": "POWER",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "blocksDisaster": "PLAGUE"
+    },
+    {
+      "id": "power_shield_20",
+      "name": "Flood Gate",
+      "type": "POWER",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "blocksDisaster": "FLOOD"
+    }
+  ],
+  "ADAPT": [
+    {
+      "id": "adapt_dodge_1",
+      "name": "Quick Step",
+      "type": "ADAPT",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "blocksDisaster": "EARTHQUAKE"
+    },
+    {
+      "id": "adapt_dodge_2",
+      "name": "Dodge",
+      "type": "ADAPT",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "blocksDisaster": "WILDFIRE"
+    },
+    {
+      "id": "adapt_dodge_3",
+      "name": "Hide",
+      "type": "ADAPT",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "blocksDisaster": "PLAGUE"
+    },
+    {
+      "id": "adapt_dodge_4",
+      "name": "Swim",
+      "type": "ADAPT",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "blocksDisaster": "FLOOD"
+    },
+    {
+      "id": "adapt_dodge_5",
+      "name": "Sidestep",
+      "type": "ADAPT",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "blocksDisaster": "EARTHQUAKE"
+    },
+    {
+      "id": "adapt_dodge_6",
+      "name": "Sprint",
+      "type": "ADAPT",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "blocksDisaster": "WILDFIRE"
+    },
+    {
+      "id": "adapt_dodge_7",
+      "name": "Blend In",
+      "type": "ADAPT",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "blocksDisaster": "PLAGUE"
+    },
+    {
+      "id": "adapt_dodge_8",
+      "name": "Paddle",
+      "type": "ADAPT",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "blocksDisaster": "FLOOD"
+    },
+    {
+      "id": "adapt_dodge_9",
+      "name": "Vault",
+      "type": "ADAPT",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "blocksDisaster": "EARTHQUAKE"
+    },
+    {
+      "id": "adapt_dodge_10",
+      "name": "Roll",
+      "type": "ADAPT",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "blocksDisaster": "WILDFIRE"
+    },
+    {
+      "id": "adapt_dodge_11",
+      "name": "Disappear",
+      "type": "ADAPT",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "blocksDisaster": "PLAGUE"
+    },
+    {
+      "id": "adapt_dodge_12",
+      "name": "Surf",
+      "type": "ADAPT",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "blocksDisaster": "FLOOD"
+    },
+    {
+      "id": "adapt_dodge_13",
+      "name": "Stumble Back",
+      "type": "ADAPT",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "blocksDisaster": "EARTHQUAKE"
+    },
+    {
+      "id": "adapt_dodge_14",
+      "name": "Duck",
+      "type": "ADAPT",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "blocksDisaster": "WILDFIRE"
+    },
+    {
+      "id": "adapt_dodge_15",
+      "name": "Mask Up",
+      "type": "ADAPT",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "blocksDisaster": "PLAGUE"
+    },
+    {
+      "id": "adapt_dodge_16",
+      "name": "Buoy",
+      "type": "ADAPT",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "blocksDisaster": "FLOOD"
+    },
+    {
+      "id": "adapt_dodge_17",
+      "name": "Brace",
+      "type": "ADAPT",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "blocksDisaster": "EARTHQUAKE"
+    },
+    {
+      "id": "adapt_dodge_18",
+      "name": "Scramble",
+      "type": "ADAPT",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "blocksDisaster": "WILDFIRE"
+    },
+    {
+      "id": "adapt_dodge_19",
+      "name": "Evade",
+      "type": "ADAPT",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "blocksDisaster": "PLAGUE"
+    },
+    {
+      "id": "adapt_dodge_20",
+      "name": "Dive",
+      "type": "ADAPT",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "blocksDisaster": "FLOOD"
+    }
+  ],
+  "CHAOS": [
+    {
+      "id": "chaos_raid_1",
+      "name": "Raid",
+      "type": "CHAOS",
+      "pointsDelta": 2,
+      "drawCount": 0
+    },
+    {
+      "id": "chaos_raid_2",
+      "name": "Assault",
+      "type": "CHAOS",
+      "pointsDelta": 3,
+      "drawCount": 0
+    },
+    {
+      "id": "chaos_raid_3",
+      "name": "Siege",
+      "type": "CHAOS",
+      "pointsDelta": 2,
+      "drawCount": 0
+    },
+    {
+      "id": "chaos_raid_4",
+      "name": "Attack",
+      "type": "CHAOS",
+      "pointsDelta": 1,
+      "drawCount": 1
+    },
+    {
+      "id": "chaos_raid_5",
+      "name": "Thrust",
+      "type": "CHAOS",
+      "pointsDelta": 2,
+      "drawCount": 0
+    },
+    {
+      "id": "chaos_raid_6",
+      "name": "Blitz",
+      "type": "CHAOS",
+      "pointsDelta": 1,
+      "drawCount": 0
+    },
+    {
+      "id": "chaos_raid_7",
+      "name": "Charge",
+      "type": "CHAOS",
+      "pointsDelta": 3,
+      "drawCount": 0
+    },
+    {
+      "id": "chaos_raid_8",
+      "name": "Onslaught",
+      "type": "CHAOS",
+      "pointsDelta": 2,
+      "drawCount": 0
+    },
+    {
+      "id": "chaos_raid_9",
+      "name": "Ambush",
+      "type": "CHAOS",
+      "pointsDelta": 1,
+      "drawCount": 1
+    },
+    {
+      "id": "chaos_raid_10",
+      "name": "Strike",
+      "type": "CHAOS",
+      "pointsDelta": 2,
+      "drawCount": 0
+    },
+    {
+      "id": "chaos_raid_11",
+      "name": "Barrage",
+      "type": "CHAOS",
+      "pointsDelta": 2,
+      "drawCount": 0
+    },
+    {
+      "id": "chaos_raid_12",
+      "name": "Volley",
+      "type": "CHAOS",
+      "pointsDelta": 1,
+      "drawCount": 1
+    },
+    {
+      "id": "chaos_raid_13",
+      "name": "Crush",
+      "type": "CHAOS",
+      "pointsDelta": 2,
+      "drawCount": 0
+    },
+    {
+      "id": "chaos_raid_14",
+      "name": "Smash",
+      "type": "CHAOS",
+      "pointsDelta": 3,
+      "drawCount": 0
+    },
+    {
+      "id": "chaos_raid_15",
+      "name": "Pound",
+      "type": "CHAOS",
+      "pointsDelta": 1,
+      "drawCount": 0
+    },
+    {
+      "id": "chaos_raid_16",
+      "name": "Breach",
+      "type": "CHAOS",
+      "pointsDelta": 2,
+      "drawCount": 0
+    },
+    {
+      "id": "chaos_raid_17",
+      "name": "Penetrate",
+      "type": "CHAOS",
+      "pointsDelta": 2,
+      "drawCount": 0
+    },
+    {
+      "id": "chaos_raid_18",
+      "name": "Pierce",
+      "type": "CHAOS",
+      "pointsDelta": 1,
+      "drawCount": 1
+    },
+    {
+      "id": "chaos_raid_19",
+      "name": "Tear",
+      "type": "CHAOS",
+      "pointsDelta": 2,
+      "drawCount": 0
+    },
+    {
+      "id": "chaos_raid_20",
+      "name": "Rend",
+      "type": "CHAOS",
+      "pointsDelta": 1,
+      "drawCount": 0
+    }
+  ],
+  "ASCENDED": [
+    {
+      "id": "ascended_phoenix_1",
+      "name": "Phoenix Rising",
+      "tier": 1,
+      "type": "ASCENDED",
+      "pointsDelta": 2,
+      "drawCount": 1
+    },
+    {
+      "id": "ascended_echo_1",
+      "name": "Echo",
+      "tier": 1,
+      "type": "ASCENDED",
+      "pointsDelta": 0,
+      "drawCount": 2
+    },
+    {
+      "id": "ascended_whisper_1",
+      "name": "Whisper",
+      "tier": 1,
+      "type": "ASCENDED",
+      "pointsDelta": 1,
+      "drawCount": 0
+    },
+    {
+      "id": "ascended_glance_1",
+      "name": "Glance",
+      "tier": 1,
+      "type": "ASCENDED",
+      "pointsDelta": 0,
+      "drawCount": 1
+    },
+    {
+      "id": "ascended_muse_2",
+      "name": "Muse",
+      "tier": 2,
+      "type": "ASCENDED",
+      "pointsDelta": 3,
+      "drawCount": 0
+    },
+    {
+      "id": "ascended_halo_2",
+      "name": "Halo",
+      "tier": 2,
+      "type": "ASCENDED",
+      "pointsDelta": 2,
+      "drawCount": 1
+    },
+    {
+      "id": "ascended_aura_2",
+      "name": "Aura",
+      "tier": 2,
+      "type": "ASCENDED",
+      "pointsDelta": 1,
+      "drawCount": 0,
+      "gainHealth": 1
+    },
+    {
+      "id": "ascended_surge_2",
+      "name": "Surge",
+      "tier": 2,
+      "type": "ASCENDED",
+      "pointsDelta": 2,
+      "drawCount": 0
+    },
+    {
+      "id": "ascended_zenith_3",
+      "name": "Zenith",
+      "tier": 3,
+      "type": "ASCENDED",
+      "pointsDelta": 4,
+      "drawCount": 0
+    },
+    {
+      "id": "ascended_apex_3",
+      "name": "Apex",
+      "tier": 3,
+      "type": "ASCENDED",
+      "pointsDelta": 3,
+      "drawCount": 2
+    },
+    {
+      "id": "ascended_summit_3",
+      "name": "Summit",
+      "tier": 3,
+      "type": "ASCENDED",
+      "pointsDelta": 2,
+      "drawCount": 0
+    },
+    {
+      "id": "ascended_peak_3",
+      "name": "Peak",
+      "tier": 3,
+      "type": "ASCENDED",
+      "pointsDelta": 3,
+      "drawCount": 1
+    },
+    {
+      "id": "ascended_nirvana_4",
+      "name": "Nirvana",
+      "tier": 4,
+      "type": "ASCENDED",
+      "pointsDelta": 5,
+      "drawCount": 1
+    },
+    {
+      "id": "ascended_transcend_4",
+      "name": "Transcendence",
+      "tier": 4,
+      "type": "ASCENDED",
+      "pointsDelta": 4,
+      "drawCount": 0,
+      "gainHealth": 2
+    },
+    {
+      "id": "ascended_divine_4",
+      "name": "Divine Light",
+      "tier": 4,
+      "type": "ASCENDED",
+      "pointsDelta": 0,
+      "drawCount": 4
+    },
+    {
+      "id": "ascended_celestial_4",
+      "name": "Celestial",
+      "tier": 4,
+      "type": "ASCENDED",
+      "pointsDelta": 3,
+      "drawCount": 1
+    },
+    {
+      "id": "ascended_omega_5",
+      "name": "Omega Protocol",
+      "tier": 5,
+      "type": "ASCENDED",
+      "pointsDelta": 15,
+      "drawCount": 0
+    },
+    {
+      "id": "ascended_alpha_5",
+      "name": "Alpha Prime",
+      "tier": 5,
+      "type": "ASCENDED",
+      "pointsDelta": 8,
+      "drawCount": 3
+    },
+    {
+      "id": "ascended_void_5",
+      "name": "Void Mastery",
+      "tier": 5,
+      "type": "ASCENDED",
+      "pointsDelta": -1,
+      "drawCount": 2
+    },
+    {
+      "id": "ascended_singularity_5",
+      "name": "Singularity",
+      "tier": 5,
+      "type": "ASCENDED",
+      "pointsDelta": 12,
+      "drawCount": 1
+    },
+    {
+      "id": "ascended_infinite_5",
+      "name": "Infinite Loop",
+      "tier": 5,
+      "type": "ASCENDED",
+      "pointsDelta": 6,
+      "drawCount": 0,
+      "gainHealth": 3
+    },
+    {
+      "id": "ascended_paradox_5",
+      "name": "Paradox",
+      "tier": 5,
+      "type": "ASCENDED",
+      "pointsDelta": 2,
+      "drawCount": 2
+    },
+    {
+      "id": "ascended_nexus_5",
+      "name": "Nexus",
+      "tier": 5,
+      "type": "ASCENDED",
+      "pointsDelta": 7,
+      "drawCount": 1
+    },
+    {
+      "id": "ascended_genesis_5",
+      "name": "Genesis",
+      "tier": 5,
+      "type": "ASCENDED",
+      "pointsDelta": 10,
+      "drawCount": 0
+    },
+    {
+      "id": "ascended_entropy_5",
+      "name": "Entropy",
+      "tier": 5,
+      "type": "ASCENDED",
+      "pointsDelta": 1,
+      "drawCount": 1
+    }
+  ],
+  "TWIST": [
+    {
+      "id": "twist_blessing_draw",
+      "name": "Blessing of Cards",
+      "type": "TWIST",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "effect": "draw_3"
+    },
+    {
+      "id": "twist_blessing_health",
+      "name": "Blessing of Health",
+      "type": "TWIST",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "effect": "gain_2_health"
+    },
+    {
+      "id": "twist_blessing_points",
+      "name": "Blessing of Fortune",
+      "type": "TWIST",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "effect": "gain_5_points"
+    },
+    {
+      "id": "twist_curse_skip",
+      "name": "Curse of Stasis",
+      "type": "TWIST",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "effect": "skip_turn"
+    },
+    {
+      "id": "twist_curse_health",
+      "name": "Curse of Wasting",
+      "type": "TWIST",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "effect": "lose_1_health"
+    },
+    {
+      "id": "twist_curse_block_red",
+      "name": "Curse of Red Silence",
+      "type": "TWIST",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "effect": "block_red"
+    },
+    {
+      "id": "twist_curse_block_blue",
+      "name": "Curse of Blue Silence",
+      "type": "TWIST",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "effect": "block_blue"
+    },
+    {
+      "id": "twist_neutral_draw",
+      "name": "Rumor",
+      "type": "TWIST",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "effect": "draw_2_cards"
+    },
+    {
+      "id": "twist_neutral_restore",
+      "name": "Reprieve",
+      "type": "TWIST",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "effect": "restore_2_health"
+    },
+    {
+      "id": "twist_curse_heavy",
+      "name": "Plague Winds",
+      "type": "TWIST",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "effect": "lose_2_health"
+    },
+    {
+      "id": "twist_neutral_gamble",
+      "name": "Gambit",
+      "type": "TWIST",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "effect": "gain_or_lose_3"
+    },
+    {
+      "id": "twist_blessing_ascended",
+      "name": "Blessing of Power",
+      "type": "TWIST",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "effect": "draw_ascended"
+    },
+    {
+      "id": "twist_curse_health_2",
+      "name": "Blight",
+      "type": "TWIST",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "effect": "lose_1_health"
+    },
+    {
+      "id": "twist_blessing_draw_2",
+      "name": "Inspiration",
+      "type": "TWIST",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "effect": "draw_2_cards"
+    },
+    {
+      "id": "twist_neutral_risky",
+      "name": "Wildcard",
+      "type": "TWIST",
+      "pointsDelta": 0,
+      "drawCount": 0,
+      "effect": "gain_or_lose_3"
+    }
+  ],
+  "CATACLYSM": [
+    {
+      "drawCount": 0,
+      "name": "Meteor Cascade",
+      "pointsDelta": 3,
+      "id": "cataclysm_meteor",
+      "type": "CATACLYSM"
+    },
+    {
+      "drawCount": 0,
+      "name": "Plague Wave",
+      "pointsDelta": 2,
+      "id": "cataclysm_plague_wave",
+      "type": "CATACLYSM"
+    },
+    {
+      "drawCount": 0,
+      "name": "Earthquake Surge",
+      "pointsDelta": 2,
+      "id": "cataclysm_earthquake_surge",
+      "type": "CATACLYSM"
+    },
+    {
+      "drawCount": 0,
+      "name": "Firestorm",
+      "pointsDelta": 3,
+      "id": "cataclysm_firestorm",
+      "type": "CATACLYSM"
+    },
+    {
+      "drawCount": 0,
+      "name": "Tidal Wave",
+      "pointsDelta": 2,
+      "id": "cataclysm_tidal_wave",
+      "type": "CATACLYSM"
+    },
+    {
+      "drawCount": 0,
+      "name": "Blight",
+      "pointsDelta": 1,
+      "id": "cataclysm_blight",
+      "type": "CATACLYSM"
+    },
+    {
+      "drawCount": 0,
+      "name": "Volcanic Rage",
+      "pointsDelta": 2,
+      "id": "cataclysm_volcanic_rage",
+      "type": "CATACLYSM"
+    },
+    {
+      "drawCount": 0,
+      "name": "Frozen Wasteland",
+      "pointsDelta": 2,
+      "id": "cataclysm_frozen_death",
+      "type": "CATACLYSM"
+    },
+    {
+      "drawCount": 0,
+      "name": "Storm Fury",
+      "pointsDelta": 3,
+      "id": "cataclysm_storm_fury",
+      "type": "CATACLYSM"
+    },
+    {
+      "drawCount": 0,
+      "name": "Apocalypse",
+      "pointsDelta": 4,
+      "id": "cataclysm_apocalypse",
+      "type": "CATACLYSM"
+    }
+  ]
+}
