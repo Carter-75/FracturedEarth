@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -111,28 +111,28 @@ export default function TabletopPage() {
   const myPlayer = payload?.players.find((p) => p.id === userId) ?? null;
   const selectedCard = myPlayer?.hand.find((c) => c.id === selectedCardId) ?? null;
 
-  async function fetchRoom() {
+  const fetchRoom = useCallback(async () => {
     const res = await fetch(`/api/rooms/${code}`, { cache: 'no-store' });
     if (!res.ok) throw new Error('Room not found');
     return (await res.json()) as Room;
-  }
+  }, [code]);
 
-  async function fetchState() {
+  const fetchState = useCallback(async () => {
     const res = await fetch(`/api/rooms/${code}/state`, { cache: 'no-store' });
     if (!res.ok) return null;
     return (await res.json()) as StateEnvelope;
-  }
+  }, [code]);
 
-  async function sendHeartbeat() {
+  const sendHeartbeat = useCallback(async () => {
     if (!userId || !code) return;
     await fetch(`/api/rooms/${code}/heartbeat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId }),
     });
-  }
+  }, [code, userId]);
 
-  async function postAction(action: Record<string, unknown>, expectedRevision?: number) {
+  const postAction = useCallback(async (action: Record<string, unknown>, expectedRevision?: number) => {
     const res = await fetch(`/api/rooms/${code}/action`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -143,7 +143,7 @@ export default function TabletopPage() {
       throw new Error(String(data?.error ?? 'Action failed'));
     }
     return data as StateEnvelope;
-  }
+  }, [code, userId]);
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>;
@@ -185,7 +185,7 @@ export default function TabletopPage() {
       clearTimeout(timer);
       clearTimeout(beatTimer);
     };
-  }, [code, userId]);
+  }, [code, userId, fetchRoom, fetchState, postAction, sendHeartbeat]);
 
   useEffect(() => {
     if (!room || !state || !state.payload.winnerId) return;
