@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { Providers } from '@/components/Providers';
 import { TutorialLaunchGate } from '@/components/TutorialLaunchGate';
+import { Analytics } from '@vercel/analytics/next';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
@@ -24,6 +25,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <TutorialLaunchGate />
           {children}
         </Providers>
+        <Analytics />
       </body>
     </html>
   );
