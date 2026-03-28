@@ -1,5 +1,6 @@
 {
   "framework": "nextjs",
+  "outputDirectory": "src/.next",
   "env": {
     "REDIS_URL": "redis://default:z6ognc7XyNrTuG9DqXjC4ckV38YnpzPZ@redis-11418.c9.us-east-1-4.ec2.cloud.redislabs.com:11418",
     "NEXT_PUBLIC_SITE_URL": "https://fractured-earth.vercel.app"
