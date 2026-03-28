@@ -1,13 +1,14 @@
 {
-  "name": "fractured-earth-root",
+  "name": "fractured-earth-monorepo",
+  "version": "1.0.0",
   "private": true,
-  "scripts": {
-    "install": "cd src && npm install",
-    "build": "cd src && npm run build",
-    "start": "cd src && npm run start",
-    "lint": "cd src && npm run lint"
-  },
   "dependencies": {
-    "next": "14.2.5"
+    "next": "14.2.5",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "scripts": {
+    "postinstall": "cd src && npm install",
+    "build": "cd src && npm run build"
   }
 }
