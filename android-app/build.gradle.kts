@@ -194,8 +194,8 @@ dependencies {
     implementation("com.revenuecat.purchases:purchases:9.28.1")
     implementation("com.revenuecat.purchases:purchases-ui:9.28.1")
 
-    implementation("com.badlogicgames.gdx:gdx:1.12.1")
-    implementation("com.badlogicgames.gdx:gdx-backend-android:1.12.1")
+    implementation("com.badlogicgames.gdx:gdx:1.14.0")
+    implementation("com.badlogicgames.gdx:gdx-backend-android:1.14.0")
 
     // Google Sign-In
     implementation("com.google.android.gms:play-services-auth:21.2.0")
