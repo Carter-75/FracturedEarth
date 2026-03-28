@@ -5,6 +5,7 @@
   "devCommand": "cd src && npm run dev",
   "outputDirectory": "src/.next",
   "env": {
-    "REDIS_URL": "@redis_url"
+    "REDIS_URL": "@redis_url",
+    "NEXT_PUBLIC_SITE_URL": "https://fractured-earth.vercel.app"
   }
 }

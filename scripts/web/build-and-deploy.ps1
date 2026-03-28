@@ -71,7 +71,7 @@ if (-not $Force) {
   }
 }
 
-function Increment-VersionCode {
+function Update-VersionCode {
   Show-Step "STEP 0: VERSION INCREMENT"
   $gradleFile = Join-Path $projectRoot "android-app/build.gradle.kts"
   if (Test-Path $gradleFile) {
@@ -88,7 +88,7 @@ function Increment-VersionCode {
   }
 }
 
-function Run-WebBuild {
+function Invoke-WebBuild {
   Show-Step "STEP 1: WEB FRONTEND BUILD"
   $webDir = Join-Path $projectRoot "src"
   Push-Location $webDir
@@ -102,18 +102,23 @@ function Run-WebBuild {
   }
 }
 
-function Sync-VercelRedisEnv {
-  if ($SkipVercelEnvSync) { return }
-  Show-Step "STEP 1.5: VERCEL ENV SYNC"
-  # (Simplified for brevity but maintaining logic)
-  Write-Status "Syncing environment variables..." "INFO"
+function Sync-VercelEnv {
+  Show-Step "STEP 1.5: VERCEL CONFIG SYNC"
+  $vercelFile = Join-Path $projectRoot "vercel.json"
+  if (Test-Path $vercelFile) {
+    $config = Get-Content $vercelFile | ConvertFrom-Json
+    if ($config.env.NEXT_PUBLIC_SITE_URL) {
+      $env:LAN_ROOM_SERVER_URL = $config.env.NEXT_PUBLIC_SITE_URL
+      Write-Status "Synced LAN_ROOM_SERVER_URL from vercel.json: $env:LAN_ROOM_SERVER_URL" "SUCCESS"
+    }
+  }
 }
 
 function Invoke-LoggedGradle {
-  param([string]$Task, [string]$Label, [string]$LogFile, [string[]]$Args)
+  param([string]$Task, [string]$Label, [string]$LogFile, [string[]]$TaskArgs)
   Write-Status $Label "INFO"
   $logPath = Join-Path $logDir $LogFile
-  & ./gradlew $Task @Args 2>&1 | Tee-Object -FilePath $logPath
+  & ./gradlew $Task @TaskArgs 2>&1 | Tee-Object -FilePath $logPath
   if ($LASTEXITCODE -ne 0) { throw "Gradle task failed: $Task" }
 }
 
@@ -134,9 +139,9 @@ function Backup-AndCopyArtifact {
 }
 
 # --- Execution ---
-Increment-VersionCode
-Run-WebBuild
-Sync-VercelRedisEnv
+Update-VersionCode
+Invoke-WebBuild
+Sync-VercelEnv
 
 $gradleArgs = @("--stacktrace", "--warning-mode", "summary", "--console", "plain")
 if ($DebugBuild) { $gradleArgs += "--debug" }

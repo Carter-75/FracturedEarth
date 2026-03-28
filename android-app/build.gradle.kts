@@ -43,7 +43,7 @@ android {
         applicationId = "com.fracturedearth"
         minSdk = 26
         targetSdk = 34
-        versionCode = 5
+        versionCode = 9
         versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -93,7 +93,7 @@ android {
         buildConfigField(
             "String",
             "LAN_ROOM_SERVER_URL",
-            "\"${localValue("LAN_ROOM_SERVER_URL", "")}\""
+            "\"${System.getenv("LAN_ROOM_SERVER_URL") ?: localValue("LAN_ROOM_SERVER_URL", "")}\""
         )
     }
 
@@ -210,6 +210,10 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4:1.6.8")
     debugImplementation("androidx.compose.ui:ui-tooling:1.6.8")
 }
+
+
+
+
 
 
 

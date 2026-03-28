@@ -11,6 +11,10 @@ import com.fracturedearth.core.bot.TargetLeaderStrategy
 import com.fracturedearth.core.engine.GameEngine
 import com.fracturedearth.core.model.Card
 import com.fracturedearth.core.model.GameState
+import com.fracturedearth.sync.SyncRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 enum class BotDifficulty { EASY, MEDIUM, HARD }
 
@@ -40,14 +44,18 @@ data class PlayerSummary(
 
 class GameViewModel : ViewModel() {
     private val engine = GameEngine()
+    private val syncRepo = SyncRepository()
+    private val scope = CoroutineScope(Dispatchers.IO)
     private var gameState: GameState = engine.newMatch(humanName = "Player", botCount = 1)
     private var botStrategies: Map<String, BotStrategy> = emptyMap()
     private var cardsPlayedThisTurn = 0
+    private var currentUserId: String = "anonymous"
 
     var uiState by mutableStateOf(gameState.toUi(cardsPlayedThisTurn))
         private set
 
-    fun startMatch(humanName: String, botCount: Int, difficulty: BotDifficulty = BotDifficulty.MEDIUM) {
+    fun startMatch(userId: String = "anonymous", humanName: String, botCount: Int, difficulty: BotDifficulty = BotDifficulty.MEDIUM) {
+        currentUserId = userId
         val clamped = botCount.coerceIn(1, 3)
         botStrategies = (0 until clamped).associate { i ->
             "bot_$i" to when (difficulty) {
@@ -103,7 +111,20 @@ class GameViewModel : ViewModel() {
 
     private fun checkWinner() {
         val winner = engine.evaluateWinner(gameState)
-        if (winner != null) gameState = gameState.copy(winnerId = winner)
+        if (winner != null && gameState.winnerId == null) {
+            gameState = gameState.copy(winnerId = winner)
+            // Report result to Vercel
+            val human = gameState.players.firstOrNull { !it.isBot }
+            if (human != null) {
+                scope.launch {
+                    syncRepo.recordGameResult(
+                        userId = currentUserId,
+                        won = winner == human.id,
+                        survivalPoints = human.survivalPoints
+                    )
+                }
+            }
+        }
     }
 
     private fun executePendingBotTurns() {
