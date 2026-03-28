@@ -4,45 +4,58 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { isTutorialDone, setTutorialDone } from '@/lib/localProfile';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export function TutorialLaunchGate() {
   const pathname = usePathname();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const hiddenPath = pathname.startsWith('/tutorial') || pathname.startsWith('/api');
+    const hiddenPath = pathname.startsWith('/tutorial') || pathname.startsWith('/api') || pathname.startsWith('/tabletop');
     setVisible(!hiddenPath && !isTutorialDone());
   }, [pathname]);
 
   if (!visible) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
-      <div className="w-full max-w-lg rounded-2xl bg-slate-900 border border-slate-700 p-6 space-y-4 shadow-2xl">
-        <h2 className="text-2xl font-bold">Start Tutorial?</h2>
-        <p className="text-sm text-slate-300 leading-relaxed">
-          A guided practice round with one bot is ready. You can skip now and mark tutorial as complete,
-          or start it and learn card flow step-by-step.
-        </p>
+    <AnimatePresence>
+      <motion.div 
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        className="fe-modal-overlay"
+      >
+        <motion.div 
+          initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }}
+          className="fe-modal-content"
+        >
+          <div className="fe-blur-bg bg-amber-500/10" />
+          
+          <div className="relative z-10">
+             <div className="fe-hologram text-amber-500 mb-2">Neural Link Warning</div>
+             <h2 className="text-4xl font-black italic tracking-tighter text-white uppercase mb-6">Uncertified Candidate</h2>
+             <p className="text-white/50 leading-relaxed font-light mb-10 text-lg">
+                Your neural profile lacks certification. It is recommended to initialize the **Tactical Training Protocol** before attempting live planetary control.
+             </p>
 
-        <div className="flex flex-wrap gap-3">
-          <Link
-            href="/tutorial"
-            className="px-4 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-600 font-semibold"
-          >
-            Start Tutorial
-          </Link>
-          <button
-            onClick={() => {
-              setTutorialDone(true);
-              setVisible(false);
-            }}
-            className="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600"
-          >
-            Skip and mark done
-          </button>
-        </div>
-      </div>
-    </div>
+             <div className="flex flex-col sm:flex-row gap-4">
+                <Link
+                  href="/tutorial"
+                  className="fe-holo-btn !bg-amber-500/10 !border-amber-500 !text-white !py-4 flex-1 text-center"
+                >
+                  Confirm Training
+                </Link>
+                <button
+                  onClick={() => {
+                    setTutorialDone(true);
+                    setVisible(false);
+                  }}
+                  className="fe-holo-btn !py-4 flex-1 text-white/30 hover:text-white transition-all"
+                >
+                  Bypass Certification
+                </button>
+             </div>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
   );
 }

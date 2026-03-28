@@ -1,56 +1,93 @@
-import { getServerSession } from 'next-auth';
 import Link from 'next/link';
-import { authOptions } from '@/lib/auth';
 import { getLeaderboard } from '@/lib/kv';
-import { ImagePromptPlaceholder } from '@/components/ImagePromptPlaceholder';
+
+export const dynamic = 'force-dynamic';
 
 export default async function LeaderboardPage() {
-  const session = await getServerSession(authOptions);
-  const leaders = await getLeaderboard(20);
+  const leaders = await getLeaderboard(25);
 
   return (
-    <main className="min-h-screen p-8 max-w-2xl mx-auto">
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold">Leaderboard</h1>
-        <Link href="/" className="text-sm text-gray-400 hover:text-white transition-colors">
-          ← Home
-        </Link>
+    <main className="fe-scene bg-black overflow-y-auto min-h-screen">
+      {/* Cinematic Background Layer */}
+      <div className="absolute inset-0 z-0 h-full fixed">
+         <img src="/assets/type-bgs/chaos.png" className="w-full h-full object-cover opacity-10 blur-3xl scale-125" alt="" />
+         <div className="fe-vignette h-full" />
+         <div className="fe-scanline h-full" />
+         <div className="fe-grid h-full opacity-20" />
       </div>
 
-      {/* AI prompt: engraved brass scoreboard mounted above a tabletop arena, rank plates and point markers, cinematic warm contrast, realistic texture */}
-      <ImagePromptPlaceholder label="Leaderboard Crest Artwork" ratioClassName="aspect-[18/6]" className="mb-6" />
-      <div className="grid sm:grid-cols-2 gap-3 mb-6">
-        {/* AI prompt: champion badge medallions arranged by rank, burnished metal and enamel, premium board-game award style */}
-        <ImagePromptPlaceholder label="Rank Medallion Art" ratioClassName="aspect-[16/9]" />
-        {/* AI prompt: points tracker beads on a carved wooden rail, macro tabletop shot, warm cinematic bokeh */}
-        <ImagePromptPlaceholder label="Points Tracker Art" ratioClassName="aspect-[16/9]" />
-      </div>
+      <section className="relative z-10 w-full max-w-4xl mx-auto px-6 py-20 pb-40">
+        <div className="mb-16 flex items-end justify-between border-b border-white/10 pb-8">
+           <div>
+              <div className="fe-hologram text-sky-400 mb-2 fe-flicker">Archival_Data_Retrieved</div>
+              <h1 className="text-6xl font-black italic tracking-tighter text-white uppercase leading-none">Global<span className="text-amber-500">Standings</span></h1>
+              <p className="text-white/30 mt-4 font-light tracking-widest text-[10px] uppercase">Neural Network Ranking Protocol v4.0</p>
+           </div>
+           <Link href="/" className="fe-holo-btn text-[10px]">Return_Home</Link>
+        </div>
 
-      {leaders.length === 0 ? (
-        <p className="text-gray-500">No scores yet. Be the first to play!</p>
-      ) : (
-        <ol className="space-y-2">
-          {leaders.map((entry, i) => (
-            <li
-              key={entry.member}
-              className="flex items-center justify-between bg-gray-800 rounded-lg px-5 py-3"
-            >
-              <span className="text-gray-400 w-8">#{i + 1}</span>
-              <span className="flex-1 truncate">{entry.member}</span>
-              <span className="font-bold text-yellow-400">{entry.score} pts</span>
-            </li>
-          ))}
-        </ol>
-      )}
+        <div className="space-y-4">
+           {leaders.length === 0 ? (
+             <div className="text-center py-32 bg-white/5 border border-white/5 rounded-3xl backdrop-blur-xl">
+                <div className="fe-hologram text-amber-500/40 mb-4">NO_SIGNALS_DETECTED</div>
+                <p className="text-white/20 text-xs tracking-widest uppercase">The sector history is currently blank.</p>
+             </div>
+           ) : (
+             <>
+               {/* Table Header */}
+               <div className="flex items-center px-8 py-3 bg-white/5 border border-white/5 rounded-full mb-8 fe-hologram text-[8px] text-white/40">
+                  <div className="w-16">Rank</div>
+                  <div className="flex-1">Candidate_Identifier</div>
+                  <div className="w-32 text-right">Energy_Yield</div>
+               </div>
 
-      {!session && (
-        <p className="mt-8 text-gray-500 text-sm">
-          <Link href="/api/auth/signin" className="text-red-400 hover:underline">
-            Sign in
-          </Link>{' '}
-          to appear on the leaderboard.
-        </p>
-      )}
+               {leaders.map((entry, i) => (
+                 <div
+                   key={entry.member}
+                   className="group relative flex items-center px-8 py-6 bg-white/[0.03] border border-white/10 rounded-2xl hover:bg-white/[0.08] hover:border-sky-500/30 transition-all cursor-default"
+                   style={{ transform: `translateZ(${i * -2}px)` }}
+                 >
+                   {/* Ranking Pip */}
+                   <div className="w-16 flex items-center">
+                      <span className={`text-2xl font-black italic ${i < 3 ? 'text-amber-500 fe-glow-text' : 'text-white/20'}`}>
+                         {(i + 1).toString().padStart(2, '0')}
+                      </span>
+                   </div>
+
+                   {/* Identity */}
+                   <div className="flex-1">
+                      <div className="text-xl font-bold text-white/90 group-hover:text-white transition-colors tracking-tight uppercase italic">{entry.member}</div>
+                      <div className="fe-hologram text-[6px] text-sky-400/40 mt-1">STATUS: ACTIVE_COMBATANT</div>
+                   </div>
+
+                   {/* Score */}
+                   <div className="w-32 text-right">
+                      <div className="text-3xl font-black italic text-sky-400 fe-glow-text leading-none">{entry.score}</div>
+                      <div className="text-[6px] font-bold tracking-widest text-sky-400/30 mt-1 uppercase">ARCHIVED_VP</div>
+                   </div>
+
+                   {/* Decoration Corner */}
+                   <div className="absolute top-0 right-0 w-8 h-8 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="absolute top-2 right-2 w-2 h-2 border-t border-r border-sky-400/50" />
+                   </div>
+                 </div>
+               ))}
+             </>
+           )}
+        </div>
+
+        {/* Bottom Metadata */}
+        <div className="mt-24 text-center">
+           <div className="inline-block p-6 bg-white/5 border border-white/5 rounded-3xl backdrop-blur-xl">
+              <div className="fe-hologram text-amber-500/60 text-[8px] mb-2 fe-flicker">SYNC_STATUS: 100%_NOMINAL</div>
+              <p className="text-white/20 text-[9px] uppercase tracking-widest leading-relaxed">
+                 Rankings are computed across all verified planetary fragments.<br/>
+                 Integrity checks passed.
+              </p>
+           </div>
+        </div>
+      </section>
     </main>
   );
 }
+

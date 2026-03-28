@@ -43,7 +43,7 @@ android {
         applicationId = "com.fracturedearth"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
+        versionCode = 5
         versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -191,7 +191,8 @@ dependencies {
 
     implementation("com.google.android.gms:play-services-ads:23.3.0")
     implementation("com.android.billingclient:billing-ktx:7.0.0")
-    implementation("com.revenuecat.purchases:purchases:8.9.0")
+    implementation("com.revenuecat.purchases:purchases:9.28.1")
+    implementation("com.revenuecat.purchases:purchases-ui:9.28.1")
 
     implementation("com.badlogicgames.gdx:gdx:1.12.1")
     implementation("com.badlogicgames.gdx:gdx-backend-android:1.12.1")
@@ -209,3 +210,7 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4:1.6.8")
     debugImplementation("androidx.compose.ui:ui-tooling:1.6.8")
 }
+
+
+
+

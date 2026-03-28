@@ -18,12 +18,12 @@ class FracturedEarthApp : Application() {
         MobileAds.initialize(this)
 
         if (BuildConfig.REVENUECAT_PUBLIC_KEY.isNotBlank()) {
-            Purchases.logLevel = if (BuildConfig.DEBUG) LogLevel.DEBUG else LogLevel.WARN
-            Purchases.configure(
-                PurchasesConfiguration.Builder(this, BuildConfig.REVENUECAT_PUBLIC_KEY)
-                    .build()
-            )
-            BillingFacade.refreshEntitlementCache()
+        Purchases.logLevel = LogLevel.DEBUG
+        Purchases.configure(
+            PurchasesConfiguration.Builder(this, "test_MJxebHGCkWNocHCJmJzOuYPANpM")
+                .build()
+        )
+        BillingFacade.refreshEntitlementCache()
         } else {
             Timber.w("RevenueCat public key is blank; ad-free entitlement sync disabled")
         }

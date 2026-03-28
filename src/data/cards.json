@@ -2,371 +2,370 @@
   "SURVIVAL": [
     {
       "id": "survival_agriculture",
-      "name": "Agriculture",
+      "name": "Hydroponic Bay",
       "type": "SURVIVAL",
-      "pointsDelta": 3,
-      "drawCount": 0
+      "pointsDelta": 4,
+      "drawCount": 0,
+      "effect": "points_per_health"
     },
     {
       "id": "survival_trade_route",
-      "name": "Trade Route",
+      "name": "Smuggler Run",
       "type": "SURVIVAL",
       "pointsDelta": 2,
-      "drawCount": 1
+      "drawCount": 1,
+      "effect": "combo_survival"
     },
     {
       "id": "survival_mining",
-      "name": "Mining",
+      "name": "Deep Core Drill",
       "type": "SURVIVAL",
-      "pointsDelta": 1,
-      "drawCount": 2
+      "pointsDelta": 3,
+      "drawCount": 2,
+      "effect": "low_health_bonus"
     },
     {
       "id": "survival_sanctuary",
-      "name": "Sanctuary",
+      "name": "Bunker Shelter",
       "type": "SURVIVAL",
       "pointsDelta": 2,
       "drawCount": 0,
-      "gainHealth": 1
+      "gainHealth": 1,
+      "effect": "shield_next"
     },
     {
       "id": "survival_harvest",
-      "name": "Harvest",
+      "name": "Energy Siphon",
       "type": "SURVIVAL",
-      "pointsDelta": 4,
-      "drawCount": 0
+      "pointsDelta": 5,
+      "drawCount": 0,
+      "effect": "points_per_power"
     },
     {
       "id": "survival_healing_springs",
-      "name": "Healing Springs",
+      "name": "Med-Pod",
+      "type": "SURVIVAL",
+      "pointsDelta": 1,
+      "drawCount": 0,
+      "gainHealth": 3
+    },
+    {
+      "id": "survival_meditation",
+      "name": "Neural Uplink",
+      "type": "SURVIVAL",
+      "pointsDelta": 0,
+      "drawCount": 2,
+      "gainHealth": 1
+    },
+    {
+      "id": "survival_herb_garden",
+      "name": "Bio-Dome",
       "type": "SURVIVAL",
       "pointsDelta": 1,
       "drawCount": 0,
       "gainHealth": 2
     },
     {
-      "id": "survival_meditation",
-      "name": "Meditation",
-      "type": "SURVIVAL",
-      "pointsDelta": 0,
-      "drawCount": 1,
-      "gainHealth": 1
-    },
-    {
-      "id": "survival_herb_garden",
-      "name": "Herb Garden",
-      "type": "SURVIVAL",
-      "pointsDelta": 1,
-      "drawCount": 0,
-      "gainHealth": 1
-    },
-    {
       "id": "survival_settlement",
-      "name": "Settlement",
+      "name": "Outpost Alpha",
       "type": "SURVIVAL",
-      "pointsDelta": 2,
+      "pointsDelta": 3,
       "drawCount": 1
     },
     {
       "id": "survival_feast",
-      "name": "Feast",
+      "name": "Ration Surplus",
       "type": "SURVIVAL",
-      "pointsDelta": 3,
+      "pointsDelta": 4,
       "drawCount": 0,
       "gainHealth": 1
     },
     {
       "id": "survival_supply_cache",
-      "name": "Supply Cache",
+      "name": "Scavenged Tech",
       "type": "SURVIVAL",
       "pointsDelta": 1,
-      "drawCount": 1
+      "drawCount": 2
     },
     {
       "id": "survival_coalition",
-      "name": "Coalition",
+      "name": "Unity Pact",
       "type": "SURVIVAL",
-      "pointsDelta": 2,
-      "drawCount": 0
+      "pointsDelta": 3,
+      "drawCount": 0,
+      "effect": "team_bonus"
     },
     {
       "id": "survival_library",
-      "name": "Library",
+      "name": "Archive 01",
       "type": "SURVIVAL",
       "pointsDelta": 1,
       "drawCount": 3
     },
     {
       "id": "survival_trade_ship",
-      "name": "Trade Ship",
+      "name": "Cargo Hauler",
       "type": "SURVIVAL",
       "pointsDelta": 2,
-      "drawCount": 1
+      "drawCount": 2
     },
     {
       "id": "survival_granary",
-      "name": "Granary",
+      "name": "Silo Hub",
       "type": "SURVIVAL",
-      "pointsDelta": 2,
+      "pointsDelta": 3,
       "drawCount": 0,
       "gainHealth": 1
     },
     {
       "id": "survival_lookout_tower",
-      "name": "Lookout Tower",
+      "name": "Scanner Array",
       "type": "SURVIVAL",
       "pointsDelta": 1,
-      "drawCount": 1
+      "drawCount": 1,
+      "effect": "reveal_hand"
     },
     {
       "id": "survival_windmill",
-      "name": "Windmill",
+      "name": "Turbine Grid",
       "type": "SURVIVAL",
-      "pointsDelta": 3,
+      "pointsDelta": 4,
       "drawCount": 0
     },
     {
       "id": "survival_water_well",
-      "name": "Water Well",
+      "name": "Purifier",
       "type": "SURVIVAL",
       "pointsDelta": 0,
       "drawCount": 0,
-      "gainHealth": 3
+      "gainHealth": 4
     },
     {
       "id": "survival_bakery",
-      "name": "Bakery",
+      "name": "Nutri-Paste Lab",
       "type": "SURVIVAL",
       "pointsDelta": 2,
       "drawCount": 0,
-      "gainHealth": 1
+      "gainHealth": 2
     },
     {
       "id": "survival_forge",
-      "name": "Forge",
+      "name": "Nano-Forge",
       "type": "SURVIVAL",
       "pointsDelta": 1,
-      "drawCount": 2
+      "drawCount": 2,
+      "effect": "upgrade_power"
     }
   ],
   "DISASTER": [
     {
       "id": "disaster_earthquake_1",
-      "name": "Tremor",
+      "name": "Tectonic Shift",
       "type": "DISASTER",
       "pointsDelta": -1,
       "drawCount": 0,
       "disasterKind": "EARTHQUAKE",
-      "blocksDisaster": null
+      "effect": "discard_1"
     },
     {
       "id": "disaster_earthquake_2",
-      "name": "Earthquake",
-      "type": "DISASTER",
-      "pointsDelta": -2,
-      "drawCount": 0,
-      "disasterKind": "EARTHQUAKE",
-      "blocksDisaster": null
-    },
-    {
-      "id": "disaster_earthquake_3",
-      "name": "Aftershock",
-      "type": "DISASTER",
-      "pointsDelta": -1,
-      "drawCount": 0,
-      "disasterKind": "EARTHQUAKE",
-      "blocksDisaster": null
-    },
-    {
-      "id": "disaster_plague_1",
-      "name": "Sickness",
-      "type": "DISASTER",
-      "pointsDelta": -1,
-      "drawCount": 0,
-      "disasterKind": "PLAGUE",
-      "blocksDisaster": null
-    },
-    {
-      "id": "disaster_plague_2",
-      "name": "Plague",
+      "name": "Mega-Quake",
       "type": "DISASTER",
       "pointsDelta": -3,
       "drawCount": 0,
+      "disasterKind": "EARTHQUAKE"
+    },
+    {
+      "id": "disaster_earthquake_3",
+      "name": "Shatter Vault",
+      "type": "DISASTER",
+      "pointsDelta": -2,
+      "drawCount": 0,
+      "disasterKind": "EARTHQUAKE",
+      "effect": "destroy_power"
+    },
+    {
+      "id": "disaster_plague_1",
+      "name": "Viral Strain",
+      "type": "DISASTER",
+      "pointsDelta": -1,
+      "drawCount": 0,
       "disasterKind": "PLAGUE",
-      "blocksDisaster": null
+      "effect": "no_heal_turn"
+    },
+    {
+      "id": "disaster_plague_2",
+      "name": "Black Death 2.0",
+      "type": "DISASTER",
+      "pointsDelta": -4,
+      "drawCount": 0,
+      "disasterKind": "PLAGUE"
     },
     {
       "id": "disaster_plague_3",
-      "name": "Contagion",
+      "name": "Spore Cloud",
       "type": "DISASTER",
-      "pointsDelta": -1,
+      "pointsDelta": -2,
       "drawCount": 0,
       "disasterKind": "PLAGUE",
-      "blocksDisaster": null
+      "effect": "poison_tick"
     },
     {
       "id": "disaster_flood_1",
-      "name": "Downpour",
+      "name": "Acid Rain",
       "type": "DISASTER",
       "pointsDelta": -1,
       "drawCount": 0,
       "disasterKind": "FLOOD",
-      "blocksDisaster": null
+      "effect": "lose_points_per_turn"
     },
     {
       "id": "disaster_flood_2",
-      "name": "Flood",
+      "name": "Tsunami Cryo",
       "type": "DISASTER",
       "pointsDelta": -2,
       "drawCount": 0,
       "disasterKind": "FLOOD",
-      "blocksDisaster": null
+      "effect": "freeze_draw"
     },
     {
       "id": "disaster_flood_3",
-      "name": "Deluge",
+      "name": "Abyssal Surge",
       "type": "DISASTER",
-      "pointsDelta": -2,
+      "pointsDelta": -3,
       "drawCount": 0,
-      "disasterKind": "FLOOD",
-      "blocksDisaster": null
+      "disasterKind": "FLOOD"
     },
     {
       "id": "disaster_wildfire_1",
-      "name": "Spark",
+      "name": "Plasma Fire",
       "type": "DISASTER",
       "pointsDelta": -1,
       "drawCount": 0,
       "disasterKind": "WILDFIRE",
-      "blocksDisaster": null
+      "effect": "burn_hand"
     },
     {
       "id": "disaster_wildfire_2",
-      "name": "Wildfire",
+      "name": "Solar Scorch",
       "type": "DISASTER",
-      "pointsDelta": -2,
+      "pointsDelta": -3,
       "drawCount": 0,
-      "disasterKind": "WILDFIRE",
-      "blocksDisaster": null
+      "disasterKind": "WILDFIRE"
     },
     {
       "id": "disaster_wildfire_3",
-      "name": "Inferno",
+      "name": "Inferno Nova",
       "type": "DISASTER",
-      "pointsDelta": -2,
+      "pointsDelta": -4,
       "drawCount": 0,
-      "disasterKind": "WILDFIRE",
-      "blocksDisaster": null
+      "disasterKind": "WILDFIRE"
     },
     {
       "id": "disaster_quake_2",
-      "name": "Crack",
+      "name": "Fault Rupture",
       "type": "DISASTER",
-      "pointsDelta": -1,
+      "pointsDelta": -2,
       "drawCount": 0,
-      "disasterKind": "EARTHQUAKE",
-      "blocksDisaster": null
+      "disasterKind": "EARTHQUAKE"
     },
     {
       "id": "disaster_plague_4",
-      "name": "Fever",
+      "name": "Cyto-Storm",
       "type": "DISASTER",
-      "pointsDelta": -1,
+      "pointsDelta": -2,
       "drawCount": 0,
-      "disasterKind": "PLAGUE",
-      "blocksDisaster": null
+      "disasterKind": "PLAGUE"
     },
     {
       "id": "disaster_flood_4",
-      "name": "Torrent",
+      "name": "Deluge Protocol",
       "type": "DISASTER",
-      "pointsDelta": -1,
+      "pointsDelta": -2,
       "drawCount": 0,
-      "disasterKind": "FLOOD",
-      "blocksDisaster": null
+      "disasterKind": "FLOOD"
     },
     {
       "id": "disaster_fire_4",
-      "name": "Blaze",
+      "name": "Firewall Breach",
       "type": "DISASTER",
-      "pointsDelta": -1,
+      "pointsDelta": -2,
       "drawCount": 0,
-      "disasterKind": "WILDFIRE",
-      "blocksDisaster": null
+      "disasterKind": "WILDFIRE"
     },
     {
       "id": "disaster_global_1",
-      "name": "Meteor Strike",
+      "name": "Void Meteor",
       "type": "DISASTER",
-      "pointsDelta": -1,
+      "pointsDelta": -2,
       "drawCount": 0,
-      "disasterKind": "GLOBAL",
-      "blocksDisaster": null
+      "disasterKind": "GLOBAL"
     },
     {
       "id": "disaster_global_2",
-      "name": "Solar Flare",
+      "name": "Solar Flare Max",
       "type": "DISASTER",
-      "pointsDelta": -2,
+      "pointsDelta": -4,
       "drawCount": 0,
-      "disasterKind": "GLOBAL",
-      "blocksDisaster": null
+      "disasterKind": "GLOBAL"
     },
     {
       "id": "disaster_global_3",
-      "name": "Cosmic Event",
+      "name": "Rift Event",
       "type": "DISASTER",
-      "pointsDelta": -1,
+      "pointsDelta": -3,
       "drawCount": 0,
-      "disasterKind": "GLOBAL",
-      "blocksDisaster": null
+      "disasterKind": "GLOBAL"
     },
     {
       "id": "disaster_global_4",
-      "name": "Dark Ages",
+      "name": "Absolute Zero",
       "type": "DISASTER",
-      "pointsDelta": -2,
+      "pointsDelta": -5,
       "drawCount": 0,
-      "disasterKind": "GLOBAL",
-      "blocksDisaster": null
+      "disasterKind": "GLOBAL"
     }
   ],
   "POWER": [
     {
       "id": "power_shield_1",
-      "name": "Stone Shield",
+      "name": "Kinetic Dampener",
       "type": "POWER",
       "pointsDelta": 0,
       "drawCount": 0,
-      "blocksDisaster": "EARTHQUAKE"
+      "blocksDisaster": "EARTHQUAKE",
+      "effect": "reflect_damage"
     },
     {
       "id": "power_shield_2",
-      "name": "Iron Armor",
+      "name": "Thermal Layer",
       "type": "POWER",
       "pointsDelta": 0,
       "drawCount": 0,
-      "blocksDisaster": "WILDFIRE"
+      "blocksDisaster": "WILDFIRE",
+      "effect": "heal_on_burn"
     },
     {
       "id": "power_shield_3",
-      "name": "Quarantine",
+      "name": "Stasis Field",
       "type": "POWER",
       "pointsDelta": 0,
       "drawCount": 0,
-      "blocksDisaster": "PLAGUE"
+      "blocksDisaster": "PLAGUE",
+      "effect": "quarantine_target"
     },
     {
       "id": "power_shield_4",
-      "name": "Dam",
+      "name": "Hydro-Gate",
       "type": "POWER",
       "pointsDelta": 0,
       "drawCount": 0,
-      "blocksDisaster": "FLOOD"
+      "blocksDisaster": "FLOOD",
+      "effect": "water_siphon"
     },
     {
       "id": "power_shield_5",
-      "name": "Fortification",
+      "name": "Obsidian Wall",
       "type": "POWER",
       "pointsDelta": 0,
       "drawCount": 0,
@@ -374,7 +373,7 @@
     },
     {
       "id": "power_shield_6",
-      "name": "Firebreak",
+      "name": "Cryo-Extinguisher",
       "type": "POWER",
       "pointsDelta": 0,
       "drawCount": 0,
@@ -382,7 +381,7 @@
     },
     {
       "id": "power_shield_7",
-      "name": "Medical Aid",
+      "name": "Antigen Mist",
       "type": "POWER",
       "pointsDelta": 0,
       "drawCount": 0,
@@ -390,7 +389,7 @@
     },
     {
       "id": "power_shield_8",
-      "name": "Levee",
+      "name": "Pressure Dome",
       "type": "POWER",
       "pointsDelta": 0,
       "drawCount": 0,
@@ -398,7 +397,7 @@
     },
     {
       "id": "power_shield_9",
-      "name": "Bunker",
+      "name": "Titanium Spikes",
       "type": "POWER",
       "pointsDelta": 0,
       "drawCount": 0,
@@ -406,7 +405,7 @@
     },
     {
       "id": "power_shield_10",
-      "name": "Watchtower",
+      "name": "Refractive Lens",
       "type": "POWER",
       "pointsDelta": 0,
       "drawCount": 0,
@@ -414,7 +413,7 @@
     },
     {
       "id": "power_shield_11",
-      "name": "Herbalist",
+      "name": "Sanitizer Stream",
       "type": "POWER",
       "pointsDelta": 0,
       "drawCount": 0,
@@ -422,7 +421,7 @@
     },
     {
       "id": "power_shield_12",
-      "name": "Sluice Gate",
+      "name": "Vortex Drain",
       "type": "POWER",
       "pointsDelta": 0,
       "drawCount": 0,
@@ -430,7 +429,7 @@
     },
     {
       "id": "power_shield_13",
-      "name": "Reinforced Wall",
+      "name": "Seismic Strut",
       "type": "POWER",
       "pointsDelta": 0,
       "drawCount": 0,
@@ -438,7 +437,7 @@
     },
     {
       "id": "power_shield_14",
-      "name": "Heat Shield",
+      "name": "Heat Sink",
       "type": "POWER",
       "pointsDelta": 0,
       "drawCount": 0,
@@ -446,7 +445,7 @@
     },
     {
       "id": "power_shield_15",
-      "name": "Isolation Ward",
+      "name": "Nano-Purge",
       "type": "POWER",
       "pointsDelta": 0,
       "drawCount": 0,
@@ -454,7 +453,7 @@
     },
     {
       "id": "power_shield_16",
-      "name": "Aqueduct",
+      "name": "Siphon Pump",
       "type": "POWER",
       "pointsDelta": 0,
       "drawCount": 0,
@@ -462,7 +461,7 @@
     },
     {
       "id": "power_shield_17",
-      "name": "Bastion",
+      "name": "Aegis Plate",
       "type": "POWER",
       "pointsDelta": 0,
       "drawCount": 0,
@@ -470,7 +469,7 @@
     },
     {
       "id": "power_shield_18",
-      "name": "Smoke Tower",
+      "name": "Flash Freeze",
       "type": "POWER",
       "pointsDelta": 0,
       "drawCount": 0,
@@ -478,7 +477,7 @@
     },
     {
       "id": "power_shield_19",
-      "name": "Healing House",
+      "name": "Immune Spike",
       "type": "POWER",
       "pointsDelta": 0,
       "drawCount": 0,
@@ -486,7 +485,7 @@
     },
     {
       "id": "power_shield_20",
-      "name": "Flood Gate",
+      "name": "Wave-Breaker",
       "type": "POWER",
       "pointsDelta": 0,
       "drawCount": 0,
@@ -496,39 +495,43 @@
   "ADAPT": [
     {
       "id": "adapt_dodge_1",
-      "name": "Quick Step",
+      "name": "Reflex Coil",
       "type": "ADAPT",
       "pointsDelta": 0,
       "drawCount": 0,
-      "blocksDisaster": "EARTHQUAKE"
+      "blocksDisaster": "EARTHQUAKE",
+      "effect": "draw_on_block"
     },
     {
       "id": "adapt_dodge_2",
-      "name": "Dodge",
+      "name": "Shadow Step",
       "type": "ADAPT",
       "pointsDelta": 0,
       "drawCount": 0,
-      "blocksDisaster": "WILDFIRE"
+      "blocksDisaster": "WILDFIRE",
+      "effect": "draw_on_block"
     },
     {
       "id": "adapt_dodge_3",
-      "name": "Hide",
+      "name": "Cloak Device",
       "type": "ADAPT",
       "pointsDelta": 0,
       "drawCount": 0,
-      "blocksDisaster": "PLAGUE"
+      "blocksDisaster": "PLAGUE",
+      "effect": "draw_on_block"
     },
     {
       "id": "adapt_dodge_4",
-      "name": "Swim",
+      "name": "Liquid Form",
       "type": "ADAPT",
       "pointsDelta": 0,
       "drawCount": 0,
-      "blocksDisaster": "FLOOD"
+      "blocksDisaster": "FLOOD",
+      "effect": "draw_on_block"
     },
     {
       "id": "adapt_dodge_5",
-      "name": "Sidestep",
+      "name": "Phase Shift",
       "type": "ADAPT",
       "pointsDelta": 0,
       "drawCount": 0,
@@ -536,7 +539,7 @@
     },
     {
       "id": "adapt_dodge_6",
-      "name": "Sprint",
+      "name": "Blink Drive",
       "type": "ADAPT",
       "pointsDelta": 0,
       "drawCount": 0,
@@ -544,7 +547,7 @@
     },
     {
       "id": "adapt_dodge_7",
-      "name": "Blend In",
+      "name": "Static Mimic",
       "type": "ADAPT",
       "pointsDelta": 0,
       "drawCount": 0,
@@ -552,7 +555,7 @@
     },
     {
       "id": "adapt_dodge_8",
-      "name": "Paddle",
+      "name": "Oxygen Mask",
       "type": "ADAPT",
       "pointsDelta": 0,
       "drawCount": 0,
@@ -560,7 +563,7 @@
     },
     {
       "id": "adapt_dodge_9",
-      "name": "Vault",
+      "name": "Seismic Damp",
       "type": "ADAPT",
       "pointsDelta": 0,
       "drawCount": 0,
@@ -568,7 +571,7 @@
     },
     {
       "id": "adapt_dodge_10",
-      "name": "Roll",
+      "name": "Flash Step",
       "type": "ADAPT",
       "pointsDelta": 0,
       "drawCount": 0,
@@ -576,7 +579,7 @@
     },
     {
       "id": "adapt_dodge_11",
-      "name": "Disappear",
+      "name": "Filter Mesh",
       "type": "ADAPT",
       "pointsDelta": 0,
       "drawCount": 0,
@@ -584,7 +587,7 @@
     },
     {
       "id": "adapt_dodge_12",
-      "name": "Surf",
+      "name": "Gills Overlay",
       "type": "ADAPT",
       "pointsDelta": 0,
       "drawCount": 0,
@@ -592,7 +595,7 @@
     },
     {
       "id": "adapt_dodge_13",
-      "name": "Stumble Back",
+      "name": "Iron Gut",
       "type": "ADAPT",
       "pointsDelta": 0,
       "drawCount": 0,
@@ -600,7 +603,7 @@
     },
     {
       "id": "adapt_dodge_14",
-      "name": "Duck",
+      "name": "Asbestos Skin",
       "type": "ADAPT",
       "pointsDelta": 0,
       "drawCount": 0,
@@ -608,7 +611,7 @@
     },
     {
       "id": "adapt_dodge_15",
-      "name": "Mask Up",
+      "name": "Hazmat Aura",
       "type": "ADAPT",
       "pointsDelta": 0,
       "drawCount": 0,
@@ -616,7 +619,7 @@
     },
     {
       "id": "adapt_dodge_16",
-      "name": "Buoy",
+      "name": "Float Cell",
       "type": "ADAPT",
       "pointsDelta": 0,
       "drawCount": 0,
@@ -624,7 +627,7 @@
     },
     {
       "id": "adapt_dodge_17",
-      "name": "Brace",
+      "name": "Gyro Stance",
       "type": "ADAPT",
       "pointsDelta": 0,
       "drawCount": 0,
@@ -632,7 +635,7 @@
     },
     {
       "id": "adapt_dodge_18",
-      "name": "Scramble",
+      "name": "Fireproof",
       "type": "ADAPT",
       "pointsDelta": 0,
       "drawCount": 0,
@@ -640,7 +643,7 @@
     },
     {
       "id": "adapt_dodge_19",
-      "name": "Evade",
+      "name": "Hardened Lungs",
       "type": "ADAPT",
       "pointsDelta": 0,
       "drawCount": 0,
@@ -648,7 +651,7 @@
     },
     {
       "id": "adapt_dodge_20",
-      "name": "Dive",
+      "name": "Deep Dive",
       "type": "ADAPT",
       "pointsDelta": 0,
       "drawCount": 0,
@@ -658,214 +661,231 @@
   "CHAOS": [
     {
       "id": "chaos_raid_1",
-      "name": "Raid",
+      "name": "Scavenger Raid",
       "type": "CHAOS",
       "pointsDelta": 2,
-      "drawCount": 0
+      "drawCount": 0,
+      "effect": "steal_discard"
     },
     {
       "id": "chaos_raid_2",
-      "name": "Assault",
+      "name": "Orbital Strike",
       "type": "CHAOS",
       "pointsDelta": 3,
-      "drawCount": 0
+      "drawCount": 0,
+      "effect": "damage_all"
     },
     {
       "id": "chaos_raid_3",
-      "name": "Siege",
+      "name": "Data Breach",
       "type": "CHAOS",
       "pointsDelta": 2,
-      "drawCount": 0
+      "drawCount": 0,
+      "effect": "reveal_deck"
     },
     {
       "id": "chaos_raid_4",
-      "name": "Attack",
+      "name": "Neural Spike",
       "type": "CHAOS",
       "pointsDelta": 1,
-      "drawCount": 1
+      "drawCount": 1,
+      "effect": "confuse_bot"
     },
     {
       "id": "chaos_raid_5",
-      "name": "Thrust",
+      "name": "Sabotage",
       "type": "CHAOS",
       "pointsDelta": 2,
-      "drawCount": 0
+      "drawCount": 0,
+      "effect": "disable_power"
     },
     {
       "id": "chaos_raid_6",
-      "name": "Blitz",
+      "name": "Flash Raid",
       "type": "CHAOS",
       "pointsDelta": 1,
-      "drawCount": 0
+      "drawCount": 0,
+      "effect": "draw_on_play"
     },
     {
       "id": "chaos_raid_7",
-      "name": "Charge",
+      "name": "Heavy Artillery",
       "type": "CHAOS",
       "pointsDelta": 3,
       "drawCount": 0
     },
     {
       "id": "chaos_raid_8",
-      "name": "Onslaught",
+      "name": "Shock Troopers",
       "type": "CHAOS",
       "pointsDelta": 2,
       "drawCount": 0
     },
     {
       "id": "chaos_raid_9",
-      "name": "Ambush",
+      "name": "Infiltration",
       "type": "CHAOS",
       "pointsDelta": 1,
       "drawCount": 1
     },
     {
       "id": "chaos_raid_10",
-      "name": "Strike",
+      "name": "Precision Shot",
       "type": "CHAOS",
       "pointsDelta": 2,
       "drawCount": 0
     },
     {
       "id": "chaos_raid_11",
-      "name": "Barrage",
+      "name": "EMP Blast",
       "type": "CHAOS",
       "pointsDelta": 2,
       "drawCount": 0
     },
     {
       "id": "chaos_raid_12",
-      "name": "Volley",
+      "name": "Skirmish",
       "type": "CHAOS",
       "pointsDelta": 1,
       "drawCount": 1
     },
     {
       "id": "chaos_raid_13",
-      "name": "Crush",
+      "name": "Grand Theft",
       "type": "CHAOS",
       "pointsDelta": 2,
-      "drawCount": 0
+      "drawCount": 0,
+      "effect": "steal_points"
     },
     {
       "id": "chaos_raid_14",
-      "name": "Smash",
+      "name": "Seismic Bomb",
       "type": "CHAOS",
       "pointsDelta": 3,
       "drawCount": 0
     },
     {
       "id": "chaos_raid_15",
-      "name": "Pound",
+      "name": "Resource Grab",
       "type": "CHAOS",
       "pointsDelta": 1,
       "drawCount": 0
     },
     {
       "id": "chaos_raid_16",
-      "name": "Breach",
+      "name": "System Crash",
       "type": "CHAOS",
       "pointsDelta": 2,
       "drawCount": 0
     },
     {
       "id": "chaos_raid_17",
-      "name": "Penetrate",
+      "name": "Void Tear",
       "type": "CHAOS",
       "pointsDelta": 2,
       "drawCount": 0
     },
     {
       "id": "chaos_raid_18",
-      "name": "Pierce",
+      "name": "Ghost Attack",
       "type": "CHAOS",
       "pointsDelta": 1,
       "drawCount": 1
     },
     {
       "id": "chaos_raid_19",
-      "name": "Tear",
+      "name": "Blood Ransom",
       "type": "CHAOS",
       "pointsDelta": 2,
-      "drawCount": 0
+      "drawCount": 0,
+      "effect": "health_for_points"
     },
     {
       "id": "chaos_raid_20",
-      "name": "Rend",
+      "name": "Last Stand",
       "type": "CHAOS",
       "pointsDelta": 1,
-      "drawCount": 0
+      "drawCount": 0,
+      "effect": "points_per_missing_health"
     }
   ],
   "ASCENDED": [
     {
       "id": "ascended_phoenix_1",
-      "name": "Phoenix Rising",
+      "name": "Phoenix Rebirth",
       "tier": 1,
       "type": "ASCENDED",
       "pointsDelta": 2,
-      "drawCount": 1
+      "drawCount": 1,
+      "effect": "revive_self"
     },
     {
       "id": "ascended_echo_1",
-      "name": "Echo",
+      "name": "Chrono Echo",
       "tier": 1,
       "type": "ASCENDED",
       "pointsDelta": 0,
-      "drawCount": 2
+      "drawCount": 2,
+      "effect": "repeat_last_survival"
     },
     {
       "id": "ascended_whisper_1",
-      "name": "Whisper",
+      "name": "Void Whisper",
       "tier": 1,
       "type": "ASCENDED",
       "pointsDelta": 1,
-      "drawCount": 0
+      "drawCount": 0,
+      "effect": "force_discard"
     },
     {
       "id": "ascended_glance_1",
-      "name": "Glance",
+      "name": "Future Glance",
       "tier": 1,
       "type": "ASCENDED",
       "pointsDelta": 0,
-      "drawCount": 1
+      "drawCount": 1,
+      "effect": "rearrange_deck"
     },
     {
       "id": "ascended_muse_2",
-      "name": "Muse",
+      "name": "Aether Muse",
       "tier": 2,
       "type": "ASCENDED",
       "pointsDelta": 3,
-      "drawCount": 0
+      "drawCount": 0,
+      "effect": "draw_per_disaster"
     },
     {
       "id": "ascended_halo_2",
-      "name": "Halo",
+      "name": "Saint's Halo",
       "tier": 2,
       "type": "ASCENDED",
       "pointsDelta": 2,
-      "drawCount": 1
+      "drawCount": 1,
+      "effect": "protection_aura"
     },
     {
       "id": "ascended_aura_2",
-      "name": "Aura",
+      "name": "Prism Aura",
       "tier": 2,
       "type": "ASCENDED",
       "pointsDelta": 1,
       "drawCount": 0,
-      "gainHealth": 1
+      "gainHealth": 1,
+      "effect": "wild_color"
     },
     {
       "id": "ascended_surge_2",
-      "name": "Surge",
+      "name": "Mana Surge",
       "tier": 2,
       "type": "ASCENDED",
       "pointsDelta": 2,
-      "drawCount": 0
+      "drawCount": 0,
+      "effect": "extra_action"
     },
     {
       "id": "ascended_zenith_3",
-      "name": "Zenith",
+      "name": "Zenith Point",
       "tier": 3,
       "type": "ASCENDED",
       "pointsDelta": 4,
@@ -873,15 +893,16 @@
     },
     {
       "id": "ascended_apex_3",
-      "name": "Apex",
+      "name": "Apex Predator",
       "tier": 3,
       "type": "ASCENDED",
       "pointsDelta": 3,
-      "drawCount": 2
+      "drawCount": 2,
+      "effect": "steal_draw"
     },
     {
       "id": "ascended_summit_3",
-      "name": "Summit",
+      "name": "Summit Peak",
       "tier": 3,
       "type": "ASCENDED",
       "pointsDelta": 2,
@@ -889,7 +910,7 @@
     },
     {
       "id": "ascended_peak_3",
-      "name": "Peak",
+      "name": "Icy Peak",
       "tier": 3,
       "type": "ASCENDED",
       "pointsDelta": 3,
@@ -897,7 +918,7 @@
     },
     {
       "id": "ascended_nirvana_4",
-      "name": "Nirvana",
+      "name": "Nirvana State",
       "tier": 4,
       "type": "ASCENDED",
       "pointsDelta": 5,
@@ -922,7 +943,7 @@
     },
     {
       "id": "ascended_celestial_4",
-      "name": "Celestial",
+      "name": "Celestial Body",
       "tier": 4,
       "type": "ASCENDED",
       "pointsDelta": 3,
@@ -934,7 +955,8 @@
       "tier": 5,
       "type": "ASCENDED",
       "pointsDelta": 15,
-      "drawCount": 0
+      "drawCount": 0,
+      "effect": "nuke_points"
     },
     {
       "id": "ascended_alpha_5",
@@ -942,7 +964,8 @@
       "tier": 5,
       "type": "ASCENDED",
       "pointsDelta": 8,
-      "drawCount": 3
+      "drawCount": 3,
+      "effect": "full_hand_reset"
     },
     {
       "id": "ascended_void_5",
@@ -950,7 +973,8 @@
       "tier": 5,
       "type": "ASCENDED",
       "pointsDelta": -1,
-      "drawCount": 2
+      "drawCount": 2,
+      "effect": "swap_hands"
     },
     {
       "id": "ascended_singularity_5",
@@ -958,7 +982,8 @@
       "tier": 5,
       "type": "ASCENDED",
       "pointsDelta": 12,
-      "drawCount": 1
+      "drawCount": 1,
+      "effect": "force_equal_points"
     },
     {
       "id": "ascended_infinite_5",
@@ -971,15 +996,16 @@
     },
     {
       "id": "ascended_paradox_5",
-      "name": "Paradox",
+      "name": "Time Paradox",
       "tier": 5,
       "type": "ASCENDED",
       "pointsDelta": 2,
-      "drawCount": 2
+      "drawCount": 2,
+      "effect": "reverse_turn_order"
     },
     {
       "id": "ascended_nexus_5",
-      "name": "Nexus",
+      "name": "Nexus Hub",
       "tier": 5,
       "type": "ASCENDED",
       "pointsDelta": 7,
@@ -987,7 +1013,7 @@
     },
     {
       "id": "ascended_genesis_5",
-      "name": "Genesis",
+      "name": "Genesis Core",
       "tier": 5,
       "type": "ASCENDED",
       "pointsDelta": 10,
@@ -995,17 +1021,18 @@
     },
     {
       "id": "ascended_entropy_5",
-      "name": "Entropy",
+      "name": "Entropy Flux",
       "tier": 5,
       "type": "ASCENDED",
       "pointsDelta": 1,
-      "drawCount": 1
+      "drawCount": 1,
+      "effect": "randomize_everyone_points"
     }
   ],
   "TWIST": [
     {
       "id": "twist_blessing_draw",
-      "name": "Blessing of Cards",
+      "name": "Blessing of Unity",
       "type": "TWIST",
       "pointsDelta": 0,
       "drawCount": 0,
@@ -1013,7 +1040,7 @@
     },
     {
       "id": "twist_blessing_health",
-      "name": "Blessing of Health",
+      "name": "Vitality Boon",
       "type": "TWIST",
       "pointsDelta": 0,
       "drawCount": 0,
@@ -1021,7 +1048,7 @@
     },
     {
       "id": "twist_blessing_points",
-      "name": "Blessing of Fortune",
+      "name": "Fortune's Smile",
       "type": "TWIST",
       "pointsDelta": 0,
       "drawCount": 0,
@@ -1029,7 +1056,7 @@
     },
     {
       "id": "twist_curse_skip",
-      "name": "Curse of Stasis",
+      "name": "Stasis Lock",
       "type": "TWIST",
       "pointsDelta": 0,
       "drawCount": 0,
@@ -1037,7 +1064,7 @@
     },
     {
       "id": "twist_curse_health",
-      "name": "Curse of Wasting",
+      "name": "Slow Decay",
       "type": "TWIST",
       "pointsDelta": 0,
       "drawCount": 0,
@@ -1045,7 +1072,7 @@
     },
     {
       "id": "twist_curse_block_red",
-      "name": "Curse of Red Silence",
+      "name": "Red Phase Out",
       "type": "TWIST",
       "pointsDelta": 0,
       "drawCount": 0,
@@ -1053,7 +1080,7 @@
     },
     {
       "id": "twist_curse_block_blue",
-      "name": "Curse of Blue Silence",
+      "name": "Blue Phase Out",
       "type": "TWIST",
       "pointsDelta": 0,
       "drawCount": 0,
@@ -1061,7 +1088,7 @@
     },
     {
       "id": "twist_neutral_draw",
-      "name": "Rumor",
+      "name": "Data Fragment",
       "type": "TWIST",
       "pointsDelta": 0,
       "drawCount": 0,
@@ -1069,7 +1096,7 @@
     },
     {
       "id": "twist_neutral_restore",
-      "name": "Reprieve",
+      "name": "Stabilize",
       "type": "TWIST",
       "pointsDelta": 0,
       "drawCount": 0,
@@ -1077,7 +1104,7 @@
     },
     {
       "id": "twist_curse_heavy",
-      "name": "Plague Winds",
+      "name": "Heavy Gravity",
       "type": "TWIST",
       "pointsDelta": 0,
       "drawCount": 0,
@@ -1085,7 +1112,7 @@
     },
     {
       "id": "twist_neutral_gamble",
-      "name": "Gambit",
+      "name": "Risk Factor",
       "type": "TWIST",
       "pointsDelta": 0,
       "drawCount": 0,
@@ -1093,7 +1120,7 @@
     },
     {
       "id": "twist_blessing_ascended",
-      "name": "Blessing of Power",
+      "name": "Ancient Call",
       "type": "TWIST",
       "pointsDelta": 0,
       "drawCount": 0,
@@ -1101,7 +1128,7 @@
     },
     {
       "id": "twist_curse_health_2",
-      "name": "Blight",
+      "name": "Corrosion",
       "type": "TWIST",
       "pointsDelta": 0,
       "drawCount": 0,
@@ -1109,7 +1136,7 @@
     },
     {
       "id": "twist_blessing_draw_2",
-      "name": "Inspiration",
+      "name": "Overclock",
       "type": "TWIST",
       "pointsDelta": 0,
       "drawCount": 0,
@@ -1117,7 +1144,7 @@
     },
     {
       "id": "twist_neutral_risky",
-      "name": "Wildcard",
+      "name": "Wildcard Flux",
       "type": "TWIST",
       "pointsDelta": 0,
       "drawCount": 0,
@@ -1162,7 +1189,7 @@
     },
     {
       "drawCount": 0,
-      "name": "Blight",
+      "name": "Blight Pulse",
       "pointsDelta": 1,
       "id": "cataclysm_blight",
       "type": "CATACLYSM"
@@ -1190,8 +1217,8 @@
     },
     {
       "drawCount": 0,
-      "name": "Apocalypse",
-      "pointsDelta": 4,
+      "name": "The Apocalypse",
+      "pointsDelta": 10,
       "id": "cataclysm_apocalypse",
       "type": "CATACLYSM"
     }

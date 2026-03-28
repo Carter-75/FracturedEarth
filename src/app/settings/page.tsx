@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { EMOJI_OPTIONS, THEME_OPTIONS } from '@/lib/gameConfig';
 import { isTutorialDone, loadLocalSettings, resetTutorialDone, saveLocalSettings, setTutorialDone } from '@/lib/localProfile';
-import { ImagePromptPlaceholder } from '@/components/ImagePromptPlaceholder';
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -48,12 +47,12 @@ export default function SettingsPage() {
 
       <section className="fe-panel fe-seat-plinth rounded-3xl p-6 space-y-4">
         {/* AI prompt: personalized player locker with patches, helmet icon, carved wooden UI placards, cozy warm ambient light, stylized realism */}
-        <ImagePromptPlaceholder label="Player Locker Header Art" ratioClassName="aspect-[18/7]" />
+        
         <div className="grid sm:grid-cols-2 gap-3">
           {/* AI prompt: emoji badge set on engraved metal pins, small collectible style, high detail studio lighting */}
-          <ImagePromptPlaceholder label="Emoji Badge Set Art" ratioClassName="aspect-[16/9]" />
+          
           {/* AI prompt: theme swatch board made from painted wood and enamel chips, tabletop craft aesthetic */}
-          <ImagePromptPlaceholder label="Theme Swatch Board Art" ratioClassName="aspect-[16/9]" />
+          
         </div>
 
         <h2 className="text-lg font-semibold">Profile And Theme</h2>
@@ -75,7 +74,13 @@ export default function SettingsPage() {
               <option key={candidate} value={candidate}>{candidate}</option>
             ))}
           </select>
-          <select className="fe-panel-alt rounded-xl px-3 py-3" value={theme} onChange={(event) => setTheme(event.target.value as (typeof THEME_OPTIONS)[number])}>
+          <select className="fe-panel-alt rounded-xl px-3 py-3" value={theme} onChange={(event) => {
+            const newTheme = event.target.value as (typeof THEME_OPTIONS)[number];
+            setTheme(newTheme);
+            window.dispatchEvent(new CustomEvent('fe:settings-changed', {
+              detail: { ...loadLocalSettings(), theme: newTheme }
+            }));
+          }}>
             {THEME_OPTIONS.map((candidate) => (
               <option key={candidate} value={candidate}>{candidate}</option>
             ))}
@@ -94,7 +99,7 @@ export default function SettingsPage() {
 
       <section className="fe-panel fe-seat-plinth rounded-3xl p-6 space-y-4">
         {/* AI prompt: tutorial checkpoint cards stacked with wax-seal stamps, progress markers, warm game room lighting */}
-        <ImagePromptPlaceholder label="Tutorial Progress Cards Art" ratioClassName="aspect-[20/7]" />
+        
 
         <h2 className="text-lg font-semibold">Tutorial</h2>
         <p className="text-sm fe-muted">Status: {tutorialDone ? 'Completed' : 'Not completed'}</p>

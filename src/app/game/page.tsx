@@ -1,67 +1,44 @@
-import { getServerSession } from 'next-auth';
-import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { authOptions } from '@/lib/auth';
-import { getUserProfile } from '@/lib/kv';
 import { LocalStatsPanel } from '@/components/LocalStatsPanel';
-import { ImagePromptPlaceholder } from '@/components/ImagePromptPlaceholder';
 
-export default async function GameDashboard() {
-  const session = await getServerSession(authOptions);
-  if (!session?.user) redirect('/api/auth/signin');
-
-  const userId = (session.user as { id?: string }).id ?? '';
-  const profile = await getUserProfile(userId);
-
+export default function GameDashboard() {
   return (
-    <main className="min-h-screen p-8 max-w-3xl mx-auto">
-      <div className="flex items-center justify-between mb-8">
+    <main className="min-h-screen p-8 max-w-4xl mx-auto dark-technical-grain">
+      <div className="flex items-center justify-between mb-12 pb-4 border-b border-white/10">
         <div>
-          <h1 className="text-3xl font-bold">{session.user.name ?? 'Commander'}</h1>
-          <p className="text-gray-400 text-sm">{session.user.email}</p>
+          <h1 className="text-4xl font-bold tracking-tight text-white mb-2">Commander</h1>
+          <p className="text-accent-soft text-[10px] uppercase tracking-[0.2em] font-bold">Local Secure Profile</p>
         </div>
-        <Link href="/" className="text-sm text-gray-400 hover:text-white transition-colors">
-          ← Home
+        <Link href="/" className="text-sm text-gray-500 hover:text-white transition-colors flex items-center gap-2 group">
+          <span className="group-hover:-translate-x-1 transition-transform">←</span> Return
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <StatCard label="Games Played" value={profile?.totalGamesPlayed ?? 0} />
-        <StatCard label="Total Wins"   value={profile?.totalWins ?? 0} />
-        <StatCard label="Active Theme" value={profile?.theme ?? 'Obsidian'} />
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-12">
+        <StatCard label="Games Played" value="0" />
+        <StatCard label="Total Wins" value="0" />
+        <StatCard label="Active Theme" value="Obsidian" />
       </div>
 
-      {/* AI prompt: war-room desk with scattered survival cards, tactical notebook, radio device, warm practical lighting, realistic tabletop photography style */}
-      <ImagePromptPlaceholder label="Commander Desk Banner" ratioClassName="aspect-[16/6]" className="mb-8" />
-      <div className="grid sm:grid-cols-2 gap-4 mb-8">
-        {/* AI prompt: survivor portrait card mockup with stitched border, weathered print texture, cinematic key light, collectible card style */}
-        <ImagePromptPlaceholder label="Profile Portrait Card Art" ratioClassName="aspect-[4/3]" />
-        {/* AI prompt: overhead tactical board with route markers and hazard icons, analog map table, warm orange and teal accents */}
-        <ImagePromptPlaceholder label="Operations Map Art" ratioClassName="aspect-[4/3]" />
-      </div>
-
-      <section className="bg-gray-800 rounded-xl p-6">
-        <h2 className="text-lg font-semibold mb-2">Play Cross-Platform</h2>
-        <p className="text-gray-400 text-sm leading-relaxed">
-          Create a room and play from web or Android. Room state syncs through shared backend data.
+      <section className="bg-black/60 border border-white/5 rounded-2xl p-8 mb-12 backdrop-blur-sm">
+        <h2 className="text-2xl font-bold mb-3 tracking-tight text-white">Play Cross-Platform</h2>
+        <p className="text-gray-400 text-sm leading-relaxed max-w-xl mb-8">
+          Create a room and play from web or Android. Room state syncs through shared backend data across the local network. No external servers or authentication required.
         </p>
-        <div className="mt-4 flex gap-3 flex-wrap">
-          <Link href="/lan" className="px-4 py-2 rounded bg-red-700 hover:bg-red-600 text-sm font-semibold">
+        <div className="flex flex-wrap gap-4">
+          <Link href="/lan" className="px-6 py-3 rounded bg-accent-soft hover:bg-accent active:scale-95 text-white text-sm font-bold tracking-wide transition-all cursor-pointer shadow-lg shadow-teal-900/20">
             Open Room Lobby
           </Link>
-          <Link href="/tutorial" className="px-4 py-2 rounded bg-teal-700 hover:bg-teal-600 text-sm font-semibold">
+          <Link href="/tutorial" className="px-6 py-3 rounded bg-white/5 hover:bg-white/10 active:scale-95 text-white text-sm font-bold tracking-wide transition-all cursor-pointer">
             Guided Tutorial
           </Link>
-          <Link href="/settings" className="px-4 py-2 rounded bg-slate-700 hover:bg-slate-600 text-sm font-semibold">
+          <Link href="/settings" className="px-6 py-3 rounded bg-white/5 hover:bg-white/10 active:scale-95 text-white text-sm font-bold tracking-wide transition-all cursor-pointer">
             Settings
-          </Link>
-          <Link href="/privacy" className="px-4 py-2 rounded border border-gray-500 hover:border-gray-300 text-sm">
-            Privacy Policy
           </Link>
         </div>
       </section>
 
-      <div className="mt-6">
+      <div className="mt-8">
         <LocalStatsPanel />
       </div>
     </main>
@@ -70,9 +47,9 @@ export default async function GameDashboard() {
 
 function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="bg-gray-800 rounded-xl p-5">
-      <p className="text-gray-400 text-xs uppercase tracking-wider">{label}</p>
-      <p className="text-3xl font-bold mt-2">{value}</p>
+    <div className="bg-black/40 border border-white/5 rounded-2xl p-6 transition-all hover:bg-black/60 flex flex-col justify-between group cursor-default">
+      <p className="text-gray-500 group-hover:text-accent-soft transition-colors text-[10px] uppercase font-bold tracking-[0.15em] mb-4">{label}</p>
+      <p className="text-5xl font-black tracking-tighter text-white">{value}</p>
     </div>
   );
 }

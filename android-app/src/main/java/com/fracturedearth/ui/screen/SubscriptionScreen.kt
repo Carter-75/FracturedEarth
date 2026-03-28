@@ -3,12 +3,14 @@ package com.fracturedearth.ui.screen
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.border
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -26,6 +28,8 @@ import com.fracturedearth.ui.theme.Spacing
 fun SubscriptionScreen(
     onBack: () -> Unit,
     onRestorePurchases: () -> Unit,
+    onShowPaywall: () -> Unit,
+    onShowCustomerCenter: () -> Unit,
     onSubscribe: (SubscriptionTier) -> Unit,
 ) {
     Column(
@@ -34,69 +38,60 @@ fun SubscriptionScreen(
             .padding(Spacing.x4),
         verticalArrangement = Arrangement.spacedBy(Spacing.x3),
     ) {
-        Text("Ad-Free Mode", style = MaterialTheme.typography.headlineMedium)
+        Text("NEURAL ATLAS ACCESS", style = MaterialTheme.typography.headlineMedium)
         Text(
-            "Remove banner and interstitial ads on all gameplay screens.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface,
+            "Manage your membership and access premium features across the Neural Atlas.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
         )
 
-        // AI prompt: premium ad-free membership badge carved in brass, survival emblem, warm tungsten highlights, dramatic tabletop scene, polished game key art
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(140.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(16.dp)),
-            contentAlignment = Alignment.Center,
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.x2)
         ) {
-            Text("AI Image Slot: Subscription Hero Badge", style = MaterialTheme.typography.titleMedium)
+            FeButton(
+                label = "View Plans", 
+                onClick = onShowPaywall,
+                modifier = Modifier.weight(1f)
+            )
+            FeButton(
+                label = "Member Center", 
+                onClick = onShowCustomerCenter,
+                modifier = Modifier.weight(1f)
+            )
         }
 
-        // AI prompt: side-by-side ad-on versus ad-free gameplay screens on tabletop, clean comparison composition, premium product marketing art
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(120.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(16.dp)),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text("AI Image Slot: Ads Comparison Panel", style = MaterialTheme.typography.titleMedium)
-        }
+        Text("Direct Selection", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
 
-        // AI prompt: premium subscriber kit with coin token, card sleeve, and emblem card, warm dramatic tabletop lighting, cinematic product shot
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(120.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(16.dp)),
-            contentAlignment = Alignment.Center,
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(Spacing.x2)
         ) {
-            Text("AI Image Slot: Premium Kit Visual", style = MaterialTheme.typography.titleMedium)
-        }
-
-        SubscriptionTier.entries.forEach { tier ->
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(Spacing.x3),
-                    verticalArrangement = Arrangement.spacedBy(Spacing.x2),
+            SubscriptionTier.entries.forEach { tier ->
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
                 ) {
-                    Text(tier.name.lowercase().replaceFirstChar { it.uppercase() }, style = MaterialTheme.typography.titleLarge)
-                    Text(tier.productId, style = MaterialTheme.typography.bodySmall)
-                    FeButton(label = "Choose", onClick = { onSubscribe(tier) })
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(Spacing.x3),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(tier.name.lowercase().replaceFirstChar { it.uppercase() }, style = MaterialTheme.typography.titleMedium)
+                            Text(tier.productId, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
+                        }
+                        FeButton(label = "Choose", onClick = { onSubscribe(tier) })
+                    }
                 }
             }
         }
 
-        FeButton(label = "Restore Purchases", onClick = onRestorePurchases)
+        // Restore handled automatically on start
         FeButton(label = "Back", onClick = onBack)
     }
 }

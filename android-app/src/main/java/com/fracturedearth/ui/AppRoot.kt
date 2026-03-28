@@ -55,7 +55,7 @@ fun AppRoot() {
     val themeDao = remember(appDb) { appDb.themeDao() }
     var theme by rememberSaveable { androidx.compose.runtime.mutableStateOf(ThemeOption.OBSIDIAN) }
     var triggerInterstitial by rememberSaveable { androidx.compose.runtime.mutableStateOf(false) }
-    val adFree by BillingFacade.adFreeState().collectAsState(initial = billingFacade.isAdFreeActive())
+    val adFree by BillingFacade.adFreeState().collectAsState()
 
     LaunchedEffect(themeDao) {
         val saved = themeDao.getTheme()?.themeName ?: return@LaunchedEffect
@@ -138,6 +138,8 @@ fun AppRoot() {
                 SubscriptionScreen(
                     onBack = { navController.popBackStack() },
                     onRestorePurchases = { billingFacade.restorePurchases() },
+                    onShowPaywall = { if (activity != null) billingFacade.showPaywall(activity) },
+                    onShowCustomerCenter = { if (activity != null) billingFacade.showCustomerCenter(activity) },
                     onSubscribe = { tier: SubscriptionTier ->
                         if (activity != null) {
                             billingFacade.purchase(activity, tier)

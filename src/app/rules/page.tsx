@@ -1,141 +1,69 @@
 import Link from 'next/link';
-import { CARD_GROUPS } from '@/lib/cardCatalog';
-import { ImagePromptPlaceholder } from '@/components/ImagePromptPlaceholder';
 
 export default function RulesPage() {
-  const sections = [
-    {
-      key: 'SURVIVAL',
-      title: 'Survival Cards',
-      subtitle: 'Gain survival points; some also draw cards or restore health.',
-      cards: CARD_GROUPS.SURVIVAL,
-    },
-    {
-      key: 'DISASTER',
-      title: 'Disaster Cards',
-      subtitle: 'Damage health by disaster kind unless blocked.',
-      cards: CARD_GROUPS.DISASTER,
-    },
-    {
-      key: 'POWER',
-      title: 'Power Cards',
-      subtitle: 'Persistent blockers that stay active after blocking.',
-      cards: CARD_GROUPS.POWER,
-    },
-    {
-      key: 'ADAPT',
-      title: 'Adapt Cards',
-      subtitle: 'One-use blockers consumed when they block.',
-      cards: CARD_GROUPS.ADAPT,
-    },
-    {
-      key: 'CHAOS',
-      title: 'Chaos Cards',
-      subtitle: 'You gain points; all opponents lose 1 health.',
-      cards: CARD_GROUPS.CHAOS,
-    },
-    {
-      key: 'ASCENDED',
-      title: 'Ascended Cards (Rare)',
-      subtitle: 'Powerful tier-based cards (1–5). Some grant potent effects, others are deceptively weak.',
-      cards: CARD_GROUPS.ASCENDED,
-    },
-    {
-      key: 'TWIST',
-      title: 'Twist Cards (Fate)',
-      subtitle: 'One-time per-player blessings, curses, or neutrals that apply when played.',
-      cards: CARD_GROUPS.TWIST,
-    },
-    {
-      key: 'CATACLYSM',
-      title: 'Cataclysm Cards (Global Catastrophe)',
-      subtitle: 'Global disaster cards. Player gains points but takes triple damage; all others take 1 damage.',
-      cards: CARD_GROUPS.CATACLYSM,
-    },
-  ] as const;
-
   return (
-    <main className="min-h-screen p-8 max-w-4xl mx-auto space-y-6">
-      <div className="fe-panel rounded-3xl p-6 flex items-center justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="text-3xl font-bold">Rules Atlas</h1>
-          <p className="fe-muted text-sm mt-1">Fast reference for turn order, card effects, and combat logic.</p>
-        </div>
-        <Link href="/settings" className="fe-panel-alt rounded-xl px-4 py-2 text-sm">Back to settings</Link>
+    <main className="fe-scene bg-black overflow-y-auto">
+      {/* Immersive Background */}
+      <div className="absolute inset-0 z-0 h-full">
+         <img src="/assets/type-bgs/ascended.png" className="w-full h-full object-cover opacity-10 blur-3xl scale-125" alt="" />
+         <div className="fe-vignette h-full" />
+         <div className="fe-scanline h-full" />
+         <div className="fe-grid h-full" />
       </div>
 
-      {/* AI prompt: ancient survival codex opened on a wooden table, illustrated card symbols and disaster sketches, high-detail parchment texture, dramatic side light */}
-      <ImagePromptPlaceholder label="Rules Codex Header Art" ratioClassName="aspect-[20/7]" />
-      <div className="grid sm:grid-cols-2 gap-3">
-        {/* AI prompt: icon legend board for eight card families, hand-painted symbols on aged paper, clean educational layout */}
-        <ImagePromptPlaceholder label="Card Family Legend Art" ratioClassName="aspect-[16/9]" />
-        {/* AI prompt: battle timeline strip showing draw play end phases with arrows and tokens, tabletop infographics style */}
-        <ImagePromptPlaceholder label="Turn Timeline Strip Art" ratioClassName="aspect-[16/9]" />
-      </div>
-
-      <section className="fe-panel rounded-3xl p-6 space-y-3 text-sm text-gray-200 leading-relaxed">
-        <h2 className="text-lg font-semibold text-white">Core Objective</h2>
-        <p>Gain survival points and outlast opponents. You win by reaching 100 survival points or being the only player with health above 0.</p>
-
-        <h2 className="text-lg font-semibold text-white">Game Setup</h2>
-        <p>Each player starts with 5 health and 0 survival points. Draw 5 cards to your hand from safe card types (SURVIVAL, DISASTER, POWER, ADAPT, CHAOS, ASCENDED). Deck shuffles 150 unique cards (300 total with copies). TWIST and CATACLYSM cannot appear in starting hands.</p>
-
-        <h2 className="text-lg font-semibold text-white">Turn Flow</h2>
-        <p>On your turn: draw exactly 1 card first, play up to 3 cards, then end turn. Every full table cycle advances round count. Every 3rd round marks global disaster phase.</p>
-
-        <h2 className="text-lg font-semibold text-white">Card Types (8 Total)</h2>
-        <div className="space-y-1 ml-4">
-          <p><strong>🌱 Survival</strong>: Grants survival points and sometimes card draw or health restoration.</p>
-          <p><strong>🌋 Disaster</strong>: Damages one target or all opponents (GLOBAL) depending on disaster kind.</p>
-          <p><strong>🛡️ Power</strong>: Persistent protection against specific disaster kinds (stays in play).</p>
-          <p><strong>🧬 Adapt</strong>: Protection consumed after blocking one matching disaster.</p>
-          <p><strong>⚡ Chaos</strong>: Active player gains points; all opponents lose 1 health.</p>
-          <p><strong>✨ Ascended</strong>: Rare tier 1–5 cards with special properties. Powerful or mundane—never predictable!</p>
-          <p><strong>🌀 Twist</strong>: Fate-based effects applied when drawn (blessings, curses, neutrals). Modify the match state instantly.</p>
-          <p><strong>💀 Cataclysm</strong>: You gain survival points but take triple damage (−3 health). All other players take 1 damage. Risky power plays!</p>
+      <section className="relative z-10 w-full max-w-4xl mx-auto px-6 py-20 pb-40">
+        <div className="mb-16">
+           <div className="fe-hologram text-sky-400 mb-2">Protocol Reference</div>
+           <h1 className="text-6xl font-black italic tracking-tighter text-white uppercase">Neural<span className="text-amber-500">Atlas</span></h1>
+           <p className="text-white/40 mt-4 font-light tracking-tight max-w-lg italic">
+             &quot;To control the planet, one must first understand the fracture.&quot; — Command Alpha
+           </p>
         </div>
 
-        <h2 className="text-lg font-semibold text-white">Health & Status</h2>
-        <p>You start at 5 health. Disaster cards damage health (can go to 0). Survival cards may restore health (+gainHealth property). When health reaches 0, you&apos;re out of play.</p>
-
-        <h2 className="text-lg font-semibold text-white">Twist And Cataclysm</h2>
-        <p>TWIST and CATACLYSM do not go into starting hands. If you draw one during the game, it is forced down immediately. TWIST only hits the player who drew it. CATACLYSM hits the player who drew it the hardest, then damages everyone else around them.</p>
-
-        <h2 className="text-lg font-semibold text-white">Color Blocking</h2>
-        <p>Some Twist effects block card colors in your hand—those cards appear grayed out and cannot be played until the effect expires.</p>
-
-        <h2 className="text-lg font-semibold text-white">Bots</h2>
-        <p>Bots draw and then play up to 3 cards using this priority: Disaster → Chaos → Ascended → Survival → Adapt → Power. They target the leading opponent with Disaster cards.</p>
-      </section>
-
-      {sections.map((section) => (
-        <section key={section.key} className="fe-panel rounded-3xl p-6 space-y-3 text-sm text-gray-200">
-          <h2 className="text-lg font-semibold text-white">{section.title} ({section.cards.length})</h2>
-          <p className="text-gray-300">{section.subtitle}</p>
-
-          <div className="grid sm:grid-cols-2 gap-2">
-            {section.cards.map((card) => (
-              <div key={card.id} className="fe-panel-alt rounded-xl px-3 py-2">
-                <p className="font-semibold text-white">
-                  {card.name}
-                  {card.tier && <span className="ml-1 text-xs text-amber-300">T{card.tier}</span>}
-                </p>
-                <p className="text-xs text-gray-400">ID: {card.id}</p>
-                <p className="text-xs text-gray-300">
-                  {card.pointsDelta !== 0 ? `Points/Health Delta: ${card.pointsDelta}` : 'No direct points delta'}
-                  {card.gainHealth ? ` • Heal: +${card.gainHealth}` : ''}
-                  {card.drawCount ? ` • Draw: ${card.drawCount}` : ''}
-                  {card.disasterKind ? ` • Disaster: ${card.disasterKind}` : ''}
-                  {card.blocksDisaster ? ` • Blocks: ${card.blocksDisaster}` : ''}
-                </p>
-                {card.effect && (
-                  <p className="text-xs text-purple-300 font-semibold">Effect: {card.effect}</p>
-                )}
+        <div className="space-y-24">
+           {/* Section 1: Turn Flow */}
+           <div className="relative p-12 bg-white/5 border border-white/10 rounded-3xl backdrop-blur-3xl">
+              <div className="absolute -top-4 -left-4 fe-hologram text-amber-500 bg-black px-4 py-2 border border-amber-500/30 rounded-xl">01: TURN_CYCLE</div>
+              <h2 className="text-3xl font-black text-white mb-8 tracking-tighter uppercase italic">The Procurement Loop</h2>
+              <div className="space-y-6 text-white/70 font-light leading-relaxed">
+                 <p><strong className="text-amber-500 font-bold">1. PROCUREMENT (Draw):</strong> Every turn begins by accessing the deck. You MUST draw exactly 1 unit of tactical data.</p>
+                 <p><strong className="text-amber-500 font-bold">2. DEPLOYMENT (Play):</strong> You may deploy <span className="text-white font-bold italic">1 to 3 cards</span> from your hand to the table. Most cards provide Energy (Points) or affect the global environment.</p>
+                 <p><strong className="text-amber-500 font-bold">3. TERMINATION (End):</strong> Once your actions are spent (or you choose to hold), terminate control to pass to the next candidate.</p>
               </div>
-            ))}
-          </div>
-        </section>
-      ))}
+           </div>
+
+           {/* Section 2: Tactical Cards */}
+           <div className="space-y-12">
+              <h2 className="fe-hologram text-sky-400 text-center">Tactical Classification</h2>
+              <div className="grid sm:grid-cols-2 gap-8">
+                 {[
+                   { name: 'SURVIVAL', color: 'text-emerald-400', desc: 'Secure vital resources. Provides consistent Energy gain.' },
+                   { name: 'DISASTER', color: 'text-rose-400', desc: 'Siphon enemy resources. Damages health or steals points.' },
+                   { name: 'POWER', color: 'text-sky-400', desc: 'Persistent structures. Stays on table to block matching attacks.' },
+                   { name: 'ASCENDED', color: 'text-amber-500', desc: 'Elite protocols. Often grants EXTRA ACTIONS beyond the 3-card limit.' }
+                 ].map(type => (
+                   <div key={type.name} className="p-6 bg-white/5 border border-white/5 rounded-2xl hover:bg-white/10 transition-colors">
+                      <h3 className={`font-black tracking-widest ${type.color} mb-2`}>{type.name}</h3>
+                      <p className="text-xs text-white/40 leading-relaxed font-light">{type.desc}</p>
+                   </div>
+                 ))}
+              </div>
+           </div>
+
+           {/* Section 3: Victory Conditions */}
+           <div className="text-center p-12 border-t border-white/10">
+              <h2 className="text-4xl font-black text-white italic tracking-tighter uppercase mb-6">Ascension Profile</h2>
+              <p className="text-white/40 max-w-md mx-auto leading-relaxed">
+                The first candidate to reach the designated point threshold or survive the final Cataclysm while others fall will be granted total planetary authority.
+              </p>
+           </div>
+        </div>
+
+        <div className="mt-20 flex justify-center gap-6">
+           <Link href="/" className="fe-holo-btn">Return Home</Link>
+           <Link href="/tutorial" className="fe-holo-btn !border-amber-500/50 !text-amber-500">Practice Protocol</Link>
+        </div>
+      </section>
     </main>
   );
 }

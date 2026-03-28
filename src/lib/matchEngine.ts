@@ -48,11 +48,23 @@ export interface MatchPayload {
   drawPile: MatchCard[];
   discardPile: MatchCard[];
   turnPile: MatchCard[];
+  topCard?: MatchCard;
+  turnDirection: 1 | -1;
   isGlobalDisasterPhase: boolean;
   winnerId?: string;
   cardsPlayedThisTurn: number;
   hasDrawnThisTurn: boolean;
   botTurnReplay?: BotTurnEvent[];
+}
+
+export function canPlayCard(state: MatchPayload, card: MatchCard): boolean {
+  const active = state.players[state.activePlayerIndex];
+  
+  // Handle color blocking from Twist effects
+  if (active?.twistEffect === "block_red" && card.name.toLowerCase().includes("red")) return false;
+  if (active?.twistEffect === "block_blue" && card.name.toLowerCase().includes("blue")) return false;
+
+  return true; // Core rule: Play up to 3 of any cards per turn
 }
 
 export interface BotTurnEvent {
@@ -162,7 +174,7 @@ function playCardImmediate(state: MatchPayload, card: MatchCard): MatchPayload {
       if (idx === next.activePlayerIndex) {
         return {
           ...p,
-          survivalPoints: Math.max(0, p.survivalPoints + card.pointsDelta),
+          survivalPoints: Math.max(0, p.survivalPoints - card.pointsDelta),
           health: Math.max(0, p.health - 3),
         };
       }
@@ -205,9 +217,11 @@ function drawForActive(state: MatchPayload): MatchPayload {
 }
 
 function advanceTurn(state: MatchPayload): MatchPayload {
-  const nextIndex = (state.activePlayerIndex + 1) % state.players.length;
-  const wrapsRound = nextIndex === 0;
+  const dir = state.turnDirection || 1;
+  const nextIndex = (state.activePlayerIndex + dir + state.players.length) % state.players.length;
+  const wrapsRound = (dir === 1 && nextIndex === 0) || (dir === -1 && nextIndex === state.players.length - 1);
   const nextRound = wrapsRound ? state.round + 1 : state.round;
+  
   return {
     ...state,
     activePlayerIndex: nextIndex,
@@ -266,37 +280,41 @@ function playCard(
   cardId: string,
   targetPlayerId?: string
 ): MatchPayload {
-  const active = state.players[state.activePlayerIndex];
+  const activeIndex = state.activePlayerIndex;
+  const active = state.players[activeIndex];
   const card = active.hand.find((c) => c.id === cardId);
   if (!card) throw new Error("Card not in hand");
+  if (!canPlayCard(state, card)) throw new Error("Card does not match top card");
 
   const newHand = active.hand.filter((c) => c.id !== card.id);
   let next: MatchPayload = {
     ...state,
     players: state.players.map((p, i) =>
-      i === state.activePlayerIndex ? { ...active, hand: newHand } : p
+      i === activeIndex ? { ...active, hand: newHand } : p
     ),
     discardPile: [...state.discardPile, card],
+    topCard: card,
     turnPile: [...state.turnPile, card],
     cardsPlayedThisTurn: state.cardsPlayedThisTurn + 1,
   };
 
+  const effect = card.effect;
+  let players = [...next.players];
+  let updatedActive = { ...players[activeIndex] };
+
   switch (card.type) {
     case "SURVIVAL": {
-      const updated = {
-        ...next.players[next.activePlayerIndex],
-        survivalPoints: Math.max(
-          0,
-          next.players[next.activePlayerIndex].survivalPoints +
-            card.pointsDelta
-        ),
-        health:
-          next.players[next.activePlayerIndex].health +
-          (card.gainHealth ?? 0),
-      };
-      const players = [...next.players];
-      players[next.activePlayerIndex] = updated;
+      let points = card.pointsDelta;
+      if (effect === "points_per_health") points = points * updatedActive.health;
+      if (effect === "combo_survival") points += next.turnPile.filter(c => c.type === "SURVIVAL").length;
+      if (effect === "low_health_bonus" && updatedActive.health < 3) points *= 2;
+      if (effect === "points_per_power") points += updatedActive.powers.length;
+      
+      updatedActive.survivalPoints += points;
+      updatedActive.health += (card.gainHealth ?? 0);
+      players[activeIndex] = updatedActive;
       next = { ...next, players };
+      
       for (let i = 0; i < card.drawCount; i++) {
         next = drawForActive(next);
       }
@@ -307,54 +325,53 @@ function playCard(
       break;
     case "POWER":
     case "ADAPT": {
-      const updated = {
-        ...next.players[next.activePlayerIndex],
-        powers: [...next.players[next.activePlayerIndex].powers, card],
-      };
-      const players = [...next.players];
-      players[next.activePlayerIndex] = updated;
+      updatedActive.powers.push(card);
+      players[activeIndex] = updatedActive;
       next = { ...next, players };
       break;
     }
     case "CHAOS": {
-      const players = next.players.map((p, i) => {
-        if (i === next.activePlayerIndex) {
-          return {
-            ...p,
-            survivalPoints: Math.max(0, p.survivalPoints + card.pointsDelta),
-          };
+      if (effect === "steal_points" && targetPlayerId) {
+        const tIdx = players.findIndex(p => p.id === targetPlayerId);
+        if (tIdx >= 0) {
+          const stolen = Math.min(players[tIdx].survivalPoints, 5);
+          players[tIdx].survivalPoints -= stolen;
+          updatedActive.survivalPoints += stolen;
         }
-        return { ...p, health: Math.max(0, p.health - 1) };
-      });
+      } else if (effect === "damage_all") {
+        players = players.map((p, i) => i === activeIndex ? p : { ...p, health: Math.max(0, p.health - 1) });
+      } else if (effect === "health_for_points") {
+        updatedActive.health = Math.max(0, updatedActive.health - 1);
+        updatedActive.survivalPoints += 10;
+      } else {
+        updatedActive.survivalPoints += card.pointsDelta;
+      }
+      players[activeIndex] = updatedActive;
       next = { ...next, players };
       break;
     }
     case "ASCENDED": {
-      const updated = {
-        ...next.players[next.activePlayerIndex],
-        survivalPoints: Math.max(
-          0,
-          next.players[next.activePlayerIndex].survivalPoints +
-            card.pointsDelta
-        ),
-        health:
-          next.players[next.activePlayerIndex].health +
-          (card.gainHealth ?? 0),
-        powers: card.blocksDisaster
-          ? [...next.players[next.activePlayerIndex].powers, card]
-          : next.players[next.activePlayerIndex].powers,
-      };
-      const players = [...next.players];
-      players[next.activePlayerIndex] = updated;
+      if (effect === "extra_action") {
+        next.cardsPlayedThisTurn--;
+      } else if (effect === "reverse_turn_order") {
+        next.turnDirection = (next.turnDirection === 1 ? -1 : 1);
+      } else if (effect === "swap_hands" && targetPlayerId) {
+        const tIdx = players.findIndex(p => p.id === targetPlayerId);
+        if (tIdx >= 0) {
+          const tempHand = [...updatedActive.hand];
+          updatedActive.hand = [...players[tIdx].hand];
+          players[tIdx].hand = tempHand;
+        }
+      }
+      updatedActive.survivalPoints += card.pointsDelta;
+      updatedActive.health += (card.gainHealth ?? 0);
+      players[activeIndex] = updatedActive;
       next = { ...next, players };
       for (let i = 0; i < card.drawCount; i++) {
         next = drawForActive(next);
       }
       break;
     }
-    case "TWIST":
-    case "CATACLYSM":
-      break;
   }
 
   return {
@@ -369,17 +386,19 @@ function chooseBotAction(
   const active = state.players[state.activePlayerIndex];
   if (!active.isBot || active.hand.length === 0) return null;
 
+  const playable = active.hand.filter((c) => canPlayCard(state, c));
+  if (playable.length === 0) return null;
+
   const targetLeader = state.players
     .filter((p) => p.id !== active.id)
     .sort((a, b) => b.survivalPoints - a.survivalPoints)[0];
 
-  let card = active.hand.find((c) => c.type === "DISASTER");
-  if (!card) card = active.hand.find((c) => c.type === "CHAOS");
-  if (!card) card = active.hand.find((c) => c.type === "ASCENDED");
-  if (!card) card = active.hand.find((c) => c.type === "SURVIVAL");
-  if (!card) card = active.hand.find((c) => c.type === "ADAPT");
-  if (!card) card = active.hand.find((c) => c.type === "POWER");
-  if (!card) card = active.hand[0];
+  // Simple priority: ASCENDED > DISASTER > CHAOS > SURVIVAL > rest
+  let card = playable.find((c) => c.type === "ASCENDED");
+  if (!card) card = playable.find((c) => c.type === "DISASTER");
+  if (!card) card = playable.find((c) => c.type === "CHAOS");
+  if (!card) card = playable.find((c) => c.type === "SURVIVAL");
+  if (!card) card = playable[0];
 
   return {
     cardId: card.id,
@@ -400,8 +419,8 @@ function runBotTurnsUntilHuman(state: MatchPayload): {
     if (!active.isBot) break;
 
     replay.push({
-      actorId: active.id,
-      actorName: active.displayName,
+      actorId: active?.id ?? "unknown",
+      actorName: active?.displayName ?? "Unknown Player",
       action: "DRAW",
     });
     next = drawForActive(next);
@@ -411,8 +430,8 @@ function runBotTurnsUntilHuman(state: MatchPayload): {
       if (!action) break;
 
       replay.push({
-        actorId: active.id,
-        actorName: active.displayName,
+        actorId: active?.id ?? "unknown",
+        actorName: active?.displayName ?? "Unknown Player",
         action: "PLAY",
         cardName: action.cardName,
         targetPlayerId: action.targetPlayerId,
@@ -423,8 +442,8 @@ function runBotTurnsUntilHuman(state: MatchPayload): {
     }
 
     replay.push({
-      actorId: active.id,
-      actorName: active.displayName,
+      actorId: active?.id ?? "unknown",
+      actorName: active?.displayName ?? "Unknown Player",
       action: "END_TURN",
     });
     next = advanceTurn(next);
@@ -488,8 +507,10 @@ export function initializeMatch(input: {
     round: 1,
     activePlayerIndex: 0,
     players,
-    drawPile,
-    discardPile: [],
+    drawPile: drawPile.slice(1),
+    discardPile: [drawPile[0]],
+    topCard: drawPile[0],
+    turnDirection: 1,
     turnPile: [],
     isGlobalDisasterPhase: false,
     cardsPlayedThisTurn: 0,
