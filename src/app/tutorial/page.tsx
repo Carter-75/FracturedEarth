@@ -67,7 +67,7 @@ type TutorialSession = {
 function PhysicalCard({ card, onClick, isSelected, className, style }: { card: MatchCard; onClick?: () => void; isSelected?: boolean; className?: string; style?: any }) {
   const theme = cardTheme(card.type);
   return (
-    <motion.div layoutId={card.id} onClick={onClick} style={style} className={`fe-card-physical ${isSelected ? 'border-amber-500 shadow-[0_0_30px_rgba(245,158,11,0.5)] z-[200]' : ''} ${className || ''}`}>
+    <motion.div onClick={onClick} style={style} className={`fe-card-physical ${isSelected ? 'border-amber-500 shadow-[0_0_30px_rgba(245,158,11,0.5)] z-[200]' : ''} ${className || ''}`}>
       {/* Background Graphic */}
       <img src={theme.bg} alt="" className="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-screen pointer-events-none" />
       <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black opacity-80 pointer-events-none" />
@@ -117,7 +117,12 @@ function PlayerStatsHUD({ player, isActive }: { player: MatchPlayer; isActive: b
            </div>
         </div>
         <div className="flex justify-between items-end mt-4">
+           {/* ADDED: Bug 3 Hand Count */}
            <div className="flex flex-col">
+              <span className="text-[7px] font-black text-white/50 uppercase tracking-widest">Cards</span>
+              <div className="text-3xl font-black italic text-white/80 fe-glow-text">{player.hand.length}</div>
+           </div>
+           <div className="flex flex-col items-center">
               <span className="text-[7px] font-black text-sky-400/60 uppercase tracking-widest">Energy</span>
               <div className="text-3xl font-black italic text-sky-400 fe-glow-text">{player.survivalPoints}</div>
            </div>
@@ -235,22 +240,9 @@ function OpponentHand({ count, angle, player }: { count: number; angle: number; 
            ))}
         </div>
 
-       {/* Opponent Stats Physically Next to Cards */}
-       <div className="fe-hologram flex flex-col gap-1 bg-black/60 backdrop-blur-md p-3 rounded-2xl border border-white/10" style={{ transform: 'translateZ(20px) translateX(calc(var(--card-w) * 1.5))' }}>
-          <div className="flex items-center gap-2 border-b border-white/10 pb-2">
-             <span className="text-xl">{player.emoji}</span>
-             <span className="text-[8px] text-white/60">{player.displayName}</span>
-          </div>
-          <div className="flex items-center gap-4 mt-2">
-             <div className="flex flex-col">
-                <span className="text-[5px] text-sky-400/50">ENERGY</span>
-                <span className="text-lg text-sky-400">{player.survivalPoints}</span>
-             </div>
-             <div className="flex flex-col items-end">
-                <span className="text-[5px] text-rose-500/50">HEALTH</span>
-                <span className="text-lg text-rose-500">{player.health}</span>
-             </div>
-          </div>
+       {/* Opponent Stats Physically Next to Cards (Bug 3 fixed to mirror Player UI) */}
+       <div className="fe-hologram flex flex-col pointer-events-auto" style={{ transform: 'translateZ(20px) translateX(calc(var(--card-w) * 1.5))', minWidth: '200px' }}>
+          <PlayerStatsHUD player={player} isActive={false} />
        </div>
     </div>
   );
@@ -356,11 +348,6 @@ export default function TutorialPage() {
               if (p.id === local.userId) return null;
               return <OpponentHand key={p.id} count={p.hand.length} angle={180} player={p} />;
            })}
- 
-           {/* Turn Pips projection */}
-           <div className="absolute bottom-[20%] left-1/2 -translate-x-1/2 flex gap-4">
-              {[1, 2, 3].map(s => <div key={s} className={`w-3 h-3 rounded-full ${payload?.cardsPlayedThisTurn && payload.cardsPlayedThisTurn >= s ? 'bg-amber-500 shadow-[0_0_10px_#f59e0b]' : 'bg-white/5'}`} />)}
-           </div>
        </div>
 
        {/* My HUD */}

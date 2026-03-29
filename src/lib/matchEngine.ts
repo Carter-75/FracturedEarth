@@ -166,12 +166,16 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string):
 
   // POWER and ADAPT effects logic (not placement, placement handled in playCard)
   if (card.type === "POWER" || card.type === "ADAPT") {
+    active.survivalPoints += card.pointsDelta || 0;
+    if (card.gainHealth) active.health = Math.min(INITIAL_HEALTH, active.health + card.gainHealth);
+    
     if (effect.includes("draw_1_card_when_pinned")) next = drawForActive(next);
     if (effect.includes("restore_1_health")) active.health = Math.min(INITIAL_HEALTH, active.health + 1);
   }
 
   if (card.type === "CHAOS") {
-    active.survivalPoints += card.pointsDelta;
+    active.survivalPoints += card.pointsDelta || 0;
+    if (card.gainHealth) active.health = Math.min(INITIAL_HEALTH, active.health + card.gainHealth);
     if (effect.includes("take_1_card_from_discard_pile") && state.discardPile.length > 0) {
       active.hand.push(state.discardPile[state.discardPile.length - 1]);
       next.discardPile = state.discardPile.slice(0, -1);
@@ -188,7 +192,7 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string):
   }
 
   if (card.type === "TWIST") {
-    active.survivalPoints += card.pointsDelta;
+    active.survivalPoints += card.pointsDelta || 0;
     active.health = Math.min(INITIAL_HEALTH, active.health + (card.gainHealth ?? 0));
     if (effect.includes("everyone_draws_3_cards")) {
         players.forEach((p, idx) => {
@@ -202,7 +206,7 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string):
   }
 
   if (card.type === "CATACLYSM") {
-    active.survivalPoints += card.pointsDelta;
+    active.survivalPoints += card.pointsDelta || 0;
     if (effect.includes("strike_all_players")) {
         players.forEach((p, idx) => { if(idx !== activeIndex) p.health = Math.max(0, p.health - 1); });
     }
@@ -211,13 +215,21 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string):
   }
 
   if (card.type === "ASCENDED") {
-    active.survivalPoints += card.pointsDelta;
+    active.survivalPoints += card.pointsDelta || 0;
     active.health = Math.min(INITIAL_HEALTH, active.health + (card.gainHealth ?? 0));
     if (effect.includes("revive_to_2_health_when_reaching_0")) { /* handled eventually */ }
     if (effect.includes("extra_action")) next.cardsPlayedThisTurn--;
   }
 
   next.players[activeIndex] = active;
+
+  // Generic Draw Effect pipeline for all cards (Fixes Bug 1 Twist Draw)
+  if (card.drawCount && card.drawCount > 0) {
+    for (let i = 0; i < card.drawCount; i++) {
+       next = drawForActive(next);
+    }
+  }
+
   return next;
 }
 
@@ -264,7 +276,12 @@ function drawForActive(state: MatchPayload): MatchPayload {
 }
 
 function playCardImmediate(state: MatchPayload, card: MatchCard): MatchPayload {
-  const isProtection = Boolean(card.blocksDisaster);
+  // A card is pinned to the user's power slot if it's explicitly a permanent protection or power,
+  // EXCEPT if its effect text explicitly specifies "discard" or "consumed" after use.
+  const isPinned = 
+    Boolean(card.blocksDisaster) || 
+    ((card.type === "POWER" || card.type === "ADAPT") && !card.effect?.includes("discard") && !card.effect?.includes("consumed"));
+
   const activeIndex = state.activePlayerIndex;
   const active = { ...state.players[activeIndex] };
   let next = {
@@ -274,7 +291,7 @@ function playCardImmediate(state: MatchPayload, card: MatchCard): MatchPayload {
     cardsPlayedThisTurn: state.cardsPlayedThisTurn + 1,
   };
 
-  if (isProtection) {
+  if (isPinned) {
     active.powers = [...active.powers, card];
     const newPlayers = [...state.players];
     newPlayers[activeIndex] = active;
@@ -317,16 +334,18 @@ function playCard(
   if (!canPlayCard(state, card)) throw new Error("Card does not match top card");
 
   const newHand = active.hand.filter((c) => c.id !== card.id);
-  const isProtection = Boolean(card.blocksDisaster);
+  const isPinned = 
+    Boolean(card.blocksDisaster) || 
+    ((card.type === "POWER" || card.type === "ADAPT") && !card.effect?.includes("discard") && !card.effect?.includes("consumed"));
   
   let next: MatchPayload = {
     ...state,
     players: state.players.map((p, i) =>
       i === activeIndex 
-        ? { ...active, hand: newHand, powers: isProtection ? [...active.powers, card] : active.powers } 
+        ? { ...active, hand: newHand, powers: isPinned ? [...active.powers, card] : active.powers } 
         : p
     ),
-    discardPile: isProtection ? state.discardPile : [...state.discardPile, card],
+    discardPile: isPinned ? state.discardPile : [...state.discardPile, card],
     topCard: card,
     turnPile: [...state.turnPile, card],
     cardsPlayedThisTurn: state.cardsPlayedThisTurn + 1,

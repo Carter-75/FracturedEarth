@@ -69,7 +69,6 @@ function PhysicalCard({ card, onClick, isSelected, className, style }: { card: M
   const theme = cardTheme(card.type);
   return (
     <motion.div
-      layoutId={card.id}
       onClick={onClick}
       style={style}
       className={`fe-card-physical ${isSelected ? 'border-amber-500 shadow-[0_0_30px_rgba(245,158,11,0.5)] z-[200]' : ''} ${className || ''}`}
@@ -116,7 +115,12 @@ function PlayerStatsHUD({ player, isActive }: { player: MatchPlayer; isActive: b
            </div>
         </div>
         <div className="flex justify-between items-end mt-4">
+           {/* ADDED: Bug 3 Hand Count */}
            <div className="flex flex-col">
+              <span className="text-[7px] font-black text-white/50 uppercase tracking-widest">Cards</span>
+              <div className="text-3xl font-black italic text-white/80 fe-glow-text">{player.hand.length}</div>
+           </div>
+           <div className="flex flex-col items-center">
               <span className="text-[7px] font-black text-sky-400/60 uppercase tracking-widest">Energy</span>
               <div className="text-3xl font-black italic text-sky-400 fe-glow-text">{player.survivalPoints}</div>
            </div>
@@ -220,22 +224,9 @@ function OpponentHand({ count, angle, player }: { count: number; angle: number; 
            ))}
         </div>
 
-       {/* Opponent Stats Physically Next to Cards */}
-       <div className="fe-hologram flex flex-col gap-1 bg-black/60 backdrop-blur-md p-3 rounded-2xl border border-white/10" style={{ transform: 'translateZ(20px) translateX(calc(var(--card-w) * 1.5))' }}>
-          <div className="flex items-center gap-2 border-b border-white/10 pb-2">
-             <span className="text-xl">{player.emoji}</span>
-             <span className="text-[8px] text-white/60">{player.displayName}</span>
-          </div>
-          <div className="flex items-center gap-4 mt-2">
-             <div className="flex flex-col">
-                <span className="text-[5px] text-sky-400/50">ENERGY</span>
-                <span className="text-lg text-sky-400">{player.survivalPoints}</span>
-             </div>
-             <div className="flex flex-col items-end">
-                <span className="text-[5px] text-rose-500/50">HEALTH</span>
-                <span className="text-lg text-rose-500">{player.health}</span>
-             </div>
-          </div>
+       {/* Opponent Stats Physically Next to Cards (Bug 3 fixed to mirror Player UI) */}
+       <div className="fe-hologram flex flex-col pointer-events-auto" style={{ transform: 'translateZ(20px) translateX(calc(var(--card-w) * 1.5))', minWidth: '200px' }}>
+          <PlayerStatsHUD player={player} isActive={false} />
        </div>
     </div>
   );
@@ -545,12 +536,6 @@ export default function TabletopPage() {
               );
            })}
 
-          {/* Holographic Turn Pips (Table Projections) */}
-          <div className="absolute bottom-[25%] left-1/2 -translate-x-1/2 flex gap-4">
-              {[1, 2, 3].map(slot => (
-                <div key={slot} className={`w-3 h-3 rounded-full shadow-[0_0_10px_currentColor] transition-all duration-500 ${payload?.cardsPlayedThisTurn && payload.cardsPlayedThisTurn >= slot ? 'text-amber-500 bg-amber-500 scale-125' : 'text-white/10 bg-white/5'}`} />
-              ))}
-          </div>
       </div>
 
       {/* Floating Action Button (Table Edge) */}
