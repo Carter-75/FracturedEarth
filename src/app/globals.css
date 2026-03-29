@@ -10,6 +10,19 @@
   --panel: rgba(10, 15, 25, 0.8);
   --border: rgba(255, 255, 255, 0.1);
   --neon-glow: 0 0 15px rgba(245, 158, 11, 0.4);
+  
+  /* Responsive Game Units */
+  --card-w: 6rem;
+  --card-h: 8.5rem;
+  --opp-offset: -260px;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --card-w: 8rem;
+    --card-h: 11rem;
+    --opp-offset: -340px;
+  }
 }
 
 @layer base {
@@ -52,12 +65,17 @@
   }
 
   .fe-table {
-    @apply relative w-[140%] h-[120%] bg-[#05080f] rounded-[50%] border-[12px] border-white/5;
-    transform: rotateX(60deg) translateY(-10%);
+    @apply relative w-[200%] h-[150%] bg-[#05080f] rounded-[50%] border-[8px] border-white/5;
+    transform: rotateX(60deg) translateY(-20%);
     box-shadow: 
       0 100px 200px rgba(0,0,0,0.8),
       inset 0 0 100px rgba(0,0,0,0.9),
       inset 0 0 20px rgba(56, 189, 248, 0.1);
+
+    @media (min-width: 768px) {
+      @apply w-[140%] h-[120%] border-[12px];
+      transform: rotateX(60deg) translateY(-10%);
+    }
   }
 
   /* Cinematic Effects */
@@ -74,7 +92,9 @@
 
   /* Physical Cards */
   .fe-card-physical {
-    @apply relative w-[8rem] h-[11rem] bg-[#0a0f1a] rounded-xl border border-white/10 overflow-hidden;
+    @apply relative bg-[#0a0f1a] rounded-xl border border-white/10 overflow-hidden;
+    width: var(--card-w);
+    height: var(--card-h);
     box-shadow: 
       -5px 10px 20px rgba(0,0,0,0.6),
       inset 0 1px 0 rgba(255,255,255,0.1);

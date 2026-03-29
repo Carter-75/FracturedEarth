@@ -21,5 +21,5 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || 'secret_for_dev_only_do_not_use_in_prod',
 };

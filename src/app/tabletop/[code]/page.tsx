@@ -105,55 +105,107 @@ function PhysicalCard({ card, onClick, isSelected, className, style }: { card: M
   );
 }
 
-function PlayerStatsProjection({ player, angle }: { player: MatchPlayer; angle: number }) {
+function PlayerStatsHUD({ player, isActive }: { player: MatchPlayer; isActive: boolean }) {
   return (
-    <div 
-      className="absolute flex flex-col items-center pointer-events-none"
-      style={{ 
-        transform: `rotate(${angle}deg) translateY(-220px) rotateX(-60deg)`,
-        transformStyle: 'preserve-3d'
-      }}
-    >
-       <div className="fe-hologram text-[8px] text-white/40 mb-1">{player.displayName}</div>
-       <div className="flex gap-6 items-end">
-          <div className="flex flex-col items-center">
-             <div className="text-4xl font-black italic text-sky-400 fe-glow-text mb-1">{player.survivalPoints}</div>
-             <div className="text-[8px] font-bold tracking-[0.3em] text-sky-400/50">SURVIVAL_PTS</div>
-          </div>
-          <div className="w-[1px] h-12 bg-white/20" />
-          <div className="flex flex-col items-center">
-             <div className="text-4xl font-black italic text-rose-500 fe-glow-text mb-1">{player.health}</div>
-             <div className="text-[8px] font-bold tracking-[0.3em] text-rose-500/50">HEALTH_LVL</div>
-          </div>
-       </div>
+    <div className={`flex flex-col gap-2 p-6 rounded-[2rem] bg-black/40 backdrop-blur-3xl border ${isActive ? 'border-amber-500 shadow-[0_0_30px_rgba(245,158,11,0.2)]' : 'border-white/10'} w-48`}>
+        <div className="flex items-center gap-3">
+           <div className="text-2xl">{player.emoji}</div>
+           <div className="flex flex-col">
+              <span className="text-[10px] font-black uppercase tracking-widest text-white/40">{player.displayName}</span>
+              <div className={`h-[2px] ${isActive ? 'bg-amber-500 shadow-[0_0_10px_#f59e0b]' : 'bg-white/10'} w-8 mt-1`} />
+           </div>
+        </div>
+        <div className="flex justify-between items-end mt-4">
+           <div className="flex flex-col">
+              <span className="text-[7px] font-black text-sky-400/60 uppercase tracking-widest">Energy</span>
+              <div className="text-3xl font-black italic text-sky-400 fe-glow-text">{player.survivalPoints}</div>
+           </div>
+           <div className="flex flex-col items-end">
+              <span className="text-[7px] font-black text-rose-500/60 uppercase tracking-widest">Health</span>
+              <div className="text-3xl font-black italic text-rose-500 fe-glow-text">{player.health}</div>
+           </div>
+        </div>
     </div>
   );
 }
 
-function OpponentHand({ count, angle }: { count: number; angle: number }) {
+function PlayPile({ cards }: { cards: MatchCard[] }) {
+  return (
+    <div className="relative w-48 h-64 [transform-style:preserve-3d]">
+       {/* 3D Box Container */}
+       <div className="absolute inset-0 bg-white/5 border border-white/10 rounded-2xl [transform:translateZ(-10px)]" />
+       
+       <AnimatePresence>
+          {cards.map((card, i) => (
+             <motion.div
+               key={card.id}
+               initial={{ opacity: 0, y: -200, rotateX: -90 }}
+               animate={{ 
+                 opacity: 1, 
+                 y: 0, 
+                 rotateX: 0,
+                 z: i * 2,
+                 rotate: (i - (cards.length-1)/2) * 5,
+                 x: (i - (cards.length-1)/2) * 10
+               }}
+               style={{ transformStyle: 'preserve-3d' }}
+               className="absolute inset-0"
+             >
+                <PhysicalCard card={card} className="w-full h-full shadow-2xl" />
+             </motion.div>
+          ))}
+       </AnimatePresence>
+
+       {cards.length === 0 && (
+          <div className="absolute inset-0 flex items-center justify-center opacity-10">
+             <div className="fe-hologram text-[8px] tracking-[0.5em]">Sector_Void</div>
+          </div>
+       )}
+    </div>
+  );
+}
+
+function OpponentHand({ count, angle, player }: { count: number; angle: number; player: MatchPlayer }) {
   return (
     <div 
-      className="absolute flex justify-center pointer-events-none"
+      className="absolute flex flex-col items-center justify-center pointer-events-none"
       style={{ 
-        transform: `rotate(${angle}deg) translateY(-300px) rotateX(-30deg)`,
+        transform: `rotate(${angle}deg) translateY(var(--opp-offset)) rotateX(-45deg)`,
         transformStyle: 'preserve-3d'
       }}
     >
-       {[...Array(Math.max(0, count))].map((_, i) => (
-         <motion.div
-           key={i}
-           style={{ 
-             transform: `translateX(${(i - (count-1)/2) * 20}px) rotate(${(i - (count-1)/2) * 5}deg)`,
-             transformOrigin: 'bottom center'
-           }}
-           className="w-12 h-16 bg-slate-900 border border-white/20 rounded-lg shadow-2xl overflow-hidden"
-         >
-            <div className="fe-grid opacity-20" />
-            <div className="absolute inset-0 flex items-center justify-center">
-               <div className="w-4 h-4 rounded-full border border-white/10" />
-            </div>
-         </motion.div>
-       ))}
+       <div className="fe-hologram text-[10px] text-white/60 mb-8 flex items-center gap-2">
+          <span>{player.emoji}</span>
+          <span>{player.displayName}</span>
+          <span className="text-sky-400 ml-2">[{player.survivalPoints}E]</span>
+       </div>
+
+       <div className="flex justify-center">
+          {[...Array(Math.max(0, count))].map((_, i) => (
+            <motion.div
+              key={i}
+              style={{ 
+                transform: `translateX(${(i - (count-1)/2) * 25}px) rotate(${(i - (count-1)/2) * 8}deg)`,
+                transformOrigin: 'bottom center',
+                transformStyle: 'preserve-3d'
+              }}
+              className="w-16 h-24 bg-slate-900 border-2 border-white/10 rounded-xl shadow-2xl relative overflow-hidden"
+            >
+               {/* High-Fidelity Card Back */}
+               <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,#1e293b_0%,#020617_100%)]" />
+               <div className="fe-grid opacity-30" />
+               <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-full border border-white/5 flex items-center justify-center opacity-20">
+                     <div className="w-2 h-2 bg-sky-400 rounded-full" />
+                  </div>
+               </div>
+               <div className="absolute bottom-2 left-0 right-0 text-center opacity-10">
+                  <span className="text-[4px] fe-hologram tracking-widest">FRACTURED_EARTH</span>
+               </div>
+               <div className="absolute inset-0 fe-scanline opacity-10" />
+            </motion.div>
+          ))}
+       </div>
     </div>
   );
 }
@@ -353,51 +405,46 @@ export default function TabletopPage() {
 
       {/* The Physical Table */}
       <div className="fe-table flex items-center justify-center">
-          {/* Interaction Zone - Absolute Center */}
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-24 [transform:translateZ(100px)]">
-             <FloatingDeck count={payload?.drawPile.length ?? 0} canDraw={canDraw} onDraw={handleDraw} />
-             
-             {/* Clickable Discard Pile */}
-             <div 
-               className="relative cursor-pointer group"
-               onClick={() => {
-                 if (payload?.topCard) {
-                   setInspectedCard(payload.topCard);
-                   setShowFullInspect(true);
-                 }
-               }}
-             >
-                {payload?.topCard ? (
-                  <motion.div layoutId={payload.topCard.id} className="relative">
-                    <PhysicalCard card={payload.topCard} className="shadow-2xl ring-2 ring-white/5 group-hover:ring-white/20 transition-all" />
-                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 fe-hologram text-[6px] text-white/20 opacity-0 group-hover:opacity-100 transition-opacity">RECALL_LOG</div>
-                  </motion.div>
-                ) : (
-                  <div className="fe-card-physical opacity-5 bg-white/5 border-dashed" />
-                )}
-             </div>
-          </div>
+           {/* Interaction Zone - Absolute Center */}
+           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-16 [transform:translateZ(100px)]">
+              <FloatingDeck count={payload?.drawPile.length ?? 0} canDraw={canDraw} onDraw={handleDraw} />
+              
+              <PlayPile cards={payload?.turnPile ?? []} />
 
-          {/* Player Seats: Projections & Hands */}
-          {payload?.players.map((p, idx) => {
-             // Angle based on seat
-             const playerCount = payload.players.length;
-             // We want the player at index X to be at 0 deg, then others distributed
-             const myIdx = payload.players.findIndex(pl => pl.id === userId);
-             const relativeIdx = (idx - myIdx + playerCount) % playerCount;
-             const angle = relativeIdx * (360 / playerCount);
-             
-             if (p.id === userId) return null; 
-             return (
-               <React.Fragment key={p.id}>
-                 <PlayerStatsProjection player={p} angle={angle} />
-                 <OpponentHand count={p.hand.length} angle={angle} />
-               </React.Fragment>
-             );
-          })}
+              <div 
+                className="relative cursor-pointer group"
+                onClick={() => {
+                  if (payload?.topCard) {
+                    setInspectedCard(payload.topCard);
+                    setShowFullInspect(true);
+                  }
+                }}
+              >
+                 {payload?.topCard ? (
+                   <motion.div layoutId={payload.topCard.id} className="relative">
+                     <PhysicalCard card={payload.topCard} className="shadow-2xl ring-2 ring-white/5 group-hover:ring-white/20 transition-all" />
+                     <div className="absolute -top-8 left-1/2 -translate-x-1/2 fe-hologram text-[6px] text-white/20 opacity-0 group-hover:opacity-100 transition-opacity">RECALL_LOG</div>
+                   </motion.div>
+                 ) : (
+                   <div className="fe-card-physical opacity-5 bg-white/5 border-dashed flex items-center justify-center">
+                      <span className="fe-hologram text-[6px] opacity-20">DISCARD</span>
+                   </div>
+                 )}
+              </div>
+           </div>
 
-          {/* My Projection */}
-          {myPlayer && <PlayerStatsProjection player={myPlayer} angle={0} />}
+           {/* Player Seats: Projections & Hands */}
+           {payload?.players.map((p, idx) => {
+              const playerCount = payload.players.length;
+              const myIdx = payload.players.findIndex(pl => pl.id === userId);
+              const relativeIdx = (idx - myIdx + playerCount) % playerCount;
+              const angle = relativeIdx * (360 / playerCount);
+              
+              if (p.id === userId) return null; 
+              return (
+                <OpponentHand key={p.id} count={p.hand.length} angle={angle} player={p} />
+              );
+           })}
 
           {/* Holographic Turn Pips (Table Projections) */}
           <div className="absolute bottom-[25%] left-1/2 -translate-x-1/2 flex gap-4">
@@ -421,6 +468,13 @@ export default function TabletopPage() {
           </motion.button>
         )}
       </AnimatePresence>
+
+      {/* Cinematic HUDs next to central areas or hand */}
+      {myPlayer && (
+        <div className="absolute bottom-24 left-12 z-[150] pointer-events-none">
+           <PlayerStatsHUD player={myPlayer} isActive={isMyTurn} />
+        </div>
+      )}
 
       {/* Cinematic Card Tray (Player Hand) */}
       {myPlayer && (
@@ -496,18 +550,18 @@ export default function TabletopPage() {
                    Commander {winner?.displayName} Claims the Sector
                 </div>
                 
-                <div className="mt-20">
-                   <button 
-                     onClick={() => setShowPostGameAd(true)} 
-                     className="fe-holo-btn"
-                   >
-                      Evacuate Sector
-                   </button>
-                </div>
+                 <div className="mt-20 flex gap-6">
+                    <button 
+                      onClick={() => setShowPostGameAd(true)} 
+                      className="fe-holo-btn !border-sky-400 !text-sky-400"
+                    >
+                       Evacuate Sector (Interstellar Protocol)
+                    </button>
+                 </div>
 
-                {showPostGameAd && (
-                   <InterstitialAd force onComplete={() => router.push('/lan')} />
-                )}
+                 {showPostGameAd && (
+                    <InterstitialAd force onComplete={() => router.push('/lan')} />
+                 )}
              </div>
           </motion.div>
         )}

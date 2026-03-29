@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { loadLocalSettings, setTutorialDone } from '@/lib/localProfile';
 import { cardTheme, describeCardEffect, positionOpponents } from '@/lib/tabletopShared';
 import TacticalDataPanel from '@/components/TacticalDataPanel';
+import { InterstitialAd } from '@/components/InterstitialAd';
 
 // Reuse the physical components from tabletop logic
 type CardType = 'SURVIVAL' | 'DISASTER' | 'POWER' | 'ADAPT' | 'CHAOS' | 'ASCENDED' | 'TWIST' | 'CATACLYSM';
@@ -105,6 +106,51 @@ function PhysicalCard({ card, onClick, isSelected, className, style }: { card: M
   );
 }
 
+function PlayerStatsHUD({ player, isActive }: { player: MatchPlayer; isActive: boolean }) {
+  return (
+    <div className={`flex flex-col gap-2 p-6 rounded-[2rem] bg-black/40 backdrop-blur-3xl border ${isActive ? 'border-amber-500 shadow-[0_0_30px_rgba(245,158,11,0.2)]' : 'border-white/10'} w-48`}>
+        <div className="flex items-center gap-3">
+           <div className="text-2xl">{player.emoji}</div>
+           <div className="flex flex-col">
+              <span className="text-[10px] font-black uppercase tracking-widest text-white/40">{player.displayName}</span>
+              <div className={`h-[2px] ${isActive ? 'bg-amber-500 shadow-[0_0_10px_#f59e0b]' : 'bg-white/10'} w-8 mt-1`} />
+           </div>
+        </div>
+        <div className="flex justify-between items-end mt-4">
+           <div className="flex flex-col">
+              <span className="text-[7px] font-black text-sky-400/60 uppercase tracking-widest">Energy</span>
+              <div className="text-3xl font-black italic text-sky-400 fe-glow-text">{player.survivalPoints}</div>
+           </div>
+           <div className="flex flex-col items-end">
+              <span className="text-[7px] font-black text-rose-500/60 uppercase tracking-widest">Health</span>
+              <div className="text-3xl font-black italic text-rose-500 fe-glow-text">{player.health}</div>
+           </div>
+        </div>
+    </div>
+  );
+}
+
+function PlayPile({ cards }: { cards: MatchCard[] }) {
+  return (
+    <div className="relative w-48 h-64 [transform-style:preserve-3d]">
+       <div className="absolute inset-0 bg-white/5 border border-white/10 rounded-2xl [transform:translateZ(-10px)]" />
+       <AnimatePresence>
+          {cards.map((card, i) => (
+             <motion.div
+               key={card.id}
+               initial={{ opacity: 0, y: -200, rotateX: -90 }}
+               animate={{ opacity: 1, y: 0, rotateX: 0, z: i * 2, rotate: (i - (cards.length-1)/2) * 5 }}
+               style={{ transformStyle: 'preserve-3d' }}
+               className="absolute inset-0"
+             >
+                <PhysicalCard card={card} className="w-full h-full shadow-2xl" />
+             </motion.div>
+          ))}
+       </AnimatePresence>
+    </div>
+  );
+}
+
 function FloatingDeck({ count, canDraw, onDraw, highlighted }: { count: number; canDraw: boolean; onDraw: () => void; highlighted?: boolean }) {
   return (
     <div className={`relative group cursor-pointer transition-all ${highlighted ? 'ring-4 ring-sky-400 ring-offset-8 ring-offset-black rounded-xl' : ''}`} onClick={onDraw}>
@@ -124,6 +170,30 @@ function FloatingDeck({ count, canDraw, onDraw, highlighted }: { count: number; 
   );
 }
 
+function OpponentHand({ count, angle, player }: { count: number; angle: number; player: MatchPlayer }) {
+  return (
+    <div 
+      className="absolute flex flex-col items-center justify-center pointer-events-none"
+      style={{ transform: `rotate(${angle}deg) translateY(var(--opp-offset)) rotateX(-45deg)`, transformStyle: 'preserve-3d' }}
+    >
+       <div className="fe-hologram text-[10px] text-white/60 mb-8 flex items-center gap-2">
+          <span>{player.emoji}</span>
+          <span>{player.displayName}</span>
+          <span className="text-sky-400 ml-2">[{player.survivalPoints}E]</span>
+       </div>
+       <div className="flex justify-center">
+          {[...Array(Math.max(0, count))].map((_, i) => (
+            <div key={i} className="w-16 h-24 bg-slate-900 border-2 border-white/10 rounded-xl shadow-2xl relative overflow-hidden" style={{ transform: `translateX(${(i - (count-1)/2) * 25}px) rotate(${(i - (count-1)/2) * 8}deg)` }}>
+               <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,#1e293b_0%,#020617_100%)]" />
+               <div className="fe-grid opacity-30" />
+               <div className="absolute inset-0 fe-scanline opacity-10" />
+            </div>
+          ))}
+       </div>
+    </div>
+  );
+}
+
 export default function TutorialPage() {
   const router = useRouter();
   const [session, setSession] = useState<TutorialSession | null>(null);
@@ -131,6 +201,7 @@ export default function TutorialPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [selectedCardId, setSelectedCardId] = useState('');
+  const [showPostGameAd, setShowPostGameAd] = useState(false);
 
   const local = useMemo(() => loadLocalSettings(), []);
   const payload = session?.match;
@@ -202,43 +273,56 @@ export default function TutorialPage() {
         )}
       </AnimatePresence>
 
-      {/* The Physical Table */}
-      <div className="fe-table">
-          <div className="flex items-center gap-24 [transform:translateZ(100px)] absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+       {/* The Physical Table */}
+       <div className="fe-table">
+           <div className="flex items-center gap-16 [transform:translateZ(100px)] absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
              <FloatingDeck count={payload?.drawPile.length ?? 0} canDraw={step?.expectedActionType === 'DRAW_CARD'} onDraw={() => runAction({ type: 'DRAW_CARD' })} highlighted={step?.expectedActionType === 'DRAW_CARD'} />
-             <div className="fe-card-physical opacity-5 bg-white/5 border-dashed" />
+             <PlayPile cards={payload?.turnPile ?? []} />
           </div>
-
-          {/* Turn Pips projection */}
-          <div className="absolute bottom-[20%] left-1/2 -translate-x-1/2 flex gap-4">
-             {[1, 2, 3].map(s => <div key={s} className={`w-3 h-3 rounded-full ${payload?.cardsPlayedThisTurn && payload.cardsPlayedThisTurn >= s ? 'bg-amber-500 shadow-[0_0_10px_#f59e0b]' : 'bg-white/5'}`} />)}
-          </div>
-      </div>
-
-      {/* Physical Hand */}
-      {me && (
-        <div className="absolute bottom-12 left-0 right-0 z-[100] flex justify-center px-12 h-[12rem] pointer-events-none">
-           <div className="relative w-full max-w-4xl flex justify-center pointer-events-auto">
-             <AnimatePresence>
-                {me.hand.map((card, i) => {
-                  const isExpected = step?.expectedCardId === card.id;
-                  const restricted = step?.expectedActionType === 'PLAY_CARD' && !isExpected;
-                  return (
-                    <motion.div
-                      key={card.id}
-                      initial={{ y: 200 }} animate={{ y: 0, x: (i - (me.hand.length-1)/2)*60, rotate: (i - (me.hand.length-1)/2)*4 }}
-                      whileHover={!restricted ? { y: -40, scale: 1.1, zIndex: 1000 } : {}}
-                      className={`absolute cursor-pointer ${restricted ? 'opacity-20 grayscale pointer-events-none shadow-none' : ''} ${step?.expectedActionType === 'PLAY_CARD' && isExpected ? 'ring-2 ring-amber-400 shadow-[0_0_20px_#f59e0b]' : ''} `}
-                      onClick={() => setSelectedCardId(card.id)}
-                    >
-                       <PhysicalCard card={card} />
-                    </motion.div>
-                  );
-                })}
-             </AnimatePresence>
+ 
+           {/* Opponents (Tutorial) */}
+           {payload?.players.map((p, idx) => {
+              if (p.id === local.userId) return null;
+              return <OpponentHand key={p.id} count={p.hand.length} angle={180} player={p} />;
+           })}
+ 
+           {/* Turn Pips projection */}
+           <div className="absolute bottom-[20%] left-1/2 -translate-x-1/2 flex gap-4">
+              {[1, 2, 3].map(s => <div key={s} className={`w-3 h-3 rounded-full ${payload?.cardsPlayedThisTurn && payload.cardsPlayedThisTurn >= s ? 'bg-amber-500 shadow-[0_0_10px_#f59e0b]' : 'bg-white/5'}`} />)}
            </div>
-        </div>
-      )}
+       </div>
+
+       {/* My HUD */}
+       {me && (
+         <div className="absolute bottom-24 left-12 z-[150] pointer-events-none">
+            <PlayerStatsHUD player={me} isActive={isMyTurn} />
+         </div>
+       )}
+
+       {/* Physical Hand */}
+       {me && (
+         <div className="absolute bottom-12 left-0 right-0 z-[100] flex justify-center px-12 h-[12rem] pointer-events-none">
+            <div className="relative w-full max-w-4xl flex justify-center pointer-events-auto">
+              <AnimatePresence>
+                 {me.hand.map((card, i) => {
+                   const isExpected = step?.expectedCardId === card.id;
+                   const restricted = step?.expectedActionType === 'PLAY_CARD' && !isExpected;
+                   return (
+                     <motion.div
+                       key={card.id}
+                       initial={{ y: 200 }} animate={{ y: 0, x: (i - (me.hand.length-1)/2)*60, rotate: (i - (me.hand.length-1)/2)*4 }}
+                       whileHover={!restricted ? { y: -40, scale: 1.1, zIndex: 1000 } : {}}
+                       className={`absolute cursor-pointer ${restricted ? 'opacity-20 grayscale pointer-events-none shadow-none' : ''} ${step?.expectedActionType === 'PLAY_CARD' && isExpected ? 'ring-2 ring-amber-400 shadow-[0_0_20px_#f59e0b]' : ''} `}
+                       onClick={() => setSelectedCardId(card.id)}
+                     >
+                        <PhysicalCard card={card} />
+                     </motion.div>
+                   );
+                 })}
+              </AnimatePresence>
+            </div>
+         </div>
+       )}
 
       {/* Inspection / Play */}
       <AnimatePresence>
@@ -252,14 +336,23 @@ export default function TutorialPage() {
                    <TacticalDataPanel data={describeCardEffect(selectedCard)} />
                    
                    <div className="flex gap-6">
-                      <button onClick={() => setSelectedCardId('')} className="fe-holo-btn">Stow_Card</button>
-                      <button 
-                        onClick={() => runAction({ type: 'PLAY_CARD', cardId: selectedCard.id })} 
-                        className="fe-holo-btn !text-amber-500 !border-amber-500/50"
-                      >
-                        Deploy_Tactical
-                      </button>
-                   </div>
+                       <button onClick={() => setSelectedCardId('')} className="fe-holo-btn">Stow_Card</button>
+                       {me && me.hand.length > 5 ? (
+                          <button 
+                            onClick={() => runAction({ type: 'DISCARD_CARD', cardId: selectedCard.id })} 
+                            className="fe-holo-btn !text-rose-500 !border-rose-500/50"
+                          >
+                            Discard_Excess
+                          </button>
+                       ) : (
+                          <button 
+                            onClick={() => runAction({ type: 'PLAY_CARD', cardId: selectedCard.id })} 
+                            className="fe-holo-btn !text-amber-500 !border-amber-500/50"
+                          >
+                            Deploy_Tactical
+                          </button>
+                       )}
+                    </div>
                </div>
             </motion.div>
          )}
@@ -274,14 +367,17 @@ export default function TutorialPage() {
         )}
       </AnimatePresence>
 
-      {/* Resolution Overlay */}
       {session?.completed && (
-         <div className="absolute inset-0 z-[2000] bg-black/95 flex flex-col items-center justify-center p-12 text-center">
-            <h2 className="text-6xl font-black italic tracking-tighter text-white mb-8">EVALUATION COMPLETE</h2>
-            <p className="text-white/40 mb-12">Protocol synchronized. You are authorized for planetary deployment.</p>
-            <Link href="/" className="fe-holo-btn !py-4 !px-12">Return to Command</Link>
-         </div>
-      )}
+          <div className="absolute inset-0 z-[2000] bg-black/95 flex flex-col items-center justify-center p-12 text-center">
+             <h2 className="text-6xl font-black italic tracking-tighter text-white mb-8 uppercase">Evaluation_Complete</h2>
+             <p className="text-white/40 mb-12">Protocol synchronized. You are authorized for planetary deployment.</p>
+             <button onClick={() => setShowPostGameAd(true)} className="fe-holo-btn !py-4 !px-12">Synchronize Neural Link</button>
+             
+             {showPostGameAd && (
+                <InterstitialAd force onComplete={() => router.push('/lan')} />
+             )}
+          </div>
+       )}
 
       {error && <div className="absolute top-8 right-8 z-[3000] text-rose-500 fe-hologram animate-pulse">{error}</div>}
     </main>

@@ -256,14 +256,11 @@ const g = global as { _redisClient?: RedisLike; _warnedMemoryRedis?: boolean };
 function buildClient(): RedisLike {
   const url = process.env.REDIS_URL;
   if (!url) {
-    if (process.env.NODE_ENV !== 'production') {
-      if (!g._warnedMemoryRedis) {
-        console.warn('[redis] REDIS_URL not set; using in-memory store for local development');
-        g._warnedMemoryRedis = true;
-      }
-      return new InMemoryRedisClient();
+    if (!g._warnedMemoryRedis) {
+      console.warn('[redis] REDIS_URL not set; using in-memory store');
+      g._warnedMemoryRedis = true;
     }
-    throw new Error('REDIS_URL environment variable is not set');
+    return new InMemoryRedisClient();
   }
   const client = createClient({ url });
   client.on('error', (err) => console.error('[redis] client error', err));

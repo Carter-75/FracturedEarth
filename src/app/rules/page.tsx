@@ -2,9 +2,9 @@ import Link from 'next/link';
 
 export default function RulesPage() {
   return (
-    <main className="fe-scene bg-black overflow-y-auto">
+    <main className="relative min-h-screen bg-black overflow-y-auto overflow-x-hidden">
       {/* Immersive Background */}
-      <div className="absolute inset-0 z-0 h-full">
+      <div className="fixed inset-0 z-0 h-full">
          <img src="/assets/type-bgs/ascended.png" className="w-full h-full object-cover opacity-10 blur-3xl scale-125" alt="" />
          <div className="fe-vignette h-full" />
          <div className="fe-scanline h-full" />
@@ -14,7 +14,7 @@ export default function RulesPage() {
       <section className="relative z-10 w-full max-w-4xl mx-auto px-6 py-20 pb-40">
         <div className="mb-16">
            <div className="fe-hologram text-sky-400 mb-2">Protocol Reference</div>
-           <h1 className="text-6xl font-black italic tracking-tighter text-white uppercase">Neural<span className="text-amber-500">Atlas</span></h1>
+           <h1 className="text-4xl md:text-6xl font-black italic tracking-tighter text-white uppercase">Neural<span className="text-amber-500">Atlas</span></h1>
            <p className="text-white/40 mt-4 font-light tracking-tight max-w-lg italic">
              &quot;To control the planet, one must first understand the fracture.&quot; — Command Alpha
            </p>
@@ -25,11 +25,12 @@ export default function RulesPage() {
            <div className="relative p-12 bg-white/5 border border-white/10 rounded-3xl backdrop-blur-3xl">
               <div className="absolute -top-4 -left-4 fe-hologram text-amber-500 bg-black px-4 py-2 border border-amber-500/30 rounded-xl">01: TURN_CYCLE</div>
               <h2 className="text-3xl font-black text-white mb-8 tracking-tighter uppercase italic">The Procurement Loop</h2>
-              <div className="space-y-6 text-white/70 font-light leading-relaxed">
-                 <p><strong className="text-amber-500 font-bold">1. PROCUREMENT (Draw):</strong> Every turn begins by accessing the deck. You MUST draw exactly 1 unit of tactical data.</p>
-                 <p><strong className="text-amber-500 font-bold">2. DEPLOYMENT (Play):</strong> You may deploy <span className="text-white font-bold italic">1 to 3 cards</span> from your hand to the table. Most cards provide Energy (Points) or affect the global environment.</p>
-                 <p><strong className="text-amber-500 font-bold">3. TERMINATION (End):</strong> Once your actions are spent (or you choose to hold), terminate control to pass to the next candidate.</p>
-              </div>
+               <div className="space-y-6 text-white/70 font-light leading-relaxed text-sm">
+                  <p><strong className="text-amber-500 font-bold">1. PROCUREMENT (Draw):</strong> Every turn begins by accessing the deck. You MUST draw exactly 1 unit of tactical data, regardless of your current hand size.</p>
+                  <p><strong className="text-amber-500 font-bold">2. DEPLOYMENT (Play):</strong> You may deploy <span className="text-white font-bold italic">1 to 3 cards</span>. Most cards provide Energy (Points) or affect the global environment.</p>
+                  <p><strong className="text-amber-500 font-bold">3. STABILIZATION (Discard):</strong> Your neural buffer (hand) has a limit of <strong className="text-amber-500 font-bold">5 cards</strong>. You MUST play or discard units until your hand total is 5 or less before terminating control.</p>
+                  <p><strong className="text-sky-400 font-bold">4. TERMINATION (End):</strong> Once your hand is stabilized and actions are spent, terminate control to pass to the next candidate.</p>
+               </div>
            </div>
 
            {/* Section 2: Tactical Cards */}

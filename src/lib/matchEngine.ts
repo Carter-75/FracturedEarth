@@ -88,6 +88,7 @@ export type MatchAction =
   | { type: "INIT_MATCH"; botCount?: number }
   | { type: "DRAW_CARD" }
   | { type: "PLAY_CARD"; cardId: string; targetPlayerId?: string }
+  | { type: "DISCARD_CARD"; cardId: string }
   | { type: "END_TURN" }
   | { type: "SET_WINNER"; winnerUserId: string };
 
@@ -231,16 +232,6 @@ function drawForActive(state: MatchPayload): MatchPayload {
   const card = drawPile[0];
   const remainingDrawPile = drawPile.slice(1);
   const active = state.players[state.activePlayerIndex];
-  const maxHand = getPlayerMaxHand(active);
-
-  if (active.hand.length >= maxHand) {
-    return {
-      ...state,
-      drawPile: remainingDrawPile,
-      discardPile: [...discardPile, card],
-      hasDrawnThisTurn: true,
-    };
-  }
 
   if (card.type === "TWIST" || card.type === "CATACLYSM") {
     return playCardImmediate(
@@ -475,9 +466,9 @@ export async function applyMatchAction(input: {
   }>;
   roomCode: string;
 }): Promise<MatchPayload> {
-  const current = input.current;
+  let state = { ...input.current };
   const action = input.action;
-  const active = current.players[current.activePlayerIndex];
+  const active = state.players[state.activePlayerIndex];
   const isActorInRoom = input.roomPlayers.some(
     (p) => p.userId === input.actorUserId
   );
@@ -494,51 +485,72 @@ export async function applyMatchAction(input: {
     });
   }
 
-  if (current.winnerId && action.type !== "SET_WINNER") {
+  if (state.winnerId && action.type !== "SET_WINNER") {
     throw new Error("Match already finished");
   }
 
   switch (action.type) {
     case "DRAW_CARD": {
       if (active.id !== input.actorUserId) throw new Error("Not your turn");
-      if (current.hasDrawnThisTurn) {
+      if (state.hasDrawnThisTurn) {
         throw new Error("You can only draw once per turn");
       }
-      const next = drawForActive(current);
+      const next = drawForActive(state);
       return { ...next, botTurnReplay: undefined };
     }
     case "PLAY_CARD": {
       if (active.id !== input.actorUserId) throw new Error("Not your turn");
-      if (!current.hasDrawnThisTurn) {
+      if (!state.hasDrawnThisTurn) {
         throw new Error("Draw a card before playing");
       }
-      if (current.cardsPlayedThisTurn >= MAX_ACTIONS_PER_TURN) {
+      if (state.cardsPlayedThisTurn >= MAX_ACTIONS_PER_TURN) {
         throw new Error(`Max ${MAX_ACTIONS_PER_TURN} cards per turn`);
       }
-      const next = playCard(current, action.cardId, action.targetPlayerId);
+      const next = playCard(state, action.cardId, action.targetPlayerId);
       return { ...next, botTurnReplay: undefined };
+    }
+    case "DISCARD_CARD": {
+      if (active.id !== input.actorUserId) throw new Error("Not your turn");
+      const idx = active.hand.findIndex(c => c.id === action.cardId);
+      if (idx === -1) throw new Error("Card not in hand");
+
+      const card = active.hand[idx];
+      const nextActive = { ...active, hand: active.hand.filter((_, i) => i !== idx) };
+      const nextPlayers = [...state.players];
+      nextPlayers[state.activePlayerIndex] = nextActive;
+      
+      return {
+        ...state,
+        players: nextPlayers,
+        discardPile: [card, ...state.discardPile],
+        botTurnReplay: undefined,
+      };
     }
     case "END_TURN": {
       if (active.id !== input.actorUserId) throw new Error("Not your turn");
-      if (!current.hasDrawnThisTurn) {
+      if (!state.hasDrawnThisTurn) {
         throw new Error("You must draw before ending turn");
       }
-      const next = advanceTurn(current);
+      // END TURN RULE: Must be at or below max hand size
+      if (active.hand.length > getPlayerMaxHand(active)) {
+        throw new Error(`Must discard cards. Hand size limit: ${getPlayerMaxHand(active)}`);
+      }
+      const next = advanceTurn(state);
       const resolved = runBotTurnsUntilHuman(next);
       return { ...resolved.state, botTurnReplay: resolved.replay };
     }
     case "SET_WINNER": {
-      if (!current.players.some((p) => p.id === action.winnerUserId)) {
+      if (!state.players.some((p) => p.id === action.winnerUserId)) {
         throw new Error("Winner not found");
       }
       return {
-        ...current,
+        ...state,
         winnerId: action.winnerUserId,
         botTurnReplay: undefined,
       };
     }
     default:
-      return current;
+      return state;
   }
 }
 
