@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { applyTutorialAction, getTutorialStep, type TutorialAction, type TutorialSession } from '@/lib/tutorialEngine';
-import type { MatchAction } from '@/lib/matchEngine';
+import { advanceTutorial, getTutorialStep } from '@/lib/tutorialEngine';
+import type { MatchAction, MatchPayload } from '@/lib/matchEngine';
+
+export interface TutorialSession {
+  match: MatchPayload;
+  stepIndex: number;
+  completed: boolean;
+}
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
   const session = body?.session as TutorialSession | undefined;
-  const action = body?.action as (MatchAction | TutorialAction) | undefined;
+  const action = body?.action as any;
   const actorUserId = String(body?.actorUserId ?? '').trim();
 
   if (!session || !action?.type || !actorUserId) {
@@ -13,15 +19,21 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const next = applyTutorialAction({
-      session,
-      action,
-      actorUserId,
-    });
+    const { state, nextStepRecommended } = await advanceTutorial(
+      session.match,
+      action as any,
+      session.stepIndex
+    );
+
+    const nextSession = {
+      match: state,
+      stepIndex: session.stepIndex + (nextStepRecommended ? 1 : 0),
+      completed: state.winnerId !== undefined,
+    };
 
     return NextResponse.json({
-      session: next,
-      step: getTutorialStep(next.stepIndex),
+      session: nextSession,
+      step: await getTutorialStep(nextSession.stepIndex),
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Tutorial action failed';

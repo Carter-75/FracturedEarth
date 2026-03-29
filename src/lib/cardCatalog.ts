@@ -1,5 +1,5 @@
-import type { MatchCard } from '@/lib/matchEngine';
-import rawCards from '@/data/cards.json';
+import type { MatchCard } from './matchEngine';
+import rawCards from '../data/cards.json';
 
 type RawCard = {
   id: string;
@@ -10,6 +10,7 @@ type RawCard = {
   tier?: number | null;
   effect?: string | null;
   gainHealth?: number | null;
+  healthDelta?: number | null;
   disasterKind?: string | null;
   blocksDisaster?: string | null;
 };
@@ -24,6 +25,7 @@ function toMatchCard(raw: RawCard): MatchCard {
     ...(raw.tier != null && { tier: raw.tier as 1 | 2 | 3 | 4 | 5 }),
     ...(raw.effect != null && raw.effect !== '' && { effect: raw.effect }),
     ...(raw.gainHealth != null && { gainHealth: raw.gainHealth }),
+    ...(raw.healthDelta != null && { healthDelta: raw.healthDelta }),
     ...(raw.disasterKind != null && raw.disasterKind !== '' && {
       disasterKind: raw.disasterKind as MatchCard['disasterKind'],
     }),
@@ -32,6 +34,8 @@ function toMatchCard(raw: RawCard): MatchCard {
     }),
   };
 }
+
+import { getAllCardsFromRedis } from './cardStorage';
 
 const SURVIVAL_CARDS: MatchCard[] = (rawCards.SURVIVAL as RawCard[]).map(toMatchCard);
 const DISASTER_CARDS: MatchCard[] = (rawCards.DISASTER as RawCard[]).map(toMatchCard);
@@ -42,26 +46,19 @@ const ASCENDED_CARDS: MatchCard[] = (rawCards.ASCENDED as RawCard[]).map(toMatch
 const TWIST_CARDS: MatchCard[] = (rawCards.TWIST as RawCard[]).map(toMatchCard);
 const CATACLYSM_CARDS: MatchCard[] = (rawCards.CATACLYSM as RawCard[]).map(toMatchCard);
 
-export const CARD_GROUPS = {
-  SURVIVAL: SURVIVAL_CARDS,
-  DISASTER: DISASTER_CARDS,
-  POWER: POWER_CARDS,
-  ADAPT: ADAPT_CARDS,
-  CHAOS: CHAOS_CARDS,
-  ASCENDED: ASCENDED_CARDS,
-  TWIST: TWIST_CARDS,
-  CATACLYSM: CATACLYSM_CARDS,
-} as const;
+const STATIC_BASE_CARDS = [
+  ...SURVIVAL_CARDS,
+  ...DISASTER_CARDS,
+  ...POWER_CARDS,
+  ...ADAPT_CARDS,
+  ...CHAOS_CARDS,
+  ...ASCENDED_CARDS,
+  ...TWIST_CARDS,
+  ...CATACLYSM_CARDS,
+];
 
-export function generateNamedBaseCards(): MatchCard[] {
-  return [
-    ...SURVIVAL_CARDS,
-    ...DISASTER_CARDS,
-    ...POWER_CARDS,
-    ...ADAPT_CARDS,
-    ...CHAOS_CARDS,
-    ...ASCENDED_CARDS,
-    ...TWIST_CARDS,
-    ...CATACLYSM_CARDS,
-  ].map((card) => ({ ...card }));
+export async function generateNamedBaseCards(): Promise<MatchCard[]> {
+  const fromDb = await getAllCardsFromRedis();
+  if (fromDb && fromDb.length > 0) return fromDb.map(c => ({...c}));
+  return STATIC_BASE_CARDS.map((card) => ({ ...card }));
 }

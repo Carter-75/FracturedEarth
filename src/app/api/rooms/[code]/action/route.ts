@@ -44,13 +44,13 @@ export async function POST(
       if (room.hostUserId !== userId) {
         return NextResponse.json({ error: 'Only host can initialize match' }, { status: 403 });
       }
-      nextPayload = initializeMatch({
+      nextPayload = await initializeMatch({
         roomPlayers,
         roomCode: room.code,
         botCount: action.botCount,
       });
     } else {
-      nextPayload = applyMatchAction({
+      nextPayload = await applyMatchAction({
         current: currentState.payload as MatchPayload,
         action,
         actorUserId: userId,

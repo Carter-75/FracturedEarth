@@ -11,6 +11,7 @@ type ZRangeOptions = { REV?: boolean };
 interface RedisMultiLike {
   hIncrBy(key: string, field: string, increment: number): RedisMultiLike;
   zAdd(key: string, entry: { score: number; value: string }): RedisMultiLike;
+  set(key: string, value: string): RedisMultiLike;
   exec(): Promise<unknown[]>;
 }
 
@@ -155,6 +156,10 @@ class InMemoryRedisClient implements RedisLike {
         operations.push(async () => this.zAdd(key, entry));
         return this.multiProxy(operations);
       },
+      set: (key: string, value: string) => {
+        operations.push(async () => this.set(key, value));
+        return this.multiProxy(operations);
+      },
       exec: async () => {
         const results: unknown[] = [];
         for (const operation of operations) {
@@ -178,6 +183,10 @@ class InMemoryRedisClient implements RedisLike {
       },
       zAdd: (key: string, entry: { score: number; value: string }) => {
         operations.push(async () => this.zAdd(key, entry));
+        return this.multiProxy(operations);
+      },
+      set: (key: string, value: string) => {
+        operations.push(async () => this.set(key, value));
         return this.multiProxy(operations);
       },
       exec: async () => {

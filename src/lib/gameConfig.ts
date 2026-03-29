@@ -130,3 +130,10 @@ export const THEME_PRESETS: Record<ThemeName, {
 export function isThemeName(value: string): value is ThemeName {
   return THEME_OPTIONS.includes(value as ThemeName);
 }
+
+// Game Rules
+export const MAX_HAND_SIZE = 5;
+export const WINNING_POINTS = 100;
+export const INITIAL_HEALTH = 5;
+export const MAX_ACTIONS_PER_TURN = 3;
+export const STARTING_HAND_SIZE = 5;

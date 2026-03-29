@@ -24,14 +24,21 @@ export default function HomePage() {
           Experience the definitive strategic survival engine. Secure your sector and manage your resources in pure cinematic reality.
         </p>
 
-        <div className="flex flex-col sm:flex-row gap-6 w-full max-w-md">
+        <div className="flex flex-col sm:flex-row gap-6 w-full max-w-2xl mt-8">
            <Link href="/lan" className="fe-holo-btn flex-1 !py-5 !text-lg !text-white !bg-amber-500/10 !border-amber-500/30 hover:!bg-amber-500/20 active:scale-95 transition-all">
              Start Protocol
            </Link>
            <Link href="/tutorial" className="fe-holo-btn flex-1 !py-5 !text-lg active:scale-95 transition-all">
              Training
            </Link>
+           <Link href="/rules" className="fe-holo-btn flex-1 !py-5 !text-lg !border-sky-500/50 !text-sky-400 active:scale-95 transition-all">
+             NeuralAtlas
+           </Link>
         </div>
+        
+        <Link href="/settings" className="mt-8 text-white/20 hover:text-white/60 text-xs tracking-[0.5em] transition-all uppercase">
+          Access_Settings
+        </Link>
       </section>
 
       {/* Floating Decorative Mesh */}

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { startRoomMatch, putRoomGameState } from '@/lib/rooms';
-import { generateNamedBaseCards } from '@/lib/cardCatalog';
+import { initializeMatch } from '@/lib/matchEngine';
 
 export async function POST(
   req: NextRequest,
@@ -21,33 +21,17 @@ export async function POST(
   }
 
   // --- INITIALIZE GAME STATE ---
-  const allCards = generateNamedBaseCards();
-  const deck = [...allCards].sort(() => Math.random() - 0.5);
-  
-  const players = room.members.filter(m => !m.disconnectedAtEpochMs).map((m, i) => ({
-    id: m.userId,
+  const roomPlayers = room.members.filter(m => !m.disconnectedAtEpochMs).map(m => ({
+    userId: m.userId,
     displayName: m.displayName,
     emoji: m.emoji,
     isBot: Boolean(m.isBot),
-    survivalPoints: 0,
-    health: 5,
-    hand: deck.splice(0, 5),
-    powers: [],
   }));
 
-  const initialPayload = {
-    round: 1,
-    activePlayerIndex: 0,
-    players,
-    drawPile: deck.slice(1),
-    discardPile: [deck[0]],
-    turnPile: [],
-    topCard: deck[0],
-    turnDirection: 1,
-    isGlobalDisasterPhase: false,
-    cardsPlayedThisTurn: 0,
-    hasDrawnThisTurn: false,
-  };
+  const initialPayload = await initializeMatch({
+    roomPlayers,
+    roomCode: context.params.code,
+  });
 
   await putRoomGameState({
     code: context.params.code,

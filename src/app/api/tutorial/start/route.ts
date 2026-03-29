@@ -7,8 +7,8 @@ export async function POST(req: NextRequest) {
   const displayName = String(body?.displayName ?? 'Player').trim() || 'Player';
   const emoji = String(body?.emoji ?? '🌍').trim() || '🌍';
 
-  const session = startTutorial({ userId, displayName, emoji });
-  const step = getTutorialStep(session.stepIndex);
+  const session = await startTutorial({ userId, displayName, emoji });
+  const step = await getTutorialStep(session.stepIndex);
 
   return NextResponse.json({
     session,

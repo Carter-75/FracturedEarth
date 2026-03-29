@@ -1,149 +1,133 @@
-import { generateNamedBaseCards } from '@/lib/cardCatalog';
-import { applyMatchAction, type MatchAction, type MatchCard, type MatchPayload, type MatchPlayer } from '@/lib/matchEngine';
-
-export type TutorialAction = MatchAction | { type: 'ACK' };
+import { type MatchPayload, type MatchAction, applyMatchAction } from './matchEngine';
+import { generateNamedBaseCards } from './cardCatalog';
 
 export interface TutorialStep {
-  id: number;
   title: string;
   description: string;
-  expectedActionType: TutorialAction['type'];
+  expectedActionType: MatchAction['type'] | 'SET_WINNER';
   expectedCardId?: string;
-  expectedTargetPlayerId?: string;
+  expectedTargetId?: string;
 }
 
-export interface TutorialSession {
-  match: MatchPayload;
-  stepIndex: number;
-  completed: boolean;
-}
-
-const HUMAN_ID = 'tutorial_human';
-const BOT_ID = 'tutorial_bot_0';
-
-const BASE_CARDS = generateNamedBaseCards();
-
-function findCard(idOrName: string): MatchCard {
-  const found = BASE_CARDS.find((c) => c.id === idOrName || c.name === idOrName);
-  if (!found) {
-    throw new Error(`Tutorial card not found: ${idOrName}`);
-  }
-  return { ...found };
-}
-
-function buildSteps(): TutorialStep[] {
+export async function buildTutorialSteps(): Promise<TutorialStep[]> {
   const steps: TutorialStep[] = [];
-  let id = 1;
-  const push = (step: Omit<TutorialStep, 'id'>) => {
-    steps.push({ id, ...step });
-    id += 1;
-  };
+  const push = (step: TutorialStep) => steps.push(step);
 
+  // PHASE 1: PROCUREMENT & SURVIVAL (Turns 1-10)
   push({
-    title: 'Training Protocol Initiated',
-    description: 'Welcome, candidate. This simulation will prepare you for survival on Fractured Earth. Follow the instructions strictly.',
-    expectedActionType: 'ACK',
-  });
-
-  push({
-    title: 'Phase 1: Procurement',
-    description: 'Every turn begins with the DRAW phase. Access the deck to retrieve tactical data.',
+    title: 'Phase 1: Procurement Base',
+    description: 'Welcome to the simulation. Every turn begins with PROCUREMENT. Draw your first tactical unit.',
     expectedActionType: 'DRAW_CARD',
   });
 
   push({
-    title: 'Phase 2: Deployment',
-    description: 'You can play up to 3 cards per turn. Deploy your first Survival card to gain Energy (points).',
+    title: 'Resource Extraction',
+    description: 'Survival is paramount. Deploy your Hydroponic Bay to secure consistent Energy gain.',
     expectedActionType: 'PLAY_CARD',
-    expectedCardId: 'survival_agriculture',
+    expectedCardId: 'survival_hydroponic_bay',
   });
 
   push({
-    title: 'Tactical Flexibility',
-    description: 'Notice you can play another card! On this turn, we\'ll play a second card to pressure the opponent.',
-    expectedActionType: 'PLAY_CARD',
-    expectedCardId: 'disaster_earthquake_1',
-    expectedTargetPlayerId: BOT_ID,
-  });
-
-  push({
-    title: 'Ending Control',
-    description: 'You have played 2 of your 3 maximum cards. End your turn now to see the opponent\'s response.',
+    title: 'Ending the Cycle',
+    description: 'Once your actions are spent, terminate your turn to allow the environment to stabilize.',
     expectedActionType: 'END_TURN',
   });
 
+  // PHASE 2: TACTICAL FORTIFICATION (Turns 11-25)
   push({
-    title: 'Defensive Posture',
-    description: 'The bot responded with pressure. Start your next turn by drawing another card.',
+    title: 'Phase 2: Tactical Wall',
+    description: 'Simulation accelerated to Turn 15. The bot is preparing a KINETIC disaster. Deploy a Kinetic Dampener (Power) to block it indefinitely.',
+    expectedActionType: 'PLAY_CARD',
+    expectedCardId: 'power_kinetic_dampener',
+  });
+
+  push({
+    title: 'Reactive Adaptation',
+    description: 'Bypassing current defenses? Use an ADAPT card like the Kinetic Field for an instant, one-time block.',
+    expectedActionType: 'PLAY_CARD',
+    expectedCardId: 'adapt_kinetic_field',
+  });
+
+  // PHASE 3: CHAOS & ASCENSION (Turns 26-40)
+  push({
+    title: 'Phase 3: The Chaos Threshold',
+    description: 'Bypassing Turn 30. Standard defenses are failing. Deploy an Orbital Strike (Chaos) to steal energy from the AI.',
+    expectedActionType: 'PLAY_CARD',
+    expectedCardId: 'chaos_orbital_strike',
+  });
+
+  push({
+    title: 'Phoenix Protocol',
+    description: 'ASCENDED cards are elite. Playing the Phoenix Rebirth grants you an EXTRA ACTION this turn. Turn the tide now.',
+    expectedActionType: 'PLAY_CARD',
+    expectedCardId: 'ascended_phoenix_rebirth',
+  });
+
+  // PHASE 4: THE FINAL CATACLYSM (Turns 41-50)
+  push({
+    title: 'Phase 4: Sudden Twists',
+    description: 'Turn 45. The event horizon is near. TWISTS trigger IMMEDIATELY on draw. Draw to trigger the blessing.',
     expectedActionType: 'DRAW_CARD',
   });
 
   push({
-    title: 'Persistent Defense',
-    description: 'Deploy a POWER card. These stay on the table and block matching disasters repeatedly.',
-    expectedActionType: 'PLAY_CARD',
-    expectedCardId: 'power_shield_1',
+    title: 'The Cataclysmic Burden',
+    description: 'A CATACLYSM has arrived. It triggers instantly, damaging everyone. Draw the final data packet to conclude.',
+    expectedActionType: 'DRAW_CARD',
   });
 
   push({
-    title: 'Strategic Spike',
-    description: 'Now, use an ASCENDED card. This one grants an EXTRA ACTION, allowing you to play more than 3 cards if timed correctly.',
-    expectedActionType: 'PLAY_CARD',
-    expectedCardId: 'ascended_phoenix_1',
-  });
-
-  push({
-    title: 'Mastering the Turn',
-    description: 'With your extra action, you can still play more cards. For now, end your turn to conclude this training module.',
-    expectedActionType: 'END_TURN',
-  });
-
-  push({
-    title: 'Simulation Complete',
-    description: 'You have mastered the core cycle of Fractured Earth. You are now authorized for live combat.',
+    title: 'Ascension Profile Locked',
+    description: 'Simulation Complete. You have mastered 50 turns of tactical evolution. Authorized for planetary authority.',
     expectedActionType: 'SET_WINNER',
   });
 
   return steps;
 }
 
-const STEPS: TutorialStep[] = buildSteps();
+export async function buildInitialMatch(humanUserId: string): Promise<MatchPayload> {
+  const BASE_CARDS = await generateNamedBaseCards();
+  const findCard = (id: string) => {
+    const card = BASE_CARDS.find((c) => c.id === id);
+    if (!card) throw new Error(`Tutorial card not found: ${id}`);
+    return { ...card };
+  };
 
-function buildInitialMatch(userId: string, displayName: string, emoji: string): MatchPayload {
-  const human: MatchPlayer = {
-    id: userId,
-    displayName,
-    emoji,
+  const human = {
+    id: humanUserId,
+    displayName: 'Candidate',
+    emoji: '🌍',
     isBot: false,
-    survivalPoints: 0,
+    survivalPoints: 20,
     health: 5,
     hand: [
-      findCard('survival_agriculture'),
-      findCard('power_shield_1'),
-      findCard('disaster_earthquake_1'),
-      findCard('ascended_phoenix_1'),
-      findCard('chaos_raid_2'),
+      findCard('survival_hydroponic_bay'),
+      findCard('power_kinetic_dampener'),
+      findCard('disaster_megaquake'),
+      findCard('adapt_kinetic_field'),
+      findCard('chaos_orbital_strike'),
     ],
     powers: [],
   };
 
-  const bot: MatchPlayer = {
-    id: BOT_ID,
-    displayName: 'Training Bot',
+  const bot = {
+    id: 'tutorial_bot',
+    displayName: 'Nexus_AI',
     emoji: '🤖',
     isBot: true,
-    survivalPoints: 0,
+    survivalPoints: 15,
     health: 5,
-    hand: [findCard('disaster_earthquake_2'), findCard('survival_harvest')],
+    hand: [findCard('disaster_megaquake'), findCard('survival_deep_core_drill')],
     powers: [],
   };
 
   const usedIds = new Set<string>([...human.hand, ...bot.hand].map((c) => c.id));
   
-  // Scripted draw pile to ensure tutorial cards are available
+  // Scripted draw pile to ensure tutorial cards are available for the 4 phases
   const drawPile = [
-    findCard('survival_trade_route'),
-    findCard('power_shield_4'),
+    findCard('twist_blessing_of_unity'), // Phase 4
+    findCard('cataclysm_the_apocalypse'), // Phase 4
+    findCard('ascended_phoenix_rebirth'), // Phase 3
     ...BASE_CARDS.filter(c => !usedIds.has(c.id)).map(c => ({...c}))
   ];
 
@@ -152,83 +136,67 @@ function buildInitialMatch(userId: string, displayName: string, emoji: string): 
     activePlayerIndex: 0,
     players: [human, bot],
     drawPile,
-    discardPile: [findCard('survival_library')],
-    turnPile: [],
-    topCard: findCard('survival_library'),
+    discardPile: [],
+    topCard: undefined,
     turnDirection: 1,
+    turnPile: [],
     isGlobalDisasterPhase: false,
     cardsPlayedThisTurn: 0,
     hasDrawnThisTurn: false,
+    winnerId: undefined,
   };
 }
 
-export function startTutorial(input: { userId: string; displayName: string; emoji: string }): TutorialSession {
-  return {
-    match: buildInitialMatch(input.userId, input.displayName, input.emoji),
-    stepIndex: 0,
-    completed: false,
-  };
-}
+export async function advanceTutorial(
+  current: MatchPayload,
+  action: MatchAction,
+  stepIndex: number
+): Promise<{ state: MatchPayload; nextStepRecommended: boolean }> {
+  const steps = await buildTutorialSteps();
+  const step = steps[stepIndex];
+  if (!step) return { state: current, nextStepRecommended: false };
 
-export function getTutorialStep(stepIndex: number): TutorialStep | null {
-  return STEPS[stepIndex] ?? null;
-}
-
-export function applyTutorialAction(input: {
-  session: TutorialSession;
-  action: TutorialAction;
-  actorUserId: string;
-}): TutorialSession {
-  if (input.session.completed) return input.session;
-
-  const step = getTutorialStep(input.session.stepIndex);
-  if (!step) {
-    return { ...input.session, completed: true };
+  // Special handling for SET_WINNER step
+  if (step.expectedActionType === 'SET_WINNER') {
+    return { state: { ...current, winnerId: current.players[0].id }, nextStepRecommended: true };
   }
 
-  if (input.action.type !== step.expectedActionType) {
-    throw new Error(`Tutorial step requires action ${step.expectedActionType}`);
+  // Validate action type
+  if (action.type !== step.expectedActionType) {
+    throw new Error(`Invalid action for tutorial step: expected ${step.expectedActionType}, got ${action.type}`);
   }
 
-  if (step.expectedActionType === 'PLAY_CARD') {
-    if (step.expectedCardId && input.action.type === 'PLAY_CARD' && input.action.cardId !== step.expectedCardId) {
-      throw new Error('Play the highlighted tutorial card first');
-    }
-    if (
-      step.expectedTargetPlayerId &&
-      input.action.type === 'PLAY_CARD' &&
-      input.action.targetPlayerId !== step.expectedTargetPlayerId
-    ) {
-      throw new Error('Select the bot as target for this tutorial step');
-    }
-  }
-
-  if (input.action.type === 'ACK') {
-    const nextStep = input.session.stepIndex + 1;
-    return {
-      ...input.session,
-      stepIndex: nextStep,
-      completed: nextStep >= STEPS.length,
-    };
-  }
-
-  const nextMatch = applyMatchAction({
-    current: input.session.match,
-    action: input.action,
-    actorUserId: input.actorUserId,
-    roomPlayers: [
-      { userId: input.actorUserId, displayName: 'You', emoji: '🌍', isBot: false },
-      { userId: BOT_ID, displayName: 'Training Bot', emoji: '🤖', isBot: true },
-    ],
-    roomCode: 'TUTORIAL_FIXED',
+  // Finalize action
+  const next = await applyMatchAction({
+    current,
+    action,
+    actorUserId: current.players[0].id,
+    roomPlayers: current.players.map(p => ({
+      userId: p.id,
+      displayName: p.displayName,
+      emoji: p.emoji,
+      isBot: p.isBot
+    })),
+    roomCode: 'TUTORIAL',
   });
 
-  const nextStep = input.session.stepIndex + 1;
-  const completed = nextStep >= STEPS.length;
+  return { state: next, nextStepRecommended: true };
+}
 
+export async function getTutorialStep(index: number): Promise<TutorialStep | null> {
+  const steps = await buildTutorialSteps();
+  return steps[index] || null;
+}
+
+export async function startTutorial(input: {
+  userId: string;
+  displayName: string;
+  emoji: string;
+}): Promise<{ match: MatchPayload; stepIndex: number; completed: boolean }> {
+  const match = await buildInitialMatch(input.userId);
   return {
-    match: nextMatch,
-    stepIndex: nextStep,
-    completed,
+    match,
+    stepIndex: 0,
+    completed: false,
   };
 }

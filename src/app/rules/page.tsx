@@ -34,13 +34,17 @@ export default function RulesPage() {
 
            {/* Section 2: Tactical Cards */}
            <div className="space-y-12">
-              <h2 className="fe-hologram text-sky-400 text-center">Tactical Classification</h2>
+              <h2 className="fe-hologram text-sky-400 text-center">Tactical Classification (220 Cards)</h2>
               <div className="grid sm:grid-cols-2 gap-8">
                  {[
                    { name: 'SURVIVAL', color: 'text-emerald-400', desc: 'Secure vital resources. Provides consistent Energy gain.' },
                    { name: 'DISASTER', color: 'text-rose-400', desc: 'Siphon enemy resources. Damages health or steals points.' },
                    { name: 'POWER', color: 'text-sky-400', desc: 'Persistent structures. Stays on table to block matching attacks.' },
-                   { name: 'ASCENDED', color: 'text-amber-500', desc: 'Elite protocols. Often grants EXTRA ACTIONS beyond the 3-card limit.' }
+                   { name: 'ADAPT', color: 'text-cyan-400', desc: 'Reactive protocols. Block disasters or heal instantly.' },
+                   { name: 'CHAOS', color: 'text-fuchsia-400', desc: 'Unpredictable events. Steal points, swap hands, or warp reality.' },
+                   { name: 'ASCENDED', color: 'text-amber-500', desc: 'Elite protocols. High-tier effects that can dominate the match.' },
+                   { name: 'TWIST', color: 'text-purple-400', desc: 'Instant lucky breaks. Triggers immediately when drawn.' },
+                   { name: 'CATACLYSM', color: 'text-red-500', desc: 'Total devastation. Negative effects that affect all candidates.' }
                  ].map(type => (
                    <div key={type.name} className="p-6 bg-white/5 border border-white/5 rounded-2xl hover:bg-white/10 transition-colors">
                       <h3 className={`font-black tracking-widest ${type.color} mb-2`}>{type.name}</h3>
@@ -54,7 +58,7 @@ export default function RulesPage() {
            <div className="text-center p-12 border-t border-white/10">
               <h2 className="text-4xl font-black text-white italic tracking-tighter uppercase mb-6">Ascension Profile</h2>
               <p className="text-white/40 max-w-md mx-auto leading-relaxed">
-                The first candidate to reach the designated point threshold or survive the final Cataclysm while others fall will be granted total planetary authority.
+                The first candidate to reach the <span className="text-amber-500 font-bold">100 Point</span> threshold or survive as the last player standing will be granted total planetary authority.
               </p>
            </div>
         </div>
