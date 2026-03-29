@@ -151,6 +151,9 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string):
     if (effect.includes("1_if_chaos_card_played_previously") && state.turnPile.some(c => c.type === "CHAOS")) yield_val += 1;
     active.survivalPoints += yield_val;
     active.health = Math.min(INITIAL_HEALTH, active.health + (card.gainHealth ?? 0));
+    if (effect.includes("2_health_if_first_card_played_this_turn") && state.cardsPlayedThisTurn === 1) {
+      active.health = Math.min(INITIAL_HEALTH, active.health + 2);
+    }
     if (effect.includes("draw_2_cards")) { for(let i=0; i<2; i++) next = drawForActive(next); }
     if (effect.includes("draw_3_cards")) { for(let i=0; i<3; i++) next = drawForActive(next); }
     if (effect.includes("draw_1_card")) { next = drawForActive(next); }
@@ -161,8 +164,8 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string):
     next = applyDisaster(next, card, targetId);
   }
 
+  // POWER and ADAPT effects logic (not placement, placement handled in playCard)
   if (card.type === "POWER" || card.type === "ADAPT") {
-    active.powers.push(card);
     if (effect.includes("draw_1_card_when_pinned")) next = drawForActive(next);
     if (effect.includes("restore_1_health")) active.health = Math.min(INITIAL_HEALTH, active.health + 1);
   }
@@ -261,12 +264,25 @@ function drawForActive(state: MatchPayload): MatchPayload {
 }
 
 function playCardImmediate(state: MatchPayload, card: MatchCard): MatchPayload {
-  const next = {
+  const isProtection = Boolean(card.blocksDisaster);
+  const activeIndex = state.activePlayerIndex;
+  const active = { ...state.players[activeIndex] };
+  let next = {
     ...state,
-    discardPile: [...state.discardPile, card],
     topCard: card,
     turnPile: [...state.turnPile, card],
+    cardsPlayedThisTurn: state.cardsPlayedThisTurn + 1,
   };
+
+  if (isProtection) {
+    active.powers = [...active.powers, card];
+    const newPlayers = [...state.players];
+    newPlayers[activeIndex] = active;
+    next.players = newPlayers;
+  } else {
+    next.discardPile = [...state.discardPile, card];
+  }
+
   return resolveEffect(next, card);
 }
 
@@ -301,12 +317,16 @@ function playCard(
   if (!canPlayCard(state, card)) throw new Error("Card does not match top card");
 
   const newHand = active.hand.filter((c) => c.id !== card.id);
+  const isProtection = Boolean(card.blocksDisaster);
+  
   let next: MatchPayload = {
     ...state,
     players: state.players.map((p, i) =>
-      i === activeIndex ? { ...active, hand: newHand } : p
+      i === activeIndex 
+        ? { ...active, hand: newHand, powers: isProtection ? [...active.powers, card] : active.powers } 
+        : p
     ),
-    discardPile: [...state.discardPile, card],
+    discardPile: isProtection ? state.discardPile : [...state.discardPile, card],
     topCard: card,
     turnPile: [...state.turnPile, card],
     cardsPlayedThisTurn: state.cardsPlayedThisTurn + 1,

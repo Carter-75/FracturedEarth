@@ -125,6 +125,18 @@ function PlayerStatsHUD({ player, isActive }: { player: MatchPlayer; isActive: b
               <div className="text-3xl font-black italic text-rose-500 fe-glow-text">{player.health}</div>
            </div>
         </div>
+
+       {/* Opponent Pinned Powers */}
+       {player.powers && player.powers.length > 0 && (
+          <div className="absolute top-full mt-4 flex justify-center gap-2 [transform-style:preserve-3d]">
+             {player.powers.map((card, i) => (
+                <div key={card.id} className="relative w-16 h-24 bg-slate-800 rounded-lg border border-amber-500/30 overflow-hidden shadow-[0_4px_10px_rgba(245,158,11,0.2)]" style={{ transform: `translateZ(10px)` }}>
+                   <div className="absolute inset-0 bg-amber-500/10" />
+                   <div className="fe-hologram text-[6px] text-amber-500/80 p-1 text-center font-bold absolute bottom-0 w-full bg-black/50">{card.name}</div>
+                </div>
+             ))}
+          </div>
+       )}
     </div>
   );
 }
@@ -280,6 +292,8 @@ export default function TabletopPage() {
   const [showFullInspect, setShowFullInspect] = useState(false);
   const [inspectedCard, setInspectedCard] = useState<MatchCard | null>(null);
   const [showPostGameAd, setShowPostGameAd] = useState(false);
+  const [replayQueue, setReplayQueue] = useState<any[]>([]);
+  const [replayEvent, setReplayEvent] = useState<any | null>(null);
   const router = useRouter();
 
   const userId = useMemo(() => {
@@ -292,8 +306,9 @@ export default function TabletopPage() {
   const myPlayer = payload?.players.find((p) => p.id === userId) ?? null;
   const isMyTurn = activePlayer?.id === userId;
   const winner = payload?.players.find((p) => p.id === payload?.winnerId);
-  const canDraw = Boolean(isMyTurn && !busy && !winner && payload && !payload.hasDrawnThisTurn);
-  const canEndTurn = Boolean(isMyTurn && !busy && !winner && payload?.hasDrawnThisTurn);
+  const isDrawPending = isMyTurn && !winner && payload && !payload.hasDrawnThisTurn;
+  const canDraw = Boolean(isDrawPending && !busy && replayQueue.length === 0);
+  const canEndTurn = Boolean(isMyTurn && !busy && !winner && payload?.hasDrawnThisTurn && replayQueue.length === 0);
   const maxPlayReached = Boolean((payload?.cardsPlayedThisTurn ?? 0) >= 3);
 
   const selectedCard = useMemo(() => 
@@ -318,12 +333,53 @@ export default function TabletopPage() {
         const res = await fetch(`/api/rooms/${code}/state`, { cache: 'no-store' });
         if (!res.ok) return;
         const stateSnapshot = await res.json();
+        if (stateSnapshot.payload?.botTurnReplay?.length > 0 && stateSnapshot.revision !== state?.revision) {
+           setReplayQueue(stateSnapshot.payload.botTurnReplay);
+        }
         setState(stateSnapshot);
       } catch (e) { console.error('Sync failed', e); }
     }
     const timer = setInterval(sync, 1500);
     return () => clearInterval(timer);
-  }, [code]);
+  }, [code, state?.revision]);
+
+  // Bug 7: Room Heartbeat
+  useEffect(() => {
+    const ping = async () => {
+      try {
+        await fetch(`/api/rooms/${code}/heartbeat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId }),
+        });
+      } catch (e) { console.error('Heartbeat failed', e); }
+    };
+    ping();
+    const interval = setInterval(ping, 10000);
+    return () => clearInterval(interval);
+  }, [code, userId]);
+
+  // Bug 9: Error Dismissal
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => setError(''), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
+
+  // Bug 6: Bot Turn Replay Processing
+  useEffect(() => {
+    if (replayQueue.length === 0) {
+      setReplayEvent(null);
+      return;
+    }
+    const evt = replayQueue[0];
+    setReplayEvent(evt);
+    const timer = setTimeout(() => {
+       setReplayQueue(q => q.slice(1));
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [replayQueue]);
 
   async function handleDraw() {
     if (!canDraw) return;
@@ -361,6 +417,20 @@ export default function TabletopPage() {
 
   return (
     <main className="fe-scene bg-black flex-1">
+      {/* Bot Turn Replay Toast */}
+      <AnimatePresence>
+        {replayEvent && (
+           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="absolute top-24 left-1/2 -translate-x-1/2 z-[2000] bg-indigo-900/60 backdrop-blur-xl border border-indigo-400 px-8 py-4 rounded-full shadow-[0_0_30px_rgba(99,102,241,0.5)] whitespace-nowrap">
+              <span className="text-white font-black italic tracking-widest uppercase text-sm">
+                 <span className="text-sky-400">{replayEvent.actorName}</span> 
+                 {replayEvent.action === 'DRAW' && ' Draws A Card...'}
+                 {replayEvent.action === 'END_TURN' && ' Ends Turn.'}
+                 {replayEvent.action === 'PLAY' && ` Deploys ${replayEvent.cardName}`}
+              </span>
+           </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Event Effects */}
       <AnimatePresence>
         {payload?.isGlobalDisasterPhase && (
@@ -518,9 +588,9 @@ export default function TabletopPage() {
                        rotate: (i - (myPlayer.hand.length-1)/2) * 4,
                        x: `calc(${(i - (myPlayer.hand.length-1)/2)} * var(--hand-spread))`
                      }}
-                     whileHover={{ y: -40, rotate: 0, scale: 1.1, zIndex: 1000 }}
-                     className="absolute cursor-pointer origin-bottom"
-                     onClick={() => setSelectedCardId(card.id)}
+                     whileHover={isDrawPending ? {} : { y: -40, rotate: 0, scale: 1.1, zIndex: 1000 }}
+                     className={`absolute origin-bottom ${isDrawPending ? 'opacity-40 grayscale pointer-events-none cursor-not-allowed' : 'cursor-pointer'}`}
+                     onClick={() => !isDrawPending && setSelectedCardId(card.id)}
                    >
                       <PhysicalCard card={card} />
                    </motion.div>
@@ -528,6 +598,27 @@ export default function TabletopPage() {
               </AnimatePresence>
            </div>
         </div>
+      )}
+
+      {/* Pinned Powers Layer */}
+      {myPlayer && myPlayer.powers && myPlayer.powers.length > 0 && (
+         <div className="absolute bottom-40 md:bottom-24 left-1/2 -translate-x-1/2 flex gap-4 pointer-events-auto items-end z-[150]">
+            {myPlayer.powers.map((card, i) => (
+               <motion.div 
+                 key={card.id} 
+                 initial={{ y: 50, opacity: 0 }} 
+                 animate={{ y: 0, opacity: 1 }} 
+                 whileHover={{ y: -20, zIndex: 300, scale: 1.1 }}
+                 className="relative w-20 h-28 bg-slate-900 border-2 border-amber-500/50 rounded-xl overflow-hidden cursor-pointer shadow-[0_10px_20px_rgba(245,158,11,0.2)]"
+                 onClick={() => { setInspectedCard(card); setShowFullInspect(true); }}
+               >
+                  <img src={cardTheme(card.type).bg} className="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-screen" alt="" />
+                  <div className="absolute bottom-0 w-full bg-black/80 p-1 text-center">
+                     <span className="fe-hologram text-[6px] text-amber-400 font-bold block">{card.name}</span>
+                  </div>
+               </motion.div>
+            ))}
+         </div>
       )}
 
       {/* Cinematic Inspection Layer */}

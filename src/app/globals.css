@@ -12,18 +12,18 @@
   --neon-glow: 0 0 15px rgba(245, 158, 11, 0.4);
   
   /* Responsive Game Units */
-  --card-w: 6rem;
-  --card-h: 8.5rem;
-  --opp-offset: -200px;
-  --hand-spread: 50px;
+  --card-w: 5rem;
+  --card-h: 7rem;
+  --opp-offset: -120px;
+  --hand-spread: 35px;
 }
 
 @media (min-width: 768px) {
   :root {
-    --card-w: 8rem;
-    --card-h: 11rem;
-    --opp-offset: -300px;
-    --hand-spread: 70px;
+    --card-w: 6.5rem;
+    --card-h: 9rem;
+    --opp-offset: -200px;
+    --hand-spread: 50px;
   }
 }
 
@@ -31,8 +31,8 @@
   :root {
     --card-w: 10rem;
     --card-h: 14rem;
-    --opp-offset: -400px;
-    --hand-spread: 100px;
+    --opp-offset: -350px;
+    --hand-spread: 80px;
   }
 }
 
@@ -76,8 +76,8 @@
   }
 
   .fe-table {
-    @apply absolute left-1/2 top-1/2 w-[250vw] h-[150vh] bg-[#05080f] rounded-[50%] border-[8px] border-white/5;
-    transform: translate(-50%, -50%) rotateX(65deg) scale(1);
+    @apply absolute left-1/2 top-1/2 w-[200vw] h-[150vh] md:w-[250vw] bg-[#05080f] rounded-[50%] border-[8px] border-white/5;
+    transform: translate(-50%, -50%) rotateX(65deg) scale(0.9);
     box-shadow: 
       0 100px 300px rgba(0,0,0,0.9),
       inset 0 0 100px rgba(0,0,0,0.9),
@@ -114,7 +114,6 @@
     box-shadow: 
       -5px 10px 20px rgba(0,0,0,0.6),
       inset 0 1px 0 rgba(255,255,255,0.1);
-    transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 
   .fe-card-physical:hover {

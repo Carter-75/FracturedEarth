@@ -126,6 +126,18 @@ function PlayerStatsHUD({ player, isActive }: { player: MatchPlayer; isActive: b
               <div className="text-3xl font-black italic text-rose-500 fe-glow-text">{player.health}</div>
            </div>
         </div>
+
+       {/* Opponent Pinned Powers */}
+       {player.powers && player.powers.length > 0 && (
+          <div className="absolute top-full mt-4 flex justify-center gap-2 [transform-style:preserve-3d]">
+             {player.powers.map((card, i) => (
+                <div key={card.id} className="relative w-16 h-24 bg-slate-800 rounded-lg border border-amber-500/30 overflow-hidden shadow-[0_4px_10px_rgba(245,158,11,0.2)]" style={{ transform: `translateZ(10px)` }}>
+                   <div className="absolute inset-0 bg-amber-500/10" />
+                   <div className="fe-hologram text-[6px] text-amber-500/80 p-1 text-center font-bold absolute bottom-0 w-full bg-black/50">{card.name}</div>
+                </div>
+             ))}
+          </div>
+       )}
     </div>
   );
 }
@@ -257,7 +269,16 @@ export default function TutorialPage() {
   const payload = session?.match;
   const me = payload?.players.find(p => p.id === local.userId) ?? null;
   const isMyTurn = payload?.players[payload.activePlayerIndex]?.id === local.userId;
+  const isDrawPending = isMyTurn && payload && !payload.hasDrawnThisTurn;
   const selectedCard = me?.hand.find(c => c.id === selectedCardId) ?? null;
+
+  // Bug 9: Error Dismissal
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => setError(''), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
 
   useEffect(() => {
     async function start() {
@@ -357,26 +378,47 @@ export default function TutorialPage() {
                  {me.hand.map((card, i) => {
                    const isExpected = step?.expectedCardId === card.id || (step?.expectedActionType === 'DISCARD_CARD');
                    const restricted = step?.expectedActionType === 'PLAY_CARD' && !isExpected;
+                   const visualDisabled = isDrawPending || restricted;
                    return (
                      <motion.div
                        key={card.id}
-                       initial={{ y: 200, opacity: 0 }} 
+                       initial={{ y: 200, opacity: 0 }}
                        animate={{ 
-                         y: 0, opacity: 1,
-                         x: `calc(${(i - (me.hand.length-1)/2)} * var(--hand-spread))`, 
-                         rotate: (i - (me.hand.length-1)/2)*4 
+                         y: 0, opacity: 1, 
+                         rotate: (i - (me.hand.length-1)/2) * 4,
+                         x: `calc(${(i - (me.hand.length-1)/2)} * var(--hand-spread))`
                        }}
-                       whileHover={!restricted ? { y: -40, rotate: 0, scale: 1.1, zIndex: 1000 } : {}}
-                       className={`absolute cursor-pointer origin-bottom ${restricted ? 'opacity-20 grayscale pointer-events-none shadow-none' : ''} ${step?.expectedActionType === 'PLAY_CARD' && isExpected ? 'ring-2 ring-amber-400 shadow-[0_0_20px_#f59e0b]' : ''} `}
-                       onClick={() => setSelectedCardId(card.id)}
+                       whileHover={visualDisabled ? {} : { y: -40, rotate: 0, scale: 1.1, zIndex: 1000 }}
+                       className={`absolute origin-bottom ${visualDisabled ? 'opacity-40 grayscale pointer-events-none cursor-not-allowed' : 'cursor-pointer'}`}
+                       onClick={() => !visualDisabled && setSelectedCardId(card.id)}
                      >
-                        <PhysicalCard card={card} />
+                        <PhysicalCard card={card} isSelected={selectedCardId === card.id} />
                      </motion.div>
                    );
                  })}
               </AnimatePresence>
            </div>
         </div>
+      )}
+
+      {/* Pinned Powers Layer */}
+      {me && me.powers && me.powers.length > 0 && (
+         <div className="absolute bottom-40 md:bottom-24 left-1/2 -translate-x-1/2 flex gap-4 pointer-events-auto items-end z-[150]">
+            {me.powers.map((card, i) => (
+               <motion.div 
+                 key={card.id} 
+                 initial={{ y: 50, opacity: 0 }} 
+                 animate={{ y: 0, opacity: 1 }} 
+                 whileHover={{ y: -20, zIndex: 300, scale: 1.1 }}
+                 className="relative w-20 h-28 bg-slate-900 border-2 border-amber-500/50 rounded-xl overflow-hidden cursor-pointer shadow-[0_10px_20px_rgba(245,158,11,0.2)]"
+               >
+                  <img src={cardTheme(card.type).bg} className="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-screen" alt="" />
+                  <div className="absolute bottom-0 w-full bg-black/80 p-1 text-center">
+                     <span className="fe-hologram text-[6px] text-amber-400 font-bold block">{card.name}</span>
+                  </div>
+               </motion.div>
+            ))}
+         </div>
       )}
 
       {/* Inspection / Play */}
