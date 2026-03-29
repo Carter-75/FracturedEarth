@@ -71,9 +71,13 @@
       0 100px 200px rgba(0,0,0,0.8),
       inset 0 0 100px rgba(0,0,0,0.9),
       inset 0 0 20px rgba(56, 189, 248, 0.1);
+  }
 
-    @media (min-width: 768px) {
-      @apply w-[140%] h-[120%] border-[12px];
+  @media (min-width: 768px) {
+    .fe-table {
+      width: 140%;
+      height: 120%;
+      border-width: 12px;
       transform: rotateX(60deg) translateY(-10%);
     }
   }
