@@ -131,7 +131,10 @@ function PlayerStatsHUD({ player, isActive }: { player: MatchPlayer; isActive: b
 
 function PlayPile({ cards }: { cards: MatchCard[] }) {
   return (
-    <div className="relative w-48 h-64 [transform-style:preserve-3d]">
+    <div 
+      className="relative [transform-style:preserve-3d]" 
+      style={{ width: 'var(--card-w)', height: 'var(--card-h)' }}
+    >
        {/* 3D Box Container */}
        <div className="absolute inset-0 bg-white/5 border border-white/10 rounded-2xl [transform:translateZ(-10px)]" />
        
@@ -146,7 +149,7 @@ function PlayPile({ cards }: { cards: MatchCard[] }) {
                  rotateX: 0,
                  z: i * 2,
                  rotate: (i - (cards.length-1)/2) * 5,
-                 x: (i - (cards.length-1)/2) * 10
+                 x: `calc(${(i - (cards.length-1)/2)} * (var(--card-w) * 0.2))`
                }}
                style={{ transformStyle: 'preserve-3d' }}
                className="absolute inset-0"
@@ -158,7 +161,7 @@ function PlayPile({ cards }: { cards: MatchCard[] }) {
 
        {cards.length === 0 && (
           <div className="absolute inset-0 flex items-center justify-center opacity-10">
-             <div className="fe-hologram text-[8px] tracking-[0.5em]">Sector_Void</div>
+             <div className="fe-hologram text-[6px] tracking-[0.5em] text-center">SECTOR<br/>VOID</div>
           </div>
        )}
     </div>
@@ -168,62 +171,83 @@ function PlayPile({ cards }: { cards: MatchCard[] }) {
 function OpponentHand({ count, angle, player }: { count: number; angle: number; player: MatchPlayer }) {
   return (
     <div 
-      className="absolute flex flex-col items-center justify-center pointer-events-none"
+      className="absolute flex items-end justify-center gap-8 pointer-events-none"
       style={{ 
         transform: `rotate(${angle}deg) translateY(var(--opp-offset)) rotateX(-45deg)`,
         transformStyle: 'preserve-3d'
       }}
     >
-       <div className="fe-hologram text-[10px] text-white/60 mb-8 flex items-center gap-2">
-          <span>{player.emoji}</span>
-          <span>{player.displayName}</span>
-          <span className="text-sky-400 ml-2">[{player.survivalPoints}E]</span>
-       </div>
-
-       <div className="flex justify-center">
+       {/* Opponent Cards */}
+       <div className="relative flex justify-center [transform-style:preserve-3d] w-0">
           {[...Array(Math.max(0, count))].map((_, i) => (
-            <motion.div
-              key={i}
-              style={{ 
-                transform: `translateX(${(i - (count-1)/2) * 25}px) rotate(${(i - (count-1)/2) * 8}deg)`,
-                transformOrigin: 'bottom center',
-                transformStyle: 'preserve-3d'
-              }}
-              className="w-16 h-24 bg-slate-900 border-2 border-white/10 rounded-xl shadow-2xl relative overflow-hidden"
-            >
-               {/* High-Fidelity Card Back */}
-               <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,#1e293b_0%,#020617_100%)]" />
-               <div className="fe-grid opacity-30" />
-               <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-8 h-8 rounded-full border border-white/5 flex items-center justify-center opacity-20">
-                     <div className="w-2 h-2 bg-sky-400 rounded-full" />
-                  </div>
-               </div>
-               <div className="absolute bottom-2 left-0 right-0 text-center opacity-10">
-                  <span className="text-[4px] fe-hologram tracking-widest">FRACTURED_EARTH</span>
-               </div>
-               <div className="absolute inset-0 fe-scanline opacity-10" />
-            </motion.div>
-          ))}
+             <motion.div
+               key={i}
+               style={{ 
+                 width: 'calc(var(--card-w) * 0.7)',
+                 height: 'calc(var(--card-h) * 0.7)',
+                 transform: `translateX(calc(${(i - (count-1)/2)} * (var(--card-w) * 0.3))) rotate(${(i - (count-1)/2) * 8}deg)`,
+                 transformOrigin: 'bottom center',
+                 transformStyle: 'preserve-3d',
+                 position: 'absolute'
+               }}
+               className="bg-slate-900 border-2 border-white/10 rounded-xl shadow-2xl overflow-hidden -top-full -translate-y-1/2"
+             >
+                {/* High-Fidelity Card Back */}
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,#1e293b_0%,#020617_100%)]" />
+                <div className="fe-grid opacity-30" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                   <div className="w-8 h-8 rounded-full border border-white/5 flex items-center justify-center opacity-20">
+                      <div className="w-2 h-2 bg-sky-400 rounded-full" />
+                   </div>
+                </div>
+                <div className="absolute bottom-2 left-0 right-0 text-center opacity-10">
+                   <span className="text-[4px] fe-hologram tracking-widest">FRACTURED_EARTH</span>
+                </div>
+                <div className="absolute inset-0 fe-scanline opacity-10" />
+             </motion.div>
+           ))}
+        </div>
+
+       {/* Opponent Stats Physically Next to Cards */}
+       <div className="fe-hologram flex flex-col gap-1 bg-black/60 backdrop-blur-md p-3 rounded-2xl border border-white/10" style={{ transform: 'translateZ(20px) translateX(calc(var(--card-w) * 1.5))' }}>
+          <div className="flex items-center gap-2 border-b border-white/10 pb-2">
+             <span className="text-xl">{player.emoji}</span>
+             <span className="text-[8px] text-white/60">{player.displayName}</span>
+          </div>
+          <div className="flex items-center gap-4 mt-2">
+             <div className="flex flex-col">
+                <span className="text-[5px] text-sky-400/50">ENERGY</span>
+                <span className="text-lg text-sky-400">{player.survivalPoints}</span>
+             </div>
+             <div className="flex flex-col items-end">
+                <span className="text-[5px] text-rose-500/50">HEALTH</span>
+                <span className="text-lg text-rose-500">{player.health}</span>
+             </div>
+          </div>
        </div>
     </div>
   );
 }
 
+
 function FloatingDeck({ count, canDraw, onDraw }: { count: number; canDraw: boolean; onDraw: () => void }) {
   return (
-    <div className="relative group cursor-pointer" onClick={onDraw}>
+    <div 
+      className="relative group cursor-pointer" 
+      onClick={onDraw} 
+      style={{ width: 'var(--card-w)', height: 'var(--card-h)' }}
+    >
        {/* Visual Stack Layers */}
        {[...Array(Math.min(5, Math.ceil(count/10)))].map((_, i) => (
          <div 
            key={i}
-           className="absolute w-[8rem] h-[11rem] bg-slate-900 border border-white/10 rounded-xl shadow-2xl"
+           className="absolute inset-0 bg-slate-900 border border-white/10 rounded-xl shadow-2xl"
            style={{ transform: `translateZ(${i * 2}px) translateY(-${i}px)` }}
          />
        ))}
        <motion.div 
          whileHover={canDraw ? { y: -5, rotateX: -5 } : {}}
-         className={`relative w-[8rem] h-[11rem] bg-indigo-950 border-2 border-white/20 rounded-xl flex items-center justify-center overflow-hidden ${!canDraw ? 'opacity-30' : ''}`}
+         className={`absolute inset-0 bg-indigo-950 border-2 border-white/20 rounded-xl flex items-center justify-center overflow-hidden ${!canDraw ? 'opacity-30' : ''}`}
        >
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,#1e1b4b_0%,#020617_100%)]" />
           <div className="fe-grid" />
@@ -406,31 +430,36 @@ export default function TabletopPage() {
       {/* The Physical Table */}
       <div className="fe-table flex items-center justify-center">
            {/* Interaction Zone - Absolute Center */}
-           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-16 [transform:translateZ(100px)]">
-              <FloatingDeck count={payload?.drawPile.length ?? 0} canDraw={canDraw} onDraw={handleDraw} />
+           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-[65%] flex flex-col items-center gap-16 md:gap-24 [transform:translateZ(10px)] max-w-lg w-full">
               
-              <PlayPile cards={payload?.turnPile ?? []} />
-
-              <div 
-                className="relative cursor-pointer group"
-                onClick={() => {
-                  if (payload?.topCard) {
-                    setInspectedCard(payload.topCard);
-                    setShowFullInspect(true);
-                  }
-                }}
-              >
-                 {payload?.topCard ? (
-                   <motion.div layoutId={payload.topCard.id} className="relative">
-                     <PhysicalCard card={payload.topCard} className="shadow-2xl ring-2 ring-white/5 group-hover:ring-white/20 transition-all" />
-                     <div className="absolute -top-8 left-1/2 -translate-x-1/2 fe-hologram text-[6px] text-white/20 opacity-0 group-hover:opacity-100 transition-opacity">RECALL_LOG</div>
-                   </motion.div>
-                 ) : (
-                   <div className="fe-card-physical opacity-5 bg-white/5 border-dashed flex items-center justify-center">
-                      <span className="fe-hologram text-[6px] opacity-20">DISCARD</span>
-                   </div>
-                 )}
+              {/* Decks Layer (Back) */}
+              <div className="flex items-center justify-center gap-12 w-full">
+                 <FloatingDeck count={payload?.drawPile.length ?? 0} canDraw={canDraw} onDraw={handleDraw} />
+                 
+                 <div 
+                   className="relative cursor-pointer group"
+                   onClick={() => {
+                     if (payload?.topCard) {
+                       setInspectedCard(payload.topCard);
+                       setShowFullInspect(true);
+                     }
+                   }}
+                 >
+                    {payload?.topCard ? (
+                      <motion.div layoutId={payload.topCard.id} className="relative">
+                        <PhysicalCard card={payload.topCard} className="shadow-2xl ring-2 ring-white/5 group-hover:ring-white/20 transition-all opacity-50 grayscale" />
+                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 fe-hologram text-[6px] text-white/20 opacity-0 group-hover:opacity-100 transition-opacity">RECALL_LOG</div>
+                      </motion.div>
+                    ) : (
+                      <div style={{ width: 'var(--card-w)', height: 'var(--card-h)' }} className="fe-card-physical opacity-5 bg-white/5 border-dashed flex items-center justify-center">
+                         <span className="fe-hologram text-[6px] opacity-20">DISCARD</span>
+                      </div>
+                    )}
+                 </div>
               </div>
+
+              {/* Play Pile Layer (Front Box) */}
+              <PlayPile cards={payload?.turnPile ?? []} />
            </div>
 
            {/* Player Seats: Projections & Hands */}
@@ -469,35 +498,34 @@ export default function TabletopPage() {
         )}
       </AnimatePresence>
 
-      {/* Cinematic HUDs next to central areas or hand */}
+      {/* Cinematic Player Area (HUD + Hand physically adjacent) */}
       {myPlayer && (
-        <div className="absolute bottom-24 left-12 z-[150] pointer-events-none">
-           <PlayerStatsHUD player={myPlayer} isActive={isMyTurn} />
-        </div>
-      )}
+        <div className="absolute bottom-6 md:bottom-12 left-0 right-0 z-[200] flex flex-col md:flex-row items-center md:items-end justify-center gap-6 md:gap-16 pointer-events-none px-4">
+           {/* HUD physically next to Hand */}
+           <div className="pointer-events-auto shrink-0 transform scale-75 md:scale-100 origin-bottom">
+              <PlayerStatsHUD player={myPlayer} isActive={isMyTurn} />
+           </div>
 
-      {/* Cinematic Card Tray (Player Hand) */}
-      {myPlayer && (
-        <div className="absolute bottom-12 left-0 right-0 z-[100] flex justify-center px-12 h-[12rem] pointer-events-none">
-           <div className="relative w-full max-w-6xl flex justify-center pointer-events-auto">
-             <AnimatePresence>
-                {myPlayer.hand.map((card, i) => (
-                  <motion.div
-                    key={card.id}
-                    initial={{ y: 100, opacity: 0 }}
-                    animate={{ 
-                      y: 0, opacity: 1, 
-                      rotate: (i - (myPlayer.hand.length-1)/2) * 4,
-                      x: (i - (myPlayer.hand.length-1)/2) * 50
-                    }}
-                    whileHover={{ y: -40, rotate: 0, scale: 1.1, zIndex: 1000 }}
-                    className="absolute cursor-pointer"
-                    onClick={() => setSelectedCardId(card.id)}
-                  >
-                     <PhysicalCard card={card} />
-                  </motion.div>
-                ))}
-             </AnimatePresence>
+           {/* Hand */}
+           <div className="relative h-[var(--card-h)] flex justify-center pointer-events-auto w-full max-w-2xl shrink-0">
+              <AnimatePresence>
+                 {myPlayer.hand.map((card, i) => (
+                   <motion.div
+                     key={card.id}
+                     initial={{ y: 200, opacity: 0 }}
+                     animate={{ 
+                       y: 0, opacity: 1, 
+                       rotate: (i - (myPlayer.hand.length-1)/2) * 4,
+                       x: `calc(${(i - (myPlayer.hand.length-1)/2)} * var(--hand-spread))`
+                     }}
+                     whileHover={{ y: -40, rotate: 0, scale: 1.1, zIndex: 1000 }}
+                     className="absolute cursor-pointer origin-bottom"
+                     onClick={() => setSelectedCardId(card.id)}
+                   >
+                      <PhysicalCard card={card} />
+                   </motion.div>
+                 ))}
+              </AnimatePresence>
            </div>
         </div>
       )}

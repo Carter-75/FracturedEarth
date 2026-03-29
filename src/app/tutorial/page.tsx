@@ -52,7 +52,7 @@ type TutorialStep = {
   id: number;
   title: string;
   description: string;
-  expectedActionType: 'DRAW_CARD' | 'PLAY_CARD' | 'END_TURN' | 'SET_WINNER' | 'ACK';
+  expectedActionType: 'DRAW_CARD' | 'PLAY_CARD' | 'DISCARD_CARD' | 'END_TURN' | 'SET_WINNER' | 'ACK';
   expectedCardId?: string;
 };
 
@@ -132,14 +132,24 @@ function PlayerStatsHUD({ player, isActive }: { player: MatchPlayer; isActive: b
 
 function PlayPile({ cards }: { cards: MatchCard[] }) {
   return (
-    <div className="relative w-48 h-64 [transform-style:preserve-3d]">
+    <div 
+      className="relative [transform-style:preserve-3d]" 
+      style={{ width: 'var(--card-w)', height: 'var(--card-h)' }}
+    >
        <div className="absolute inset-0 bg-white/5 border border-white/10 rounded-2xl [transform:translateZ(-10px)]" />
        <AnimatePresence>
           {cards.map((card, i) => (
              <motion.div
                key={card.id}
                initial={{ opacity: 0, y: -200, rotateX: -90 }}
-               animate={{ opacity: 1, y: 0, rotateX: 0, z: i * 2, rotate: (i - (cards.length-1)/2) * 5 }}
+               animate={{ 
+                 opacity: 1, 
+                 y: 0, 
+                 rotateX: 0, 
+                 z: i * 2, 
+                 rotate: (i - (cards.length-1)/2) * 5,
+                 x: `calc(${(i - (cards.length-1)/2)} * (var(--card-w) * 0.2))`
+               }}
                style={{ transformStyle: 'preserve-3d' }}
                className="absolute inset-0"
              >
@@ -153,11 +163,15 @@ function PlayPile({ cards }: { cards: MatchCard[] }) {
 
 function FloatingDeck({ count, canDraw, onDraw, highlighted }: { count: number; canDraw: boolean; onDraw: () => void; highlighted?: boolean }) {
   return (
-    <div className={`relative group cursor-pointer transition-all ${highlighted ? 'ring-4 ring-sky-400 ring-offset-8 ring-offset-black rounded-xl' : ''}`} onClick={onDraw}>
+    <div 
+      className={`relative group cursor-pointer transition-all ${highlighted ? 'ring-4 ring-sky-400 ring-offset-8 ring-offset-black rounded-xl' : ''}`} 
+      onClick={onDraw}
+      style={{ width: 'var(--card-w)', height: 'var(--card-h)' }}
+    >
        {[...Array(3)].map((_, i) => (
-         <div key={i} className="absolute w-[7rem] h-[10rem] bg-slate-900 border border-white/10 rounded-xl" style={{ transform: `translateZ(${i * 2}px) translateY(-${i}px)` }} />
+         <div key={i} className="absolute inset-0 bg-slate-900 border border-white/10 rounded-xl" style={{ transform: `translateZ(${i * 2}px) translateY(-${i}px)` }} />
        ))}
-       <motion.div whileHover={canDraw ? { y: -5 } : {}} className={`relative w-[7rem] h-[10rem] bg-indigo-950 border-2 border-white/20 rounded-xl flex items-center justify-center overflow-hidden ${!canDraw ? 'opacity-30' : ''}`}>
+       <motion.div whileHover={canDraw ? { y: -5 } : {}} className={`absolute inset-0 bg-indigo-950 border-2 border-white/20 rounded-xl flex items-center justify-center overflow-hidden ${!canDraw ? 'opacity-30' : ''}`}>
           <div className="fe-grid" />
           <div className="relative z-10 flex flex-col items-center gap-1">
              <div className="w-8 h-8 rounded-full border-2 border-white/10 flex items-center justify-center">
@@ -173,22 +187,58 @@ function FloatingDeck({ count, canDraw, onDraw, highlighted }: { count: number; 
 function OpponentHand({ count, angle, player }: { count: number; angle: number; player: MatchPlayer }) {
   return (
     <div 
-      className="absolute flex flex-col items-center justify-center pointer-events-none"
-      style={{ transform: `rotate(${angle}deg) translateY(var(--opp-offset)) rotateX(-45deg)`, transformStyle: 'preserve-3d' }}
+      className="absolute flex items-end justify-center gap-8 pointer-events-none"
+      style={{ 
+        transform: `rotate(${angle}deg) translateY(var(--opp-offset)) rotateX(-45deg)`,
+        transformStyle: 'preserve-3d'
+      }}
     >
-       <div className="fe-hologram text-[10px] text-white/60 mb-8 flex items-center gap-2">
-          <span>{player.emoji}</span>
-          <span>{player.displayName}</span>
-          <span className="text-sky-400 ml-2">[{player.survivalPoints}E]</span>
-       </div>
-       <div className="flex justify-center">
+       {/* Opponent Cards */}
+       <div className="absolute left-1/2 top-0 -translate-x-1/2 flex justify-center [transform-style:preserve-3d] w-0">
           {[...Array(Math.max(0, count))].map((_, i) => (
-            <div key={i} className="w-16 h-24 bg-slate-900 border-2 border-white/10 rounded-xl shadow-2xl relative overflow-hidden" style={{ transform: `translateX(${(i - (count-1)/2) * 25}px) rotate(${(i - (count-1)/2) * 8}deg)` }}>
-               <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,#1e293b_0%,#020617_100%)]" />
-               <div className="fe-grid opacity-30" />
-               <div className="absolute inset-0 fe-scanline opacity-10" />
-            </div>
-          ))}
+             <motion.div
+               key={i}
+               style={{ 
+                 width: 'calc(var(--card-w) * 0.7)',
+                 height: 'calc(var(--card-h) * 0.7)',
+                 transform: `translateX(calc(${(i - (count-1)/2)} * (var(--card-w) * 0.3))) rotate(${(i - (count-1)/2) * 8}deg)`,
+                 transformOrigin: 'bottom center',
+                 transformStyle: 'preserve-3d',
+                 position: 'absolute'
+               }}
+               className="bg-slate-900 border-2 border-white/10 rounded-xl shadow-2xl overflow-hidden -top-full -translate-y-1/2"
+             >
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,#1e293b_0%,#020617_100%)]" />
+                <div className="fe-grid opacity-30" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                   <div className="w-6 h-6 rounded-full border border-white/5 flex items-center justify-center opacity-20">
+                      <div className="w-1.5 h-1.5 bg-sky-400 rounded-full" />
+                   </div>
+                </div>
+                <div className="absolute bottom-1 left-0 right-0 text-center opacity-10">
+                   <span className="text-[4px] fe-hologram tracking-widest">FRACTURED_EARTH</span>
+                </div>
+                <div className="absolute inset-0 fe-scanline opacity-10" />
+             </motion.div>
+           ))}
+        </div>
+
+       {/* Opponent Stats Physically Next to Cards */}
+       <div className="fe-hologram flex flex-col gap-1 bg-black/60 backdrop-blur-md p-3 rounded-2xl border border-white/10" style={{ transform: 'translateZ(20px) translateX(calc(var(--card-w) * 1.5))' }}>
+          <div className="flex items-center gap-2 border-b border-white/10 pb-2">
+             <span className="text-xl">{player.emoji}</span>
+             <span className="text-[8px] text-white/60">{player.displayName}</span>
+          </div>
+          <div className="flex items-center gap-4 mt-2">
+             <div className="flex flex-col">
+                <span className="text-[5px] text-sky-400/50">ENERGY</span>
+                <span className="text-lg text-sky-400">{player.survivalPoints}</span>
+             </div>
+             <div className="flex flex-col items-end">
+                <span className="text-[5px] text-rose-500/50">HEALTH</span>
+                <span className="text-lg text-rose-500">{player.health}</span>
+             </div>
+          </div>
        </div>
     </div>
   );
@@ -275,9 +325,9 @@ export default function TutorialPage() {
 
        {/* The Physical Table */}
        <div className="fe-table">
-           <div className="flex items-center gap-16 [transform:translateZ(100px)] absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-             <FloatingDeck count={payload?.drawPile.length ?? 0} canDraw={step?.expectedActionType === 'DRAW_CARD'} onDraw={() => runAction({ type: 'DRAW_CARD' })} highlighted={step?.expectedActionType === 'DRAW_CARD'} />
+           <div className="flex flex-col items-center gap-4 [transform:translateZ(100px)] absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
              <PlayPile cards={payload?.turnPile ?? []} />
+             <FloatingDeck count={payload?.drawPile.length ?? 0} canDraw={step?.expectedActionType === 'DRAW_CARD'} onDraw={() => runAction({ type: 'DRAW_CARD' })} highlighted={step?.expectedActionType === 'DRAW_CARD'} />
           </div>
  
            {/* Opponents (Tutorial) */}
@@ -293,26 +343,31 @@ export default function TutorialPage() {
        </div>
 
        {/* My HUD */}
-       {me && (
-         <div className="absolute bottom-24 left-12 z-[150] pointer-events-none">
-            <PlayerStatsHUD player={me} isActive={isMyTurn} />
-         </div>
-       )}
+       {/* Cinematic Player Area (HUD + Hand physically adjacent) */}
+      {me && (
+        <div className="absolute bottom-6 md:bottom-12 left-0 right-0 z-[200] flex flex-col md:flex-row items-center md:items-end justify-center gap-6 md:gap-16 pointer-events-none px-4">
+           {/* HUD physically next to Hand */}
+           <div className="pointer-events-auto shrink-0 transform scale-75 md:scale-100 origin-bottom">
+              <PlayerStatsHUD player={me} isActive={isMyTurn} />
+           </div>
 
-       {/* Physical Hand */}
-       {me && (
-         <div className="absolute bottom-12 left-0 right-0 z-[100] flex justify-center px-12 h-[12rem] pointer-events-none">
-            <div className="relative w-full max-w-4xl flex justify-center pointer-events-auto">
+           {/* Hand */}
+           <div className="relative h-[var(--card-h)] flex justify-center pointer-events-auto w-full max-w-2xl shrink-0">
               <AnimatePresence>
                  {me.hand.map((card, i) => {
-                   const isExpected = step?.expectedCardId === card.id;
+                   const isExpected = step?.expectedCardId === card.id || (step?.expectedActionType === 'DISCARD_CARD');
                    const restricted = step?.expectedActionType === 'PLAY_CARD' && !isExpected;
                    return (
                      <motion.div
                        key={card.id}
-                       initial={{ y: 200 }} animate={{ y: 0, x: (i - (me.hand.length-1)/2)*60, rotate: (i - (me.hand.length-1)/2)*4 }}
-                       whileHover={!restricted ? { y: -40, scale: 1.1, zIndex: 1000 } : {}}
-                       className={`absolute cursor-pointer ${restricted ? 'opacity-20 grayscale pointer-events-none shadow-none' : ''} ${step?.expectedActionType === 'PLAY_CARD' && isExpected ? 'ring-2 ring-amber-400 shadow-[0_0_20px_#f59e0b]' : ''} `}
+                       initial={{ y: 200, opacity: 0 }} 
+                       animate={{ 
+                         y: 0, opacity: 1,
+                         x: `calc(${(i - (me.hand.length-1)/2)} * var(--hand-spread))`, 
+                         rotate: (i - (me.hand.length-1)/2)*4 
+                       }}
+                       whileHover={!restricted ? { y: -40, rotate: 0, scale: 1.1, zIndex: 1000 } : {}}
+                       className={`absolute cursor-pointer origin-bottom ${restricted ? 'opacity-20 grayscale pointer-events-none shadow-none' : ''} ${step?.expectedActionType === 'PLAY_CARD' && isExpected ? 'ring-2 ring-amber-400 shadow-[0_0_20px_#f59e0b]' : ''} `}
                        onClick={() => setSelectedCardId(card.id)}
                      >
                         <PhysicalCard card={card} />
@@ -320,9 +375,9 @@ export default function TutorialPage() {
                    );
                  })}
               </AnimatePresence>
-            </div>
-         </div>
-       )}
+           </div>
+        </div>
+      )}
 
       {/* Inspection / Play */}
       <AnimatePresence>
