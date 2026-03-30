@@ -113,7 +113,8 @@ function normalizeMember(raw: Partial<RoomMember>): RoomMember {
   };
 }
 
-function pruneMembers(input: RoomMember[], now = Date.now()): RoomMember[] {
+function pruneMembers(input: RoomMember[], status?: RoomStatus, now = Date.now()): RoomMember[] {
+  if (status === 'IN_GAME') return input; // BUG 6 FIX: Do not drop connected players mid-match
   const pruned = input
     .map((member) => {
       if (member.isBot) return member;
@@ -196,7 +197,7 @@ export async function getRoom(codeRaw: string): Promise<RoomSnapshot | null> {
 
   const membersRaw = (await redis.get(lobbyMembersKey(code))) ?? '[]';
   const parsedMembers = (JSON.parse(membersRaw) as Array<Partial<RoomMember>>).map(normalizeMember);
-  const members = pruneMembers(parsedMembers);
+  const members = pruneMembers(parsedMembers, (meta.status as RoomStatus) ?? 'OPEN');
   const hostUserId = pickNextHost(meta.hostUserId ?? '', members);
   const updatedAtEpochMs = Date.now();
 
@@ -291,7 +292,7 @@ export async function leaveRoom(input: {
         }
       : m,
   );
-  const prunedMembers = pruneMembers(nextMembers);
+  const prunedMembers = pruneMembers(nextMembers, current.status);
   const nextHostUserId = pickNextHost(current.hostUserId, prunedMembers);
   const updatedAtEpochMs = Date.now();
 

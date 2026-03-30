@@ -79,8 +79,9 @@ export function canPlayCard(state: MatchPayload, card: MatchCard): boolean {
 export interface BotTurnEvent {
   actorId: string;
   actorName: string;
-  action: "DRAW" | "PLAY" | "END_TURN";
+  action: "THINKING" | "DRAW" | "PLAY" | "END_TURN";
   cardName?: string;
+  card?: MatchCard;
   targetPlayerId?: string;
 }
 
@@ -276,11 +277,9 @@ function drawForActive(state: MatchPayload): MatchPayload {
 }
 
 function playCardImmediate(state: MatchPayload, card: MatchCard): MatchPayload {
-  // A card is pinned to the user's power slot if it's explicitly a permanent protection or power,
-  // EXCEPT if its effect text explicitly specifies "discard" or "consumed" after use.
-  const isPinned = 
-    Boolean(card.blocksDisaster) || 
-    ((card.type === "POWER" || card.type === "ADAPT") && !card.effect?.includes("discard") && !card.effect?.includes("consumed"));
+  // BUG 1 FIX: Only explicitly defined protection/block cards are pinned to the player's pile.
+  // All other cards must route to the discard pile.
+  const isPinned = Boolean(card.blocksDisaster);
 
   const activeIndex = state.activePlayerIndex;
   const active = { ...state.players[activeIndex] };
@@ -334,9 +333,8 @@ function playCard(
   if (!canPlayCard(state, card)) throw new Error("Card does not match top card");
 
   const newHand = active.hand.filter((c) => c.id !== card.id);
-  const isPinned = 
-    Boolean(card.blocksDisaster) || 
-    ((card.type === "POWER" || card.type === "ADAPT") && !card.effect?.includes("discard") && !card.effect?.includes("consumed"));
+  // BUG 1 FIX: Only explicitly defined protection/block cards are pinned to the player's pile.
+  const isPinned = Boolean(card.blocksDisaster);
   
   let next: MatchPayload = {
     ...state,
@@ -392,6 +390,13 @@ function runBotTurnsUntilHuman(state: MatchPayload): {
     const active = next.players[next.activePlayerIndex];
     if (!active.isBot) break;
 
+    // BUG 5 FIX: Inject a THINKING phase to simulate processing delay before acting
+    replay.push({
+      actorId: active?.id ?? "unknown",
+      actorName: active?.displayName ?? "Unknown Player",
+      action: "THINKING",
+    });
+
     replay.push({
       actorId: active?.id ?? "unknown",
       actorName: active?.displayName ?? "Unknown Player",
@@ -403,11 +408,14 @@ function runBotTurnsUntilHuman(state: MatchPayload): {
       const action = chooseBotAction(next);
       if (!action) break;
 
+      const fullCard = active.hand.find(c => c.id === action.cardId);
+
       replay.push({
         actorId: active?.id ?? "unknown",
         actorName: active?.displayName ?? "Unknown Player",
         action: "PLAY",
         cardName: action.cardName,
+        card: fullCard,
         targetPlayerId: action.targetPlayerId,
       });
 

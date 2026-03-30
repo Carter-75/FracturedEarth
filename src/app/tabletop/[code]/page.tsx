@@ -132,9 +132,13 @@ function PlayerStatsHUD({ player, isActive }: { player: MatchPlayer; isActive: b
 
        {/* Opponent Pinned Powers */}
        {player.powers && player.powers.length > 0 && (
-          <div className="absolute top-full mt-4 flex justify-center gap-2 [transform-style:preserve-3d]">
+          <div 
+             className="absolute top-full mt-4 flex justify-center gap-2 [transform-style:preserve-3d] cursor-pointer hover:scale-105 transition-transform"
+             onClick={() => window.dispatchEvent(new CustomEvent('fe:view-pile', { detail: player.powers }))}
+             role="button"
+          >
              {player.powers.map((card, i) => (
-                <div key={card.id} className="relative w-16 h-24 bg-slate-800 rounded-lg border border-amber-500/30 overflow-hidden shadow-[0_4px_10px_rgba(245,158,11,0.2)]" style={{ transform: `translateZ(10px)` }}>
+                <div key={card.id} className="relative w-16 h-24 bg-slate-900 rounded-lg border border-amber-500/30 overflow-hidden shadow-[0_4px_10px_rgba(245,158,11,0.2)]" style={{ transform: `translateZ(10px)` }}>
                    <div className="absolute inset-0 bg-amber-500/10" />
                    <div className="fe-hologram text-[6px] text-amber-500/80 p-1 text-center font-bold absolute bottom-0 w-full bg-black/50">{card.name}</div>
                 </div>
@@ -285,6 +289,7 @@ export default function TabletopPage() {
   const [showPostGameAd, setShowPostGameAd] = useState(false);
   const [replayQueue, setReplayQueue] = useState<any[]>([]);
   const [replayEvent, setReplayEvent] = useState<any | null>(null);
+  const [viewingPile, setViewingPile] = useState<MatchCard[] | null>(null);
   const router = useRouter();
 
   const userId = useMemo(() => {
@@ -314,7 +319,11 @@ export default function TabletopPage() {
       body: JSON.stringify({ userId, action, expectedRevision }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Action failed');
+    if (!res.ok) {
+       // BUG 6 FIX: Catch Race Condition (409) safely and resync to latest true state
+       if (res.status === 409 && data.current) return data.current as StateEnvelope;
+       throw new Error(data.error || 'Action failed');
+    }
     return data as StateEnvelope;
   }, [code, userId]);
 
@@ -368,9 +377,16 @@ export default function TabletopPage() {
     setReplayEvent(evt);
     const timer = setTimeout(() => {
        setReplayQueue(q => q.slice(1));
-    }, 1500);
+    }, 2500); // BUG 5 FIX: Expanded timer to 2.5s for readability
     return () => clearTimeout(timer);
   }, [replayQueue]);
+
+  // Bug 2: Custom Pile Viewer Event Listener
+  useEffect(() => {
+    const handleViewPile = (e: any) => setViewingPile(e.detail);
+    window.addEventListener('fe:view-pile', handleViewPile as EventListener);
+    return () => window.removeEventListener('fe:view-pile', handleViewPile as EventListener);
+  }, []);
 
   async function handleDraw() {
     if (!canDraw) return;
@@ -430,32 +446,45 @@ export default function TabletopPage() {
 
   return (
     <main className="fe-scene bg-black flex-1">
-      {/* Bot Turn Replay Toast */}
+      {/* Bot Turn Replay Cinematic Modal (BUG 5 FIX) */}
       <AnimatePresence>
         {replayEvent && (
-           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="absolute top-24 left-1/2 -translate-x-1/2 z-[2000] bg-indigo-900/60 backdrop-blur-xl border border-indigo-400 px-8 py-4 rounded-full shadow-[0_0_30px_rgba(99,102,241,0.5)] whitespace-nowrap">
-              <span className="text-white font-black italic tracking-widest uppercase text-sm">
-                 <span className="text-sky-400">{replayEvent.actorName}</span> 
-                 {replayEvent.action === 'DRAW' && ' Draws A Card...'}
-                 {replayEvent.action === 'END_TURN' && ' Ends Turn.'}
-                 {replayEvent.action === 'PLAY' && ` Deploys ${replayEvent.cardName}`}
-              </span>
-           </motion.div>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 z-[3000] bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center pointer-events-auto">
+             <div className="flex flex-col items-center gap-6">
+                 <div className="text-xl md:text-3xl text-sky-400 fe-hologram animate-pulse tracking-[0.3em] fe-glow-text">
+                   NEXUS_AI_PROCESSING
+                 </div>
+                 <div className="bg-indigo-950/80 border border-indigo-500/50 p-8 md:p-12 rounded-3xl shadow-[0_0_50px_rgba(99,102,241,0.3)] text-center max-w-lg w-full flex flex-col items-center transition-all">
+                    <span className="text-white font-black italic tracking-widest uppercase text-lg md:text-xl mb-6 leading-relaxed">
+                       <span className="text-sky-400">{replayEvent.actorName}</span><br/>
+                       {replayEvent.action === 'THINKING' && 'Calculating Vector...'}
+                       {replayEvent.action === 'DRAW' && 'Downloads Data...'}
+                       {replayEvent.action === 'END_TURN' && 'Terminates Control.'}
+                       {replayEvent.action === 'PLAY' && `Deploys Array`}
+                    </span>
+                    {replayEvent.card && (
+                       <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="mt-4 pointer-events-none">
+                          <PhysicalCard card={replayEvent.card} style={{ width: '12rem', height: '16rem' }} />
+                       </motion.div>
+                    )}
+                 </div>
+             </div>
+          </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Event Effects */}
+      {/* Event Effects (BUGS 3/4 FIX: Subdued non-intrusive badges) */}
       <AnimatePresence>
         {payload?.isGlobalDisasterPhase && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 z-[1000] pointer-events-none bg-rose-900/20 backdrop-invert-[0.1]">
-             <div className="absolute inset-0 fe-scanline opacity-20 bg-rose-500/10" />
-             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-rose-500 fe-hologram text-4xl fe-flicker">CATACLYSM_ACTIVE</div>
+          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] pointer-events-none bg-rose-950/80 border border-rose-500/50 px-6 py-2 rounded-full shadow-[0_0_20px_rgba(225,29,72,0.5)] flex items-center gap-3">
+             <div className="w-2 h-2 bg-rose-500 rounded-full animate-pulse" />
+             <div className="text-rose-500 fe-hologram text-sm fe-flicker whitespace-nowrap">CATACLYSM_ACTIVE</div>
           </motion.div>
         )}
         {payload && payload.round % 3 === 0 && !payload.isGlobalDisasterPhase && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1, scale: [1, 1.05, 1] }} transition={{ duration: 5, repeat: Infinity }} className="absolute inset-0 z-[1000] pointer-events-none bg-sky-900/10 mix-blend-screen">
-             <div className="absolute inset-0 fe-scanline opacity-10 bg-sky-500/5 rotate-90" />
-             <div className="absolute bottom-12 right-12 text-sky-400 fe-hologram text-sm fe-flicker">AETHER_SHIFT_IN_PROGRESS</div>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute bottom-4 left-4 z-[1000] pointer-events-none bg-sky-950/80 border border-sky-400/50 px-4 py-2 rounded-full shadow-[0_0_15px_rgba(56,189,248,0.3)] flex items-center gap-3">
+             <div className="w-2 h-2 bg-sky-400 rounded-full animate-pulse" />
+             <div className="text-sky-400 fe-hologram text-xs fe-flicker whitespace-nowrap">AETHER_SHIFT_ACTIVE</div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -613,22 +642,23 @@ export default function TabletopPage() {
 
       {/* Pinned Powers Layer */}
       {myPlayer && myPlayer.powers && myPlayer.powers.length > 0 && (
-         <div className="absolute bottom-40 md:bottom-24 left-1/2 -translate-x-1/2 flex gap-4 pointer-events-auto items-end z-[150]">
-            {myPlayer.powers.map((card, i) => (
-               <motion.div 
-                 key={card.id} 
-                 initial={{ y: 50, opacity: 0 }} 
-                 animate={{ y: 0, opacity: 1 }} 
-                 whileHover={{ y: -20, zIndex: 300, scale: 1.1 }}
-                 className="relative w-20 h-28 bg-slate-900 border-2 border-amber-500/50 rounded-xl overflow-hidden cursor-pointer shadow-[0_10px_20px_rgba(245,158,11,0.2)]"
-                 onClick={() => { setInspectedCard(card); setShowFullInspect(true); }}
-               >
-                  <img src={cardTheme(card.type).bg} className="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-screen" alt="" />
-                  <div className="absolute bottom-0 w-full bg-black/80 p-1 text-center">
-                     <span className="fe-hologram text-[6px] text-amber-400 font-bold block">{card.name}</span>
-                  </div>
-               </motion.div>
-            ))}
+         <div 
+            className="absolute bottom-40 md:bottom-24 left-1/2 -translate-x-1/2 cursor-pointer z-[150] group"
+            onClick={() => window.dispatchEvent(new CustomEvent('fe:view-pile', { detail: myPlayer.powers }))}
+            role="button"
+            aria-label="View Player Pile"
+         >
+            <div className="relative w-20 h-28">
+              {myPlayer.powers.map((card, i) => (
+                 <div key={card.id} className="absolute inset-0 bg-slate-900 border-2 border-amber-500/50 rounded-xl group-hover:-translate-y-2 transition-transform shadow-[0_10px_20px_rgba(245,158,11,0.2)]" style={{ transform: `translateX(${Math.min(i * 3, 15)}px) translateY(-${Math.min(i * 3, 15)}px)` }}>
+                   <img src={cardTheme(card.type).bg} className="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-screen" alt="" />
+                   <div className="absolute bottom-0 w-full bg-black/80 p-1 text-center">
+                      <span className="fe-hologram text-[6px] text-amber-400 font-bold block truncate px-1">{card.name}</span>
+                   </div>
+                 </div>
+              ))}
+            </div>
+            <div className="fe-hologram text-[8px] text-amber-500 bg-black/60 px-2 py-1 rounded text-center mt-2 border border-amber-500/30 whitespace-nowrap shadow-xl">PLAYER PILE ({myPlayer.powers.length})</div>
          </div>
       )}
 
@@ -718,6 +748,30 @@ export default function TabletopPage() {
              </div>
           </motion.div>
         )}
+      </AnimatePresence>
+
+      {/* Pile Viewer Modal (BUG 2 FIX) */}
+      <AnimatePresence>
+         {viewingPile && (
+            <motion.div 
+               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+               className="absolute inset-0 z-[4000] bg-black/90 backdrop-blur-2xl flex flex-col items-center justify-center p-8 overflow-y-auto pointer-events-auto"
+               onClick={(e) => e.target === e.currentTarget && setViewingPile(null)}
+            >
+               <h2 className="text-3xl font-black italic tracking-tighter text-amber-500 uppercase mb-8 fe-glow-text">Pile Scanner</h2>
+               <div className="flex flex-wrap gap-6 justify-center max-w-5xl">
+                  {viewingPile.map(card => (
+                     <div key={card.id} className="cursor-pointer hover:scale-105 transition-transform" onClick={() => { setViewingPile(null); setInspectedCard(card); setShowFullInspect(true); }}>
+                        <PhysicalCard card={card} style={{ width: '12rem', height: '16rem' }} />
+                     </div>
+                  ))}
+                  {viewingPile.length === 0 && (
+                     <div className="text-white/40 fe-hologram text-sm uppercase tracking-widest border border-white/10 px-12 py-6 rounded-2xl bg-white/5">No Data In Pile</div>
+                  )}
+               </div>
+               <button onClick={() => setViewingPile(null)} className="fe-holo-btn mt-12 !border-amber-500 !text-amber-500">Close Scanner</button>
+            </motion.div>
+         )}
       </AnimatePresence>
 
       {error && (
