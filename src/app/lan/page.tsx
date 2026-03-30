@@ -235,7 +235,7 @@ export default function LanRoomsPage() {
                <div className="fe-hologram text-sky-400 text-[10px] uppercase font-black">Candidate Identification</div>
                <div className="grid grid-cols-[1fr_auto] gap-4">
                   <input 
-                    className="bg-white/5 border border-white/10 rounded-2xl px-6 py-5 text-white outline-none focus:border-amber-500 transition-all font-bold tracking-tight text-xl placeholder:text-white/10"
+                    className="bg-white/5 border border-white/10 rounded-2xl px-6 py-5 text-white outline-none focus:border-amber-500 transition-all font-bold tracking-tight text-xl placeholder:text-white/40"
                     value={displayName}
                     onChange={e => setDisplayName(e.target.value)}
                     placeholder="Candidate Name"
@@ -254,7 +254,7 @@ export default function LanRoomsPage() {
                <div className="fe-hologram text-sky-400 text-[10px] uppercase font-black">Sector Frequency Code</div>
                <div className="grid grid-cols-[1fr_auto] gap-4">
                   <input 
-                    className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-6 py-5 text-white outline-none focus:border-amber-500 transition-all font-black tracking-[0.5em] uppercase text-2xl text-center placeholder:text-white/10"
+                    className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-6 py-5 text-white outline-none focus:border-amber-500 transition-all font-black tracking-[0.5em] uppercase text-2xl text-center placeholder:text-white/40"
                     value={roomCode}
                     onChange={e => setRoomCode(e.target.value.toUpperCase())}
                     placeholder="SCANNING"

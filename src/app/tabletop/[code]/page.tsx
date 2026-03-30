@@ -406,6 +406,28 @@ export default function TabletopPage() {
     } catch (e: any) { setError(e.message); } finally { setBusy(false); }
   }
 
+  async function handleDiscard() {
+    if (!selectedCard) return;
+    setBusy(true);
+    try {
+      const synced = await postAction({
+        type: 'DISCARD_CARD',
+        cardId: selectedCard.id,
+      }, state?.revision);
+      setState(synced);
+      setSelectedCardId('');
+      setSelectedTargetId('');
+    } catch (e: any) { setError(e.message); } finally { setBusy(false); }
+  }
+
+  if (!state) {
+     return (
+       <main className="fe-scene bg-black flex-1 flex items-center justify-center">
+         <div className="fe-hologram animate-pulse text-sky-400 text-xl tracking-[0.5em] fe-flicker">SYNCING_SECTOR_STATE...</div>
+       </main>
+     );
+  }
+
   return (
     <main className="fe-scene bg-black flex-1">
       {/* Bot Turn Replay Toast */}
@@ -542,11 +564,12 @@ export default function TabletopPage() {
       <AnimatePresence>
         {isMyTurn && payload?.hasDrawnThisTurn && !winner && (
           <motion.button
+            role="button"
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 50, opacity: 0 }}
             onClick={handlePass}
-            className="absolute bottom-[28%] right-[20%] z-50 fe-holo-btn"
+            className="absolute bottom-[35%] md:bottom-[28%] right-[5%] md:right-[20%] z-[1500] fe-holo-btn !py-5 !px-10 !text-xl !border-amber-500 !text-amber-500 bg-black/50 shadow-[0_0_50px_rgba(245,158,11,0.2)]"
           >
             Pass Control
           </motion.button>
@@ -567,6 +590,9 @@ export default function TabletopPage() {
                  {myPlayer.hand.map((card, i) => (
                    <motion.div
                      key={card.id}
+                     role="button"
+                     tabIndex={0}
+                     aria-label={`Select ${card.name}`}
                      initial={{ y: 200, opacity: 0 }}
                      animate={{ 
                        y: 0, opacity: 1, 
@@ -621,22 +647,45 @@ export default function TabletopPage() {
                <div className="flex flex-col items-center gap-8 w-full max-w-md">
                    <TacticalDataPanel data={describeCardEffect(selectedCard || inspectedCard!)} />
                    
-                   <div className="flex gap-4">
-                      {selectedCard && (
-                         <>
-                            <button onClick={() => setSelectedCardId('')} className="fe-holo-btn">Stow_Card</button>
-                            <button 
-                              onClick={handlePlay} 
-                              disabled={busy || maxPlayReached} 
-                              className="fe-holo-btn !text-amber-500 !border-amber-500/50"
-                            >
-                              Deploy_Tactical
-                            </button>
-                         </>
+                   <div className="flex flex-col gap-4 w-full">
+                      {selectedCard && selectedCard.type === 'DISASTER' && selectedCard.disasterKind !== 'GLOBAL' && payload && (
+                         <div className="flex gap-2 flex-wrap justify-center border-b border-white/10 pb-4 mb-2">
+                           {payload.players.filter(p => p.id !== userId).map(p => (
+                              <button 
+                                key={p.id} 
+                                onClick={() => setSelectedTargetId(p.id)} 
+                                className={`fe-holo-btn !py-2 !px-4 !text-xs ${selectedTargetId === p.id ? '!border-rose-500 !text-rose-500 !bg-rose-500/10' : ''}`}
+                              >
+                                Target {p.displayName}
+                              </button>
+                           ))}
+                         </div>
                       )}
-                      {inspectedCard && !selectedCard && (
-                         <button onClick={() => { setInspectedCard(null); setShowFullInspect(false); }} className="fe-holo-btn">Dismiss_Intel</button>
-                      )}
+                      
+                      <div className="flex gap-4 justify-center">
+                         {selectedCard && (
+                            <>
+                               <button onClick={() => { setSelectedCardId(''); setSelectedTargetId(''); }} className="fe-holo-btn">Stow_Card</button>
+                               <button 
+                                 onClick={handlePlay} 
+                                 disabled={busy || maxPlayReached || (selectedCard.type === 'DISASTER' && selectedCard.disasterKind !== 'GLOBAL' && !selectedTargetId)} 
+                                 className="fe-holo-btn !text-amber-500 !border-amber-500/50 disabled:!opacity-30 disabled:!cursor-not-allowed"
+                               >
+                                 Deploy_Tactical
+                               </button>
+                               <button 
+                                 onClick={handleDiscard} 
+                                 disabled={busy} 
+                                 className="fe-holo-btn !text-rose-500 !border-rose-500/50"
+                               >
+                                 Discard_Data
+                               </button>
+                            </>
+                         )}
+                         {inspectedCard && !selectedCard && (
+                            <button onClick={() => { setInspectedCard(null); setShowFullInspect(false); }} className="fe-holo-btn">Dismiss_Intel</button>
+                         )}
+                      </div>
                    </div>
                </div>
             </motion.div>

@@ -37,15 +37,15 @@ export default function SettingsPage() {
 
   return (
     <main className="min-h-screen p-8 max-w-5xl mx-auto space-y-6">
-      <div className="fe-panel fe-table-rail rounded-3xl p-6 flex items-center justify-between gap-4 flex-wrap">
+      <div className="bg-white/5 border border-white/10 rounded-3xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 flex-wrap backdrop-blur-xl">
         <div>
-          <h1 className="text-3xl font-bold">Player Garage</h1>
-          <p className="fe-muted text-sm mt-1">Tune your identity, theme, and tutorial progression.</p>
+          <h1 className="text-3xl font-black italic uppercase tracking-tighter text-white">Player Garage</h1>
+          <p className="text-white/40 text-sm mt-1">Tune your identity, theme, and tutorial progression.</p>
         </div>
-        <Link href="/" className="fe-panel-alt rounded-xl px-4 py-2 text-sm">Home</Link>
+        <Link href="/" className="fe-holo-btn text-xs">Return Home</Link>
       </div>
 
-      <section className="fe-panel fe-seat-plinth rounded-3xl p-6 space-y-4">
+      <section className="bg-white/[0.03] border border-white/5 rounded-3xl p-6 space-y-4 backdrop-blur-lg">
         {/* AI prompt: personalized player locker with patches, helmet icon, carved wooden UI placards, cozy warm ambient light, stylized realism */}
         
         <div className="grid sm:grid-cols-2 gap-3">
@@ -55,26 +55,26 @@ export default function SettingsPage() {
           
         </div>
 
-        <h2 className="text-lg font-semibold">Profile And Theme</h2>
-        <div className="grid sm:grid-cols-2 gap-3">
+        <h2 className="text-lg font-semibold text-white">Profile And Theme</h2>
+        <div className="grid sm:grid-cols-2 gap-4">
           <input
-            className="fe-panel-alt rounded-xl px-3 py-3"
+            className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/40 focus:border-amber-500 outline-none transition-all"
             value={userId}
             onChange={(event) => setUserId(event.target.value)}
             placeholder="Player id"
           />
           <input
-            className="fe-panel-alt rounded-xl px-3 py-3"
+            className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/40 focus:border-amber-500 outline-none transition-all"
             value={displayName}
             onChange={(event) => setDisplayName(event.target.value)}
             placeholder="Display name"
           />
-          <select className="fe-panel-alt rounded-xl px-3 py-3" value={emoji} onChange={(event) => setEmoji(event.target.value)}>
+          <select className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-amber-500 outline-none transition-all" value={emoji} onChange={(event) => setEmoji(event.target.value)}>
             {EMOJI_OPTIONS.map((candidate) => (
-              <option key={candidate} value={candidate}>{candidate}</option>
+              <option key={candidate} value={candidate} className="bg-slate-900">{candidate}</option>
             ))}
           </select>
-          <select className="fe-panel-alt rounded-xl px-3 py-3" value={theme} onChange={(event) => {
+          <select className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-amber-500 outline-none transition-all" value={theme} onChange={(event) => {
             const newTheme = event.target.value as (typeof THEME_OPTIONS)[number];
             setTheme(newTheme);
             window.dispatchEvent(new CustomEvent('fe:settings-changed', {
@@ -82,36 +82,38 @@ export default function SettingsPage() {
             }));
           }}>
             {THEME_OPTIONS.map((candidate) => (
-              <option key={candidate} value={candidate}>{candidate}</option>
+              <option key={candidate} value={candidate} className="bg-slate-900">{candidate}</option>
             ))}
           </select>
         </div>
 
-        <label className="inline-flex items-center gap-2 text-sm fe-muted">
-          <input type="checkbox" checked={soundEnabled} onChange={(event) => setSoundEnabled(event.target.checked)} />
+        <label className="inline-flex items-center gap-3 text-sm text-white/70 mt-4 cursor-pointer">
+          <input type="checkbox" className="w-5 h-5 rounded border-white/20 bg-black/50 text-amber-500 focus:ring-amber-500" checked={soundEnabled} onChange={(event) => setSoundEnabled(event.target.checked)} />
           Sound enabled
         </label>
 
-        <button onClick={saveProfile} className="fe-button-primary rounded-xl px-4 py-3 font-semibold">
-          Save Settings
-        </button>
+        <div className="pt-4 border-t border-white/10 mt-6">
+           <button onClick={saveProfile} className="fe-holo-btn !py-4 w-full sm:w-auto">
+             Save Settings
+           </button>
+        </div>
       </section>
 
       <section className="fe-panel fe-seat-plinth rounded-3xl p-6 space-y-4">
         {/* AI prompt: tutorial checkpoint cards stacked with wax-seal stamps, progress markers, warm game room lighting */}
         
 
-        <h2 className="text-lg font-semibold">Tutorial</h2>
-        <p className="text-sm fe-muted">Status: {tutorialDone ? 'Completed' : 'Not completed'}</p>
+        <h2 className="text-lg font-semibold text-white">Tutorial</h2>
+        <p className="text-sm text-white/50">Status: {tutorialDone ? 'Completed' : 'Not completed'}</p>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-4 mt-6">
           <button
             onClick={() => {
               resetTutorialDone();
               setTutorialState(false);
               window.location.reload();
             }}
-            className="px-4 py-2 rounded fe-panel-alt"
+            className="fe-holo-btn text-xs"
           >
             Replay Tutorial (reset + refresh)
           </button>
@@ -122,23 +124,25 @@ export default function SettingsPage() {
               setTutorialState(true);
               router.refresh();
             }}
-            className="px-4 py-2 rounded fe-button-primary"
+            className="fe-holo-btn text-xs !text-amber-500 !border-amber-500/50"
           >
             Mark Tutorial Done
           </button>
 
-          <Link href="/tutorial" className="px-4 py-2 rounded fe-panel-alt">
+          <Link href="/tutorial" className="fe-holo-btn text-xs !text-sky-400 !border-sky-500/50">
             Open Tutorial
           </Link>
         </div>
       </section>
 
-      <section className="fe-panel fe-seat-plinth rounded-3xl p-6 space-y-3">
-        <h2 className="text-lg font-semibold">Rules And Cards</h2>
-        <p className="text-sm fe-muted">Open the full game rules and card behavior reference.</p>
-        <Link href="/rules" className="inline-block px-4 py-2 rounded fe-panel-alt">
-          Open Rules Page
-        </Link>
+      <section className="fe-panel fe-seat-plinth rounded-3xl p-6 space-y-4">
+        <h2 className="text-lg font-semibold text-white">Rules And Cards</h2>
+        <p className="text-sm text-white/50">Open the full game rules and card behavior reference.</p>
+        <div className="mt-4">
+           <Link href="/rules" className="fe-holo-btn text-xs">
+             Open Rules Page
+           </Link>
+        </div>
       </section>
     </main>
   );

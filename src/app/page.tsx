@@ -25,13 +25,13 @@ export default function HomePage() {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-6 w-full max-w-2xl mt-8">
-           <Link href="/lan" className="fe-holo-btn flex-1 !py-5 !text-lg !text-white !bg-amber-500/10 !border-amber-500/30 hover:!bg-amber-500/20 active:scale-95 transition-all">
+           <Link href="/lan" className="fe-holo-btn flex-1 flex justify-center items-center !py-5 !text-lg !text-white !bg-amber-500/10 !border-amber-500/30 hover:!bg-amber-500/20">
              Start Protocol
            </Link>
-           <Link href="/tutorial" className="fe-holo-btn flex-1 !py-5 !text-lg active:scale-95 transition-all">
+           <Link href="/tutorial" className="fe-holo-btn flex-1 flex justify-center items-center !py-5 !text-lg">
              Training
            </Link>
-           <Link href="/rules" className="fe-holo-btn flex-1 !py-5 !text-lg !border-sky-500/50 !text-sky-400 active:scale-95 transition-all">
+           <Link href="/rules" className="fe-holo-btn flex-1 flex justify-center items-center !py-5 !text-lg !border-sky-500/50 !text-sky-400">
              NeuralAtlas
            </Link>
         </div>

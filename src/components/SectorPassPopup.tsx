@@ -2,17 +2,22 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export function SectorPassPopup() {
   const [visible, setVisible] = useState(false);
 
+  const pathname = usePathname();
+
   useEffect(() => {
     // Show only once per day on session start
     const lastPrompt = localStorage.getItem('fe:last-sub-prompt');
     const isAdFree = localStorage.getItem('fe:user-settings:v1')?.includes('"adFree":true');
+    const onGameplayPath = pathname.startsWith('/tabletop') || pathname.startsWith('/lan');
+    const tutorialPending = !localStorage.getItem('fe:user:tutorial-done');
     
-    if (!isAdFree && (!lastPrompt || Date.now() - Number(lastPrompt) > 86400000)) {
+    if (!isAdFree && !onGameplayPath && !tutorialPending && (!lastPrompt || Date.now() - Number(lastPrompt) > 86400000)) {
        const timer = setTimeout(() => setVisible(true), 1500);
        return () => clearTimeout(timer);
     }

@@ -3,9 +3,12 @@ import Link from 'next/link';
 export default function PrivacyPage() {
   return (
     <main className="min-h-screen p-8 max-w-3xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Privacy Policy</h1>
-        <Link href="/" className="text-sm text-gray-400 hover:text-white">Home</Link>
+      <div className="flex items-center justify-between border-b border-white/10 pb-8">
+        <div>
+           <div className="fe-hologram text-sky-400 mb-2">Legal Compliance</div>
+           <h1 className="text-4xl sm:text-6xl font-black italic tracking-tighter text-white uppercase leading-none">Privacy<span className="text-amber-500 block sm:inline">Policy</span></h1>
+        </div>
+        <Link href="/" className="fe-holo-btn !py-2 !px-4 text-xs shrink-0 text-center">Return Home</Link>
       </div>
 
       {/* AI prompt: secure archive vault with sealed data capsules, parchment records, lock iconography, warm moody lighting, detailed concept art */}
@@ -17,7 +20,7 @@ export default function PrivacyPage() {
         
       </div>
 
-      <section className="bg-gray-800 rounded-xl p-6 space-y-3 text-sm text-gray-200 leading-relaxed">
+      <section className="bg-white/5 border border-white/10 rounded-3xl p-8 space-y-4 text-sm text-white/70 leading-relaxed font-light">
         <p>Effective date: March 26, 2026</p>
         <p>
           Fractured Earth collects account identifiers, gameplay stats, room membership, and match state required to

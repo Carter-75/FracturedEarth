@@ -12,26 +12,41 @@ export default function RulesPage() {
       </div>
 
       <section className="relative z-10 w-full max-w-4xl mx-auto px-6 py-20 pb-40">
-        <div className="mb-16">
-           <div className="fe-hologram text-sky-400 mb-2">Protocol Reference</div>
-           <h1 className="text-4xl md:text-6xl font-black italic tracking-tighter text-white uppercase">Neural<span className="text-amber-500">Atlas</span></h1>
-           <p className="text-white/40 mt-4 font-light tracking-tight max-w-lg italic">
-             &quot;To control the planet, one must first understand the fracture.&quot; — Command Alpha
-           </p>
+        <div className="mb-16 flex flex-col sm:flex-row items-start sm:items-end justify-between border-b border-white/10 pb-8 gap-6">
+           <div>
+              <div className="fe-hologram text-sky-400 mb-2">Protocol Reference</div>
+              <h1 className="text-4xl md:text-6xl font-black italic tracking-tighter text-white uppercase">Neural<span className="text-amber-500 block sm:inline">Atlas</span></h1>
+              <p className="text-white/40 mt-4 font-light tracking-tight max-w-lg italic">
+                &quot;To control the planet, one must first understand the fracture.&quot; — Command Alpha
+              </p>
+           </div>
+           <Link href="/" className="fe-holo-btn !py-2 !px-4 text-xs shrink-0 text-center">Return_Home</Link>
         </div>
 
         <div className="space-y-24">
            {/* Section 1: Turn Flow */}
            <div className="relative p-12 bg-white/5 border border-white/10 rounded-3xl backdrop-blur-3xl">
               <div className="absolute -top-4 -left-4 fe-hologram text-amber-500 bg-black px-4 py-2 border border-amber-500/30 rounded-xl">01: TURN_CYCLE</div>
-              <h2 className="text-3xl font-black text-white mb-8 tracking-tighter uppercase italic">The Procurement Loop</h2>
-               <div className="space-y-6 text-white/70 font-light leading-relaxed text-sm">
-                  <p><strong className="text-amber-500 font-bold">1. PROCUREMENT (Draw):</strong> Every turn begins by accessing the deck. You MUST draw exactly 1 unit of tactical data, regardless of your current hand size.</p>
-                  <p><strong className="text-amber-500 font-bold">2. DEPLOYMENT (Play):</strong> You may deploy <span className="text-white font-bold italic">1 to 3 cards</span>. Most cards provide Energy (Points) or affect the global environment.</p>
-                  <p><strong className="text-amber-500 font-bold">3. STABILIZATION (Discard):</strong> Your neural buffer (hand) has a limit of <strong className="text-amber-500 font-bold">5 cards</strong>. You MUST play or discard units until your hand total is 5 or less before terminating control.</p>
-                  <p><strong className="text-sky-400 font-bold">4. TERMINATION (End):</strong> Once your hand is stabilized and actions are spent, terminate control to pass to the next candidate.</p>
-               </div>
-           </div>
+               <h2 className="text-3xl font-black text-white mb-8 tracking-tighter uppercase italic">The Procurement Loop</h2>
+               <ul className="space-y-6 text-white/90 font-light leading-relaxed text-sm md:text-base list-disc list-outside ml-6">
+                  <li className="pl-2">
+                     <strong className="text-amber-500 font-bold block mb-1">1. PROCUREMENT (Draw):</strong> 
+                     Every turn begins by accessing the deck. You MUST draw exactly 1 unit of tactical data, regardless of your current hand size.
+                  </li>
+                  <li className="pl-2">
+                     <strong className="text-amber-500 font-bold block mb-1">2. DEPLOYMENT (Play):</strong> 
+                     You may deploy <span className="text-sky-400 font-bold italic">1 to 3 cards</span>. Most cards provide Energy (Points) or affect the global environment.
+                  </li>
+                  <li className="pl-2">
+                     <strong className="text-amber-500 font-bold block mb-1">3. STABILIZATION (Discard):</strong> 
+                     Your neural buffer (hand) has a limit of <strong className="text-amber-500 font-bold">5 cards</strong>. You MUST play or discard units until your hand total is 5 or less.
+                  </li>
+                  <li className="pl-2">
+                     <strong className="text-sky-400 font-bold block mb-1">4. TERMINATION (End):</strong> 
+                     Once your hand is stabilized and actions are spent, terminate control to pass to the next candidate.
+                  </li>
+               </ul>
+            </div>
 
            {/* Section 2: Tactical Cards */}
            <div className="space-y-12">
