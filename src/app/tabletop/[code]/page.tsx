@@ -191,49 +191,62 @@ function PlayPile({ cards }: { cards: MatchCard[] }) {
 }
 
 function OpponentHand({ count, angle, player }: { count: number; angle: number; player: MatchPlayer }) {
+  // Convert angle to radians for orbit math
+  const rad = angle * (Math.PI / 180);
+  
+  // Orbit radius (approximate based on CSS variables)
+  const radius = 340; 
+  // CSS rotate(A) translateY(R) generates (-R*sin(A), R*cos(A)) geometrically
+  const orbitX = -Math.sin(rad) * radius;
+  const orbitY = Math.cos(rad) * radius;
+
   return (
     <div 
-      className="absolute flex items-end justify-center gap-8 pointer-events-none"
+      className="absolute flex flex-col items-center justify-center gap-4 pointer-events-none"
       style={{ 
-        transform: `rotate(${angle}deg) translateY(var(--opp-offset)) rotateX(-45deg)`,
-        transformStyle: 'preserve-3d'
+        transform: `translate(${orbitX}px, ${orbitY}px)`,
+        zIndex: 50
       }}
     >
-       {/* Opponent Cards */}
-       <div className="relative flex justify-center [transform-style:preserve-3d] w-0">
+       {/* Opponent HUD completely upright and untouched by rotation! */}
+       <div className="fe-hologram pointer-events-auto">
+          <PlayerStatsHUD player={player} isActive={false} />
+       </div>
+
+       {/* Opponent Cards (Flipped upside down so the opponent can read them) */}
+       <div 
+         className="relative flex justify-center mt-4 w-full h-24"
+         style={{ transform: `rotate(180deg)` }}
+       >
           {[...Array(Math.max(0, count))].map((_, i) => (
              <motion.div
                key={i}
                style={{ 
-                 width: 'calc(var(--card-w) * 0.7)',
-                 height: 'calc(var(--card-h) * 0.7)',
-                 transform: `translateX(calc(${(i - (count-1)/2)} * (var(--card-w) * 0.3))) rotate(${(i - (count-1)/2) * 8}deg)`,
+                 width: 'calc(var(--card-w) * 0.8)',
+                 height: 'calc(var(--card-h) * 0.8)',
+                 transform: `translateX(calc(${(i - (count-1)/2)} * (var(--card-w) * 0.25))) rotate(${(i - (count-1)/2) * 6}deg)`,
                  transformOrigin: 'bottom center',
-                 transformStyle: 'preserve-3d',
-                 position: 'absolute'
+                 position: 'absolute',
+                 bottom: 0
                }}
-               className="bg-slate-900 border-2 border-white/10 rounded-xl shadow-2xl overflow-hidden -top-full -translate-y-1/2"
+               className="bg-slate-900 border border-white/20 rounded-xl shadow-2xl overflow-hidden"
              >
                 {/* High-Fidelity Card Back */}
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,#1e293b_0%,#020617_100%)]" />
+                <div className="absolute inset-0 bg-[#020617]" />
+                <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(56,189,248,0.1)_0%,transparent_100%)]" />
                 <div className="fe-grid opacity-30" />
                 <div className="absolute inset-0 flex items-center justify-center">
-                   <div className="w-8 h-8 rounded-full border border-white/5 flex items-center justify-center opacity-20">
-                      <div className="w-2 h-2 bg-sky-400 rounded-full" />
+                   <div className="w-12 h-12 rounded-full border-2 border-white/5 flex items-center justify-center opacity-40 shadow-[0_0_15px_rgba(56,189,248,0.2)]">
+                      <div className="w-3 h-3 bg-sky-400 rounded-full" />
                    </div>
                 </div>
-                <div className="absolute bottom-2 left-0 right-0 text-center opacity-10">
-                   <span className="text-[4px] fe-hologram tracking-widest">FRACTURED_EARTH</span>
+                <div className="absolute top-2 left-0 right-0 text-center opacity-30">
+                   <span className="text-[6px] fe-hologram tracking-[0.3em] text-sky-200">OPPONENT_UPLINK</span>
                 </div>
                 <div className="absolute inset-0 fe-scanline opacity-10" />
              </motion.div>
            ))}
         </div>
-
-       {/* Opponent Stats Physically Next to Cards (Bug 3 fixed to mirror Player UI) */}
-       <div className="fe-hologram flex flex-col pointer-events-auto" style={{ transform: 'translateZ(20px) translateX(calc(var(--card-w) * 1.5))', minWidth: '200px' }}>
-          <PlayerStatsHUD player={player} isActive={false} />
-       </div>
     </div>
   );
 }
