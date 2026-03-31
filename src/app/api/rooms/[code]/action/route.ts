@@ -72,14 +72,17 @@ export async function POST(
 
     if (
       typeof body.expectedRevision === 'number' &&
-      written.revision !== Number(body.expectedRevision) + 1
+      written.revision < Number(body.expectedRevision)
     ) {
+      // Only conflict if the state actively diverged ahead before we got here
       return NextResponse.json({ error: 'Revision conflict', current: written }, { status: 409 });
     }
 
     return NextResponse.json(written);
   } catch (error) {
+    // BUG 2 FIX: True game logic errors (e.g., "Not your turn", "Must draw first") must return 400,
+    // NOT 409, to prevent the client from mistakenly treating rule violations as network race conditions.
     const message = error instanceof Error ? error.message : 'Invalid action';
-    return NextResponse.json({ error: message }, { status: 409 });
+    return NextResponse.json({ error: message }, { status: 400 });
   }
 }

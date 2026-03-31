@@ -117,30 +117,36 @@ export interface TacticalData {
 export function describeCardEffect(input: {
   name: string;
   type: SharedCardType;
-  pointsDelta: number;
-  drawCount: number;
-  effect?: string;
-  gainHealth?: number;
+  description?: string;
   disasterKind?: string;
   blocksDisaster?: string;
+  primitives?: any[];
 }): TacticalData {
   const pips: TacticalPip[] = [];
   const theme = cardTheme(input.type);
   const color = theme.tint.replace('text-', '');
 
-  if (input.pointsDelta !== 0) {
+  const pointsPrim = input.primitives?.find(p => p.type === 'MODIFY_POINTS');
+  const drawPrim = input.primitives?.find(p => p.type === 'DRAW_CARDS');
+  const healthPrim = input.primitives?.find(p => p.type === 'MODIFY_HEALTH');
+
+  const ptsDelta = pointsPrim?.params?.amount || 0;
+  const drawCnt = drawPrim?.params?.amount || 0;
+  const hpDelta = healthPrim?.params?.amount || 0;
+
+  if (ptsDelta !== 0) {
     pips.push({ 
       label: 'NET_YIELD', 
-      value: `${input.pointsDelta > 0 ? '+' : ''}${input.pointsDelta}`, 
+      value: `${ptsDelta > 0 ? '+' : ''}${ptsDelta}`, 
       icon: '📊', 
       color 
     });
   }
-  if (input.gainHealth) {
-    pips.push({ label: 'REPAIR_SEQ', value: `+${input.gainHealth}`, icon: '🔧', color: 'emerald-400' });
+  if (hpDelta > 0) {
+    pips.push({ label: 'REPAIR_SEQ', value: `+${hpDelta}`, icon: '🔧', color: 'emerald-400' });
   }
-  if (input.drawCount > 0) {
-    pips.push({ label: 'DATA_LINK', value: `x${input.drawCount}`, icon: '📡', color: 'sky-400' });
+  if (drawCnt > 0) {
+    pips.push({ label: 'DATA_LINK', value: `x${drawCnt}`, icon: '📡', color: 'sky-400' });
   }
   if (input.disasterKind) {
     pips.push({ label: 'THREAT_LVL', value: input.disasterKind.toUpperCase(), icon: '⚠️', color: 'rose-500' });
@@ -149,7 +155,7 @@ export function describeCardEffect(input: {
     pips.push({ label: 'SHIELD_PROT', value: input.blocksDisaster.toUpperCase(), icon: '🛡️', color: 'cyan-400' });
   }
 
-  const summary = input.effect ? input.effect.replaceAll('_', ' ') : 'Standard Tactical Deployment';
+  const summary = input.description || 'Standard Tactical Deployment';
 
   return {
     summary,

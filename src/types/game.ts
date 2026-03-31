@@ -14,14 +14,20 @@ export type Theme =
   | 'VoidPurple'
   | 'TitaniumSlate';
 
+export interface Primitive {
+  type: string;
+  params?: any;
+  then?: Primitive[];
+  else?: Primitive[];
+}
+
 export interface Card {
   id: string;
   name: string;
   type: CardType;
-  pointsDelta: number;
-  drawCount: number;
   disasterKind?: DisasterKind;
   blocksDisaster?: DisasterKind;
+  primitives?: Primitive[];
 }
 
 export interface PlayerState {
@@ -32,6 +38,9 @@ export interface PlayerState {
   hand: Card[];
   traits: Card[];
   isBot: boolean;
+  maxHandModifier?: number;
+  twistEffect?: string;
+  powers?: Card[];
 }
 
 export interface GameState {

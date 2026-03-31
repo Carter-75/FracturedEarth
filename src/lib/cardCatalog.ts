@@ -5,12 +5,9 @@ type RawCard = {
   id: string;
   name: string;
   type: string;
-  pointsDelta: number;
-  drawCount: number;
   tier?: number | null;
-  effect?: string | null;
-  gainHealth?: number | null;
-  healthDelta?: number | null;
+  primitives?: any[] | null;
+  description?: string | null;
   disasterKind?: string | null;
   blocksDisaster?: string | null;
 };
@@ -20,12 +17,10 @@ function toMatchCard(raw: RawCard): MatchCard {
     id: raw.id,
     name: raw.name,
     type: raw.type as MatchCard['type'],
-    pointsDelta: raw.pointsDelta,
-    drawCount: raw.drawCount,
     ...(raw.tier != null && { tier: raw.tier as 1 | 2 | 3 | 4 | 5 }),
-    ...(raw.effect != null && raw.effect !== '' && { effect: raw.effect }),
-    ...(raw.gainHealth != null && { gainHealth: raw.gainHealth }),
-    ...(raw.healthDelta != null && { healthDelta: raw.healthDelta }),
+    ...(raw.primitives != null && { primitives: raw.primitives }),
+    ...(raw.description != null && raw.description !== '' && { effect: raw.description }), // We map 'description' to 'effect' for display logic if needed, but wait, describeCardEffect now uses description directly? No, MatchCard has 'effect?: string'. Let's rename MatchCard 'effect' to 'description' or keep 'effect'. Actually let's map 'description' to 'description'
+    ...(raw.description != null && raw.description !== '' && { description: raw.description, effect: raw.description }),
     ...(raw.disasterKind != null && raw.disasterKind !== '' && {
       disasterKind: raw.disasterKind as MatchCard['disasterKind'],
     }),

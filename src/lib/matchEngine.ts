@@ -27,14 +27,12 @@ export interface MatchCard {
   id: string;
   name: string;
   type: CardType;
-  pointsDelta: number;
-  drawCount: number;
   tier?: 1 | 2 | 3 | 4 | 5;
   effect?: string;
-  gainHealth?: number;
-  healthDelta?: number;
+  description?: string;
   disasterKind?: DisasterKind;
   blocksDisaster?: DisasterKind;
+  primitives?: any[];
 }
 
 export interface MatchPlayer {
@@ -135,106 +133,289 @@ function getPlayerMaxHand(player: MatchPlayer): number {
 }
 
 function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string): MatchPayload {
-  const effect = card.effect || "";
   const activeIndex = state.activePlayerIndex;
-  const players = [...state.players];
-  let active = { ...players[activeIndex] };
-  let next = { ...state, players };
+  
+  // Safely deep clone the players array so sub-function mutations are retained cumulatively
+  let next = { 
+    ...state, 
+    players: state.players.map(p => ({
+       ...p,
+       hand: [...p.hand],
+       powers: [...p.powers]
+    }))
+  };
 
-  // Helper to get target index
-  const tIdx = targetId ? players.findIndex(p => p.id === targetId) : -1;
+  const primitives = card.primitives;
+  if (!primitives || primitives.length === 0) return next;
 
-  if (card.type === "SURVIVAL") {
-    let yield_val = card.pointsDelta;
-    if (effect.includes("maximizes_yield_when_health_is_5") && active.health === 5) yield_val = 6;
-    if (effect.includes("doubles_output_6_if_health_3") && active.health <= 3) yield_val = 6;
-    if (effect.includes("1_pt_for_each_pinned_power_card")) yield_val += active.powers.length;
-    if (effect.includes("1_if_chaos_card_played_previously") && state.turnPile.some(c => c.type === "CHAOS")) yield_val += 1;
-    active.survivalPoints += yield_val;
-    active.health = Math.min(INITIAL_HEALTH, active.health + (card.gainHealth ?? 0));
-    if (effect.includes("2_health_if_first_card_played_this_turn") && state.cardsPlayedThisTurn === 1) {
-      active.health = Math.min(INITIAL_HEALTH, active.health + 2);
-    }
-    if (effect.includes("draw_2_cards")) { for(let i=0; i<2; i++) next = drawForActive(next); }
-    if (effect.includes("draw_3_cards")) { for(let i=0; i<3; i++) next = drawForActive(next); }
-    if (effect.includes("draw_1_card")) { next = drawForActive(next); }
-    if (effect.includes("hand_limit_temporarily_1")) active.maxHandModifier = (active.maxHandModifier ?? 0) + 1;
-  }
+  // Helper to interpret targets
+  const getTargetIndices = (targetStr: string): number[] => {
+     if (targetStr === 'self') return [activeIndex];
+     if (targetStr === 'target_player' || targetStr === 'target_opponent') {
+         const found = next.players.findIndex(p => p.id === targetId);
+         return found >= 0 ? [found] : [];
+     }
+     if (targetStr === 'all') return next.players.map((_, i) => i);
+     if (targetStr === 'all_opponents') return next.players.map((_, i) => i).filter(i => i !== activeIndex);
+     if (targetStr === 'random_opponent') {
+         const opps = next.players.map((_, i) => i).filter(i => i !== activeIndex);
+         if (opps.length === 0) return [];
+         return [opps[Math.floor(Math.random() * opps.length)]];
+     }
+     return [];
+  };
 
-  if (card.type === "DISASTER") {
-    next = applyDisaster(next, card, targetId);
-  }
+  const evaluatePrims = (prims: any[]) => {
+      for (const prim of prims) {
+          const type = prim.type;
+          const params = prim.params || {};
 
-  // POWER and ADAPT effects logic (not placement, placement handled in playCard)
-  if (card.type === "POWER" || card.type === "ADAPT") {
-    active.survivalPoints += card.pointsDelta || 0;
-    if (card.gainHealth) active.health = Math.min(INITIAL_HEALTH, active.health + card.gainHealth);
-    
-    if (effect.includes("draw_1_card_when_pinned")) next = drawForActive(next);
-    if (effect.includes("restore_1_health")) active.health = Math.min(INITIAL_HEALTH, active.health + 1);
-  }
+          // Resolving Conditionals
+          if (type === 'IF_UNBLOCKED') {
+             const tIdxs = getTargetIndices(params.target === 'inherited' ? 'target_player' : params.target);
+             const dKind = card.disasterKind;
+             // Check if target is shielded
+             const unblockedTargets = tIdxs.filter(i => {
+                const p = next.players[i];
+                if (p.twistEffect === 'prevent_next_disaster') {
+                   p.twistEffect = undefined;
+                   return false; 
+                }
+                const blockingPower = p.powers.find(pow => pow.blocksDisaster === dKind);
+                return !blockingPower;
+             });
 
-  if (card.type === "CHAOS") {
-    active.survivalPoints += card.pointsDelta || 0;
-    if (card.gainHealth) active.health = Math.min(INITIAL_HEALTH, active.health + card.gainHealth);
-    if (effect.includes("take_1_card_from_discard_pile") && state.discardPile.length > 0) {
-      active.hand.push(state.discardPile[state.discardPile.length - 1]);
-      next.discardPile = state.discardPile.slice(0, -1);
-    }
-    if (effect.includes("steal_5_points") && tIdx >= 0) {
-      const stolen = Math.min(players[tIdx].survivalPoints, 5);
-      players[tIdx].survivalPoints -= stolen;
-      active.survivalPoints += stolen;
-    }
-    if (effect.includes("lose_1_health_for_10_points")) {
-      active.health = Math.max(0, active.health - 1);
-      active.survivalPoints += 10;
-    }
-  }
+             if (unblockedTargets.length > 0 && prim.then) {
+                 // We execute the 'then' block for those who were unblocked. 
+                 // For simplicity in this game engine, IF_UNBLOCKED wraps the exact primitives meant for the target.
+                 // We temporarily remap the target in the nested params strictly to these unblocked targets if we needed array processing,
+                 // but since 'then' typically uses 'target_player' or 'all_opponents', the engine handles the damage.
+                 // Wait, if an 'all_opponents' disaster is blocked by one guy, only HE blocks it.
+                 // So we must intercept the nested primitive execution to only apply to unblocked guys.
+                 // Rather than complicate it, we simply evaluate the primitive inside but manually restrict 'target_player' and 'all_opponents'.
+                 
+                 // Standardize by extracting inner primitive and manually executing on unblocked
+                 for (const inner of prim.then) {
+                     for (const u_idx of unblockedTargets) {
+                         executeAtomic(inner.type, { ...inner.params, overrideTargetIndex: u_idx });
+                     }
+                 }
+             }
+             continue;
+          }
 
-  if (card.type === "TWIST") {
-    active.survivalPoints += card.pointsDelta || 0;
-    active.health = Math.min(INITIAL_HEALTH, active.health + (card.gainHealth ?? 0));
-    if (effect.includes("everyone_draws_3_cards")) {
-        players.forEach((p, idx) => {
-            // Simplified everyone draw - avoid recursion for now
-        });
-    }
-    if (effect.includes("5050_chance")) active.survivalPoints += Math.random() > 0.5 ? 3 : -3;
-    if (effect.includes("skip_your_next_turn")) active.twistEffect = "skip_next";
-    if (effect.includes("temporarily_increase_max_hand_to_6")) active.maxHandModifier = 1;
-    if (effect.includes("swap_two_of_your_own_cards")) { /* shuffle hand */ }
-  }
+          if (type === 'IF_HEALTH') {
+              const tIdxs = getTargetIndices(params.target);
+              let conditionMet = false;
+              for (const ti of tIdxs) {
+                  const p = next.players[ti];
+                  if (params.op === '==' && p.health === params.amount) conditionMet = true;
+                  if (params.op === '<=' && p.health <= params.amount) conditionMet = true;
+                  if (params.op === '<' && p.health < params.amount) conditionMet = true;
+              }
+              if (conditionMet && prim.then) evaluatePrims(prim.then);
+              else if (!conditionMet && prim.else) evaluatePrims(prim.else);
+              continue;
+          }
 
-  if (card.type === "CATACLYSM") {
-    active.survivalPoints += card.pointsDelta || 0;
-    if (effect.includes("strike_all_players")) {
-        players.forEach((p, idx) => { if(idx !== activeIndex) p.health = Math.max(0, p.health - 1); });
-    }
-    if (effect.includes("target_loses_5_health") && tIdx >= 0) players[tIdx].health = Math.max(0, players[tIdx].health - 5);
-    if (effect.includes("skip_next_turn")) active.twistEffect = "skip_next";
-  }
+          if (type === 'IF_HAND_SIZE') {
+              const p = next.players[activeIndex];
+              let conditionMet = false;
+              if (params.op === '<=' && p.hand.length <= params.amount) conditionMet = true;
+              if (params.op === '<' && p.hand.length < params.amount) conditionMet = true;
+              if (params.op === '>=' && p.hand.length >= params.amount) conditionMet = true;
+              if (conditionMet && prim.then) evaluatePrims(prim.then);
+              continue;
+          }
 
-  if (card.type === "ASCENDED") {
-    active.survivalPoints += card.pointsDelta || 0;
-    active.health = Math.min(INITIAL_HEALTH, active.health + (card.gainHealth ?? 0));
-    if (effect.includes("revive_to_2_health_when_reaching_0")) { /* handled eventually */ }
-    if (effect.includes("extra_action")) next.cardsPlayedThisTurn--;
-  }
+          if (type === 'IF_FIRST_CARD') {
+              if (state.cardsPlayedThisTurn === 1 && prim.then) evaluatePrims(prim.then);
+              continue;
+          }
+          if (type === 'IF_CHAOS_PLAYED') {
+              if (state.turnPile.some(c => c.type === 'CHAOS') && prim.then) evaluatePrims(prim.then);
+              continue;
+          }
+          if (type === 'IF_CHAOS_PLAYED_LAST_TURN') {
+              // Not tracked in state currently for last turn, skip conditionally
+              continue; 
+          }
+          if (type === 'IF_PREVIOUS_CARD_TYPE') {
+              const prev = state.turnPile.length > 0 ? state.turnPile[state.turnPile.length - 1] : null;
+              if (prev && prev.type === params.cardType && prim.then) evaluatePrims(prim.then);
+              continue;
+          }
+          if (type === 'IF_NO_OTHER_SURVIVAL') {
+              if (!state.turnPile.some(c => c.type === 'SURVIVAL') && prim.then) evaluatePrims(prim.then);
+              continue;
+          }
+          if (type === 'CHANCE') {
+              if (Math.random() < params.probability && prim.then) evaluatePrims(prim.then);
+              else if (prim.else) evaluatePrims(prim.else);
+              continue;
+          }
 
-  next.players[activeIndex] = active;
+          // Stat Mutators
+          if (params.overrideTargetIndex !== undefined) {
+               executeAtomic(type, params, params.overrideTargetIndex);
+          } else {
+               const targets = getTargetIndices(params.target);
+               for (const ti of targets) executeAtomic(type, params, ti);
+          }
+      }
+  };
 
-  // Generic Draw Effect pipeline for all cards (Fixes Bug 1 Twist Draw)
-  if (card.drawCount && card.drawCount > 0) {
-    for (let i = 0; i < card.drawCount; i++) {
-       next = drawForActive(next);
-    }
-  }
+  const executeAtomic = (type: string, params: any, targetIndex: number = activeIndex) => {
+      const p = next.players[targetIndex];
+      const active = next.players[activeIndex];
+      
+      switch (type) {
+         case 'MODIFY_POINTS':
+            p.survivalPoints += params.amount;
+            break;
+         case 'MODIFY_POINTS_SCALED':
+            if (params.scaleBy === 'pinned_powers') {
+               p.survivalPoints += (p.powers.length * params.multiplier);
+            }
+            if (params.scaleBy === 'all_pinned_powers') {
+               const total = next.players.reduce((acc, curr) => acc + curr.powers.length, 0);
+               p.survivalPoints += (total * params.multiplier);
+            }
+            break;
+         case 'MODIFY_HEALTH':
+            p.health = Math.min(INITIAL_HEALTH, Math.max(0, p.health + params.amount));
+            break;
+         case 'MODIFY_HEALTH_SCALED':
+            if (params.scaleBy === 'pinned_adapt') {
+               p.health = Math.min(INITIAL_HEALTH, p.health + (p.powers.filter(c => c.type === 'ADAPT').length * params.multiplier));
+            }
+            break;
+         case 'MODIFY_POINTS_RANDOM':
+            p.survivalPoints += Math.floor(Math.random() * (params.max - params.min + 1)) + params.min;
+            break;
+         case 'MODIFY_HEALTH_RANDOM':
+            p.health = Math.min(INITIAL_HEALTH, Math.max(0, p.health + Math.floor(Math.random() * (params.max - params.min + 1)) + params.min));
+            break;
+         case 'SET_POINTS':
+            p.survivalPoints = params.amount;
+            break;
+         
+         case 'DRAW_CARDS':
+            for(let i=0; i<params.amount; i++) {
+                // Must ensure drawForActive takes activePlayerIndex strictly 
+                const swapIdx = next.activePlayerIndex;
+                next.activePlayerIndex = targetIndex;
+                next = drawForActive(next);
+                next.activePlayerIndex = swapIdx;
+            }
+            break;
+         case 'DISCARD_CARDS':
+            if (p.hand.length >= params.amount) {
+               let discarded: MatchCard[] = [];
+               if (params.filter === 'SURVIVAL') {
+                   const survs = p.hand.filter(c => c.type === 'SURVIVAL');
+                   discarded = survs.slice(0, params.amount);
+                   p.hand = p.hand.filter(c => !discarded.includes(c));
+               } else {
+                   discarded = p.hand.slice(0, params.amount);
+                   p.hand = p.hand.slice(params.amount);
+               }
+               next.discardPile = [...next.discardPile, ...discarded];
+            }
+            break;
+         case 'DISCARD_AND_DRAW':
+            if (p.hand.length >= params.discardAmount) {
+               const discarded = p.hand.slice(0, params.discardAmount);
+               p.hand = p.hand.slice(params.discardAmount);
+               next.discardPile = [...next.discardPile, ...discarded];
+               for(let i=0; i<params.drawAmount; i++) {
+                  const swapIdx = next.activePlayerIndex;
+                  next.activePlayerIndex = targetIndex;
+                  next = drawForActive(next);
+                  next.activePlayerIndex = swapIdx;
+               }
+            }
+            break;
+            
+         case 'SWAP_HANDS':
+            if (params.targetB === 'discard_pile') {
+               const tempH = [...p.hand];
+               p.hand = [...next.discardPile];
+               next.discardPile = tempH;
+            } else if (params.targetB === 'random_opponent' || params.targetB === 'target_player') {
+               const bIdxs = getTargetIndices(params.targetB);
+               if (bIdxs.length > 0) {
+                   const b = next.players[bIdxs[0]];
+                   const tempH = [...p.hand];
+                   p.hand = [...b.hand];
+                   b.hand = tempH;
+               }
+            }
+            break;
+         case 'SHUFFLE_HAND_INTO_DECK':
+            next.drawPile = shuffle([...next.drawPile, ...p.hand], pseudoRandom(Date.now()));
+            p.hand = [];
+            break;
+         case 'SHUFFLE_ALL_PILES':
+            next.drawPile = shuffle([...next.drawPile, ...next.discardPile, ...next.turnPile], pseudoRandom(Date.now()));
+            next.discardPile = [];
+            break;
+         case 'SHUFFLE_DISCARD_INTO_DECK':
+            next.drawPile = shuffle([...next.drawPile, ...next.discardPile], pseudoRandom(Date.now()));
+            next.discardPile = [];
+            break;
+         case 'RETURN_FROM_DISCARD':
+            if (next.discardPile.length >= params.amount) {
+               const cards = next.discardPile.slice(-params.amount);
+               next.discardPile = next.discardPile.slice(0, -params.amount);
+               p.hand.push(...cards);
+            }
+            break;
+         case 'STEAL_POINTS':
+            const amt = Math.min(p.survivalPoints, params.amount);
+            p.survivalPoints -= amt;
+            active.survivalPoints += amt;
+            break;
+            
+         case 'MODIFY_MAX_HAND':
+            p.maxHandModifier = (p.maxHandModifier ?? 0) + params.amount;
+            break;
+         case 'MODIFY_ACTIONS':
+            next.cardsPlayedThisTurn = Math.max(0, next.cardsPlayedThisTurn - params.amount);
+            break;
+         case 'REVERSE_TURN_ORDER':
+            next.turnDirection = next.turnDirection === 1 ? -1 : 1;
+            break;
+         case 'RESHUFFLE_TURN_ORDER': // Ignored for MVP sequential nature
+            break;
+            
+         case 'APPLY_BUFF':
+            p.twistEffect = params.buffId;
+            break;
+         case 'DESTROY_PINNED':
+            if (p.powers.length > 0) {
+               const dumped = p.powers.slice(0, params.amount);
+               p.powers = p.powers.slice(params.amount);
+               next.discardPile = [...next.discardPile, ...dumped];
+            }
+            break;
+         case 'SWAP_PINNED_POWERS':
+            const targetBIdx = getTargetIndices(params.targetB)[0];
+            if (targetBIdx !== undefined) {
+               const b = next.players[targetBIdx];
+               const tmp = [...p.powers];
+               p.powers = [...b.powers];
+               b.powers = tmp;
+            }
+            break;
+      }
+  };
 
+  evaluatePrims(primitives);
   return next;
 }
 
-function drawForActive(state: MatchPayload): MatchPayload {
+function drawForActive(state: MatchPayload, replayOutput?: BotTurnEvent[]): MatchPayload {
   let drawPile = [...state.drawPile];
   let discardPile = [...state.discardPile];
 
@@ -250,6 +431,17 @@ function drawForActive(state: MatchPayload): MatchPayload {
   const active = state.players[state.activePlayerIndex];
 
   if (card.type === "TWIST" || card.type === "CATACLYSM") {
+    // BUG 5 FIX: Catac/Twist cards drawn via drawForActive silently execute immediately. 
+    // We inject the trigger back into the replay buffer so the UI highlights the event.
+    if (replayOutput) {
+       replayOutput.push({
+         actorId: active?.id ?? "unknown",
+         actorName: active?.displayName ?? "Unknown Player",
+         action: "PLAY",
+         cardName: card.name,
+         card: card,
+       });
+    }
     return playCardImmediate(
       {
         ...state,
@@ -402,7 +594,7 @@ function runBotTurnsUntilHuman(state: MatchPayload): {
       actorName: active?.displayName ?? "Unknown Player",
       action: "DRAW",
     });
-    next = drawForActive(next);
+    next = drawForActive(next, replay);
 
     for (let i = 0; i < 3; i++) {
       const action = chooseBotAction(next);
@@ -566,10 +758,12 @@ export async function applyMatchAction(input: {
       const nextPlayers = [...state.players];
       nextPlayers[state.activePlayerIndex] = nextActive;
       
+      // BUG 4 FIX: Append to END of discardPile so it tops the stack, and accurately update topCard!
       return {
         ...state,
         players: nextPlayers,
-        discardPile: [card, ...state.discardPile],
+        discardPile: [...state.discardPile, card],
+        topCard: card,
         botTurnReplay: undefined,
       };
     }
@@ -599,46 +793,4 @@ export async function applyMatchAction(input: {
     default:
       return state;
   }
-}
-
-function applyDisaster(state: MatchPayload, card: MatchCard, targetId?: string): MatchPayload {
-  const players = [...state.players];
-  const activeIndex = state.activePlayerIndex;
-  
-  // Identify targets
-  let targets: MatchPlayer[] = [];
-  const effect = card.effect || "";
-
-  if (effect.includes("all_opponents") || card.disasterKind === "GLOBAL") {
-    targets = players.filter((_, idx) => idx !== activeIndex);
-  } else if (effect.includes("all_players")) {
-    targets = players;
-  } else if (targetId) {
-    const t = players.find(p => p.id === targetId);
-    if (t) targets = [t];
-  }
-
-  for (const target of targets) {
-    const tIdx = players.findIndex(p => p.id === target.id);
-    if (tIdx < 0) continue;
-
-    // Check protection
-    const hasProtection = players[tIdx].powers.find(p => p.blocksDisaster === card.disasterKind);
-    if (hasProtection && card.disasterKind !== "GLOBAL") {
-      // Consume protection
-      players[tIdx].powers = players[tIdx].powers.filter(p => p.id !== hasProtection.id);
-      continue;
-    }
-
-    // Apply negative effects
-    // Note: I'll handle both pointsDelta (loss) and health changes
-    const pLoss = Math.abs(card.pointsDelta); // Assuming disasters have positive pointsDelta representing loss
-    players[tIdx].survivalPoints = Math.max(0, players[tIdx].survivalPoints - pLoss);
-    
-    // Health changes
-    const hLoss = card.healthDelta ? Math.abs(card.healthDelta) : (card.gainHealth || 0);
-    players[tIdx].health = Math.max(0, players[tIdx].health - hLoss);
-  }
-
-  return { ...state, players };
 }

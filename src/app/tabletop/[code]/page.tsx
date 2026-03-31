@@ -39,6 +39,8 @@ type MatchPlayer = {
   health: number;
   hand: MatchCard[];
   powers: MatchCard[];
+  maxHandModifier?: number;
+  twistEffect?: string;
 };
 
 type GameStatePayload = {
@@ -598,7 +600,8 @@ export default function TabletopPage() {
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 50, opacity: 0 }}
             onClick={handlePass}
-            className="absolute bottom-[35%] md:bottom-[28%] right-[5%] md:right-[20%] z-[1500] fe-holo-btn !py-5 !px-10 !text-xl !border-amber-500 !text-amber-500 bg-black/50 shadow-[0_0_50px_rgba(245,158,11,0.2)]"
+            disabled={myPlayer ? myPlayer.hand.length > (5 + (myPlayer.maxHandModifier || 0)) : false}
+            className={`absolute bottom-[35%] md:bottom-[28%] right-[5%] md:right-[20%] z-[1500] fe-holo-btn !py-5 !px-10 !text-xl !border-amber-500 !text-amber-500 bg-black/50 shadow-[0_0_50px_rgba(245,158,11,0.2)] ${myPlayer && myPlayer.hand.length > (5 + (myPlayer.maxHandModifier || 0)) ? 'opacity-50 !cursor-not-allowed !border-amber-500/30' : ''}`}
           >
             Pass Control
           </motion.button>
