@@ -829,19 +829,21 @@
       "type": "SURVIVAL",
       "description": "+3 Points; discard 1 to draw 1.",
       "primitives": [
-        {
-          "type": "MODIFY_POINTS",
-          "params": {
-            "amount": 3,
-            "target": "self"
-          }
-        },
-        {
-          "type": "UNMAPPED",
-          "params": {
-            "effect": "3_points_discard_1_to_draw_1"
-          }
+      {
+        "type": "MODIFY_POINTS",
+        "params": {
+          "amount": 3,
+          "target": "self"
         }
+      },
+      {
+        "type": "DISCARD_AND_DRAW",
+        "params": {
+          "discardAmount": 1,
+          "drawAmount": 1,
+          "target": "self"
+        }
+      }
       ]
     },
     {
@@ -1367,9 +1369,11 @@
           }
         },
         {
-          "type": "UNMAPPED",
+          "type": "ADD_TRIGGER",
           "params": {
-            "effect": "2_points_block_first_catac"
+            "triggerKind": "NEGATE_NEXT_CATAC_EFFECT",
+            "duration": "round",
+            "target": "self"
           }
         }
       ]

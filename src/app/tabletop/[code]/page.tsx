@@ -108,19 +108,19 @@ function PhysicalCard({ card, onClick, isSelected, className, style }: { card: M
 
 function PlayerStatsHUD({ player, isActive }: { player: MatchPlayer; isActive: boolean }) {
   return (
-    <div className={`flex flex-col gap-2 p-6 rounded-[2rem] bg-black/40 backdrop-blur-3xl border ${isActive ? 'border-amber-500 shadow-[0_0_30px_rgba(245,158,11,0.2)]' : 'border-white/10'} w-48`}>
+    <div className={`flex flex-col gap-2 p-6 rounded-[2rem] bg-black/40 backdrop-blur-3xl border transition-all duration-700 ${isActive ? 'border-amber-500 shadow-[0_0_50px_rgba(245,158,11,0.4)] ring-2 ring-amber-500/20' : 'border-white/10'} w-48`}>
         <div className="flex items-center gap-3">
-           <div className="text-2xl">{player.emoji}</div>
+           <div className={`text-2xl transition-transform duration-500 ${isActive ? 'scale-125' : ''}`}>{player.emoji}</div>
            <div className="flex flex-col">
-              <span className="text-[10px] font-black uppercase tracking-widest text-white/40">{player.displayName}</span>
-              <div className={`h-[2px] ${isActive ? 'bg-amber-500 shadow-[0_0_10px_#f59e0b]' : 'bg-white/10'} w-8 mt-1`} />
+              <span className={`text-[10px] font-black uppercase tracking-widest transition-colors ${isActive ? 'text-amber-500' : 'text-white/40'}`}>{player.displayName}</span>
+              <div className={`h-[2px] transition-all duration-500 ${isActive ? 'bg-amber-500 shadow-[0_0_10px_#f59e0b] w-12' : 'bg-white/10 w-8'} mt-1`} />
            </div>
         </div>
         <div className="flex justify-between items-end mt-4">
            {/* ADDED: Bug 3 Hand Count */}
            <div className="flex flex-col">
               <span className="text-[7px] font-black text-white/50 uppercase tracking-widest">Cards</span>
-              <div className="text-3xl font-black italic text-white/80 fe-glow-text">{player.hand.length}</div>
+              <div className="text-3xl font-black italic text-white/80 fe-glow-text">{player.hand?.length ?? 0}</div>
            </div>
            <div className="flex flex-col items-center">
               <span className="text-[7px] font-black text-sky-400/60 uppercase tracking-widest">Energy</span>
@@ -191,7 +191,7 @@ function PlayPile({ cards }: { cards: MatchCard[] }) {
   );
 }
 
-function OpponentHand({ count, angle, player }: { count: number; angle: number; player: MatchPlayer }) {
+function OpponentHand({ count, angle, player, isActive }: { count: number; angle: number; player: MatchPlayer; isActive: boolean }) {
   // Convert angle to radians for orbit math
   const rad = angle * (Math.PI / 180);
   
@@ -203,21 +203,21 @@ function OpponentHand({ count, angle, player }: { count: number; angle: number; 
 
   return (
     <div 
-      className="absolute flex flex-col items-center justify-center gap-4 pointer-events-none"
+      className="absolute flex flex-col items-center justify-center gap-4 pointer-events-none [transform-style:preserve-3d]"
       style={{ 
         transform: `translate(${orbitX}px, ${orbitY}px)`,
         zIndex: 50
       }}
     >
        {/* Opponent HUD completely upright and untouched by rotation! */}
-       <div className="fe-hologram pointer-events-auto">
-          <PlayerStatsHUD player={player} isActive={false} />
+       <div className="fe-hologram pointer-events-auto [transform:rotateX(-60deg)]">
+          <PlayerStatsHUD player={player} isActive={isActive} />
        </div>
 
        {/* Opponent Cards (Flipped upside down so the opponent can read them) */}
        <div 
-         className="relative flex justify-center mt-4 w-full h-24"
-         style={{ transform: `rotate(180deg)` }}
+         className="relative flex justify-center mt-4 w-full h-24 [transform-style:preserve-3d]"
+         style={{ transform: `rotateZ(180deg) rotateX(-45deg)` }}
        >
           {[...Array(Math.max(0, count))].map((_, i) => (
              <motion.div
@@ -225,12 +225,13 @@ function OpponentHand({ count, angle, player }: { count: number; angle: number; 
                style={{ 
                  width: 'calc(var(--card-w) * 0.8)',
                  height: 'calc(var(--card-h) * 0.8)',
-                 transform: `translateX(calc(${(i - (count-1)/2)} * (var(--card-w) * 0.25))) rotate(${(i - (count-1)/2) * 6}deg)`,
+                 transform: `translateX(calc(${(i - (count-1)/2)} * (var(--card-w) * 0.25))) rotateZ(${(i - (count-1)/2) * 6}deg) translateZ(${i * 2}px)`,
                  transformOrigin: 'bottom center',
                  position: 'absolute',
-                 bottom: 0
+                 bottom: 0,
+                 transformStyle: 'preserve-3d'
                }}
-               className="bg-slate-900 border border-white/20 rounded-xl shadow-2xl overflow-hidden"
+               className="bg-slate-900 border border-white/20 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] overflow-hidden"
              >
                 {/* High-Fidelity Card Back */}
                 <div className="absolute inset-0 bg-[#020617]" />
@@ -591,7 +592,7 @@ export default function TabletopPage() {
            </div>
 
            {/* Player Seats: Projections & Hands */}
-           {payload?.players.map((p, idx) => {
+            {payload?.players.map((p, idx) => {
               const playerCount = payload.players.length;
               const myIdx = payload.players.findIndex(pl => pl.id === userId);
               const relativeIdx = (idx - myIdx + playerCount) % playerCount;
@@ -599,9 +600,15 @@ export default function TabletopPage() {
               
               if (p.id === userId) return null; 
               return (
-                <OpponentHand key={p.id} count={p.hand.length} angle={angle} player={p} />
+                <OpponentHand 
+                  key={p.id} 
+                  count={p.hand.length} 
+                  angle={angle} 
+                  player={p} 
+                  isActive={payload.activePlayerIndex === idx}
+                />
               );
-           })}
+            })}
 
       </div>
 
