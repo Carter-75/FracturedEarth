@@ -86,13 +86,6 @@
       "description": "+2 Health if first card played this turn.",
       "primitives": [
         {
-          "type": "MODIFY_HEALTH",
-          "params": {
-            "amount": 2,
-            "target": "self"
-          }
-        },
-        {
           "type": "IF_FIRST_CARD",
           "params": {},
           "then": [
@@ -245,26 +238,32 @@
       "description": "+4 Points; discard one card to double points.",
       "primitives": [
         {
-          "type": "MODIFY_POINTS",
-          "params": {
-            "amount": 4,
-            "target": "self"
-          }
-        },
-        {
-          "type": "DISCARD_CARDS",
-          "params": {
-            "amount": 1,
-            "target": "self"
-          }
-        },
-        {
-          "type": "ADD_TRIGGER",
-          "params": {
-            "triggerKind": "DOUBLE_NEXT_POINTS",
-            "duration": "next_event",
-            "target": "self"
-          }
+          "type": "IF_HAND_SIZE",
+          "params": { "op": ">=", "amount": 1 },
+          "then": [
+            {
+              "type": "DISCARD_CARDS",
+              "params": { "amount": 1, "target": "self" }
+            },
+            {
+              "type": "ADD_TRIGGER",
+              "params": {
+                "triggerKind": "DOUBLE_NEXT_POINTS",
+                "duration": "next_event",
+                "target": "self"
+              }
+            },
+            {
+              "type": "MODIFY_POINTS",
+              "params": { "amount": 4, "target": "self" }
+            }
+          ],
+          "else": [
+            {
+              "type": "MODIFY_POINTS",
+              "params": { "amount": 4, "target": "self" }
+            }
+          ]
         }
       ]
     },
@@ -306,7 +305,7 @@
         {
           "type": "IF_HAND_SIZE",
           "params": {
-            "op": "<=",
+            "op": "<",
             "amount": 3
           },
           "then": [
@@ -358,18 +357,18 @@
           }
         },
         {
-          "type": "DISCARD_CARDS",
-          "params": {
-            "amount": 1,
-            "target": "self"
-          }
-        },
-        {
-          "type": "DRAW_CARDS",
-          "params": {
-            "amount": 2,
-            "target": "self"
-          }
+          "type": "IF_HAND_SIZE",
+          "params": { "op": ">=", "amount": 1 },
+          "then": [
+            {
+              "type": "DISCARD_CARDS",
+              "params": { "amount": 1, "target": "self" }
+            },
+            {
+              "type": "DRAW_CARDS",
+              "params": { "amount": 2, "target": "self" }
+            }
+          ]
         }
       ]
     },
@@ -380,7 +379,7 @@
       "description": "+3 Health if no other Survival card played.",
       "primitives": [
         {
-          "type": "IF_FIRST_CARD",
+          "type": "IF_NO_OTHER_SURVIVAL",
           "params": {},
           "then": [
             {
@@ -450,13 +449,6 @@
             "amount": 2,
             "target": "self"
           }
-        },
-        {
-          "type": "APPLY_BUFF",
-          "params": {
-            "buffId": "discard_after_use",
-            "target": "self"
-          }
         }
       ]
     },
@@ -468,6 +460,13 @@
       "primitives": [
         {
           "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 1,
+            "target": "self"
+          }
+        },
+        {
+          "type": "DRAW_CARDS",
           "params": {
             "amount": 1,
             "target": "self"
@@ -685,18 +684,18 @@
           }
         },
         {
-          "type": "DISCARD_CARDS",
-          "params": {
-            "amount": 1,
-            "target": "self"
-          }
-        },
-        {
-          "type": "DRAW_CARDS",
-          "params": {
-            "amount": 2,
-            "target": "self"
-          }
+          "type": "IF_HAND_SIZE",
+          "params": { "op": ">=", "amount": 1 },
+          "then": [
+            {
+              "type": "DISCARD_CARDS",
+              "params": { "amount": 1, "target": "self" }
+            },
+            {
+              "type": "DRAW_CARDS",
+              "params": { "amount": 2, "target": "self" }
+            }
+          ]
         }
       ]
     },
@@ -880,13 +879,6 @@
             "amount": 1,
             "target": "self"
           }
-        },
-        {
-          "type": "APPLY_BUFF",
-          "params": {
-            "buffId": "discard_after_use",
-            "target": "self"
-          }
         }
       ]
     },
@@ -952,17 +944,11 @@
       "primitives": [
         {
           "type": "MODIFY_POINTS",
-          "params": {
-            "amount": 2,
-            "target": "self"
-          }
+          "params": { "amount": 2, "target": "self" }
         },
         {
-          "type": "MODIFY_POINTS",
-          "params": {
-            "amount": 2,
-            "target": "self"
-          }
+          "type": "DRAW_CARDS",
+          "params": { "amount": 1, "target": "self" }
         }
       ]
     },
@@ -997,24 +983,21 @@
       "primitives": [
         {
           "type": "MODIFY_HEALTH",
-          "params": {
-            "amount": 2,
-            "target": "self"
-          }
+          "params": { "amount": 2, "target": "self" }
         },
         {
-          "type": "DISCARD_CARDS",
-          "params": {
-            "amount": 1,
-            "target": "self"
-          }
-        },
-        {
-          "type": "DRAW_CARDS",
-          "params": {
-            "amount": 1,
-            "target": "self"
-          }
+          "type": "IF_HAND_SIZE",
+          "params": { "op": ">=", "amount": 1 },
+          "then": [
+            {
+              "type": "DISCARD_CARDS",
+              "params": { "amount": 1, "target": "self" }
+            },
+            {
+              "type": "DRAW_CARDS",
+              "params": { "amount": 1, "target": "self" }
+            }
+          ]
         }
       ]
     },
@@ -1049,24 +1032,21 @@
       "primitives": [
         {
           "type": "MODIFY_POINTS",
-          "params": {
-            "amount": 4,
-            "target": "self"
-          }
+          "params": { "amount": 4, "target": "self" }
         },
         {
-          "type": "DISCARD_CARDS",
-          "params": {
-            "amount": 1,
-            "target": "self"
-          }
-        },
-        {
-          "type": "MODIFY_POINTS",
-          "params": {
-            "amount": 2,
-            "target": "self"
-          }
+          "type": "IF_HAND_SIZE",
+          "params": { "op": ">=", "amount": 1 },
+          "then": [
+            {
+              "type": "DISCARD_CARDS",
+              "params": { "amount": 1, "target": "self" }
+            },
+            {
+              "type": "MODIFY_POINTS",
+              "params": { "amount": 2, "target": "self" }
+            }
+          ]
         }
       ]
     },
@@ -1123,17 +1103,7 @@
       "primitives": [
         {
           "type": "MODIFY_HEALTH",
-          "params": {
-            "amount": 2,
-            "target": "self"
-          }
-        },
-        {
-          "type": "APPLY_BUFF",
-          "params": {
-            "buffId": "discard_after_use",
-            "target": "self"
-          }
+          "params": { "amount": 2, "target": "self" }
         }
       ]
     },
@@ -1273,9 +1243,10 @@
           }
         },
         {
-          "type": "APPLY_BUFF",
+          "type": "ADD_TRIGGER",
           "params": {
-            "buffId": "redirect_negative",
+            "triggerKind": "REDIRECT_NEXT_NEGATIVE",
+            "duration": "round",
             "target": "self"
           }
         }
@@ -1316,11 +1287,18 @@
       "description": "Heal 1; discard 1.",
       "primitives": [
         {
-          "type": "DISCARD_CARDS",
-          "params": {
-            "amount": 1,
-            "target": "self"
-          }
+          "type": "IF_HAND_SIZE",
+          "params": { "op": ">=", "amount": 1 },
+          "then": [
+            {
+              "type": "DISCARD_CARDS",
+              "params": { "amount": 1, "target": "self" }
+            },
+            {
+              "type": "MODIFY_HEALTH",
+              "params": { "amount": 1, "target": "self" }
+            }
+          ]
         }
       ]
     },
@@ -1386,24 +1364,21 @@
       "primitives": [
         {
           "type": "MODIFY_POINTS",
-          "params": {
-            "amount": 4,
-            "target": "self"
-          }
+          "params": { "amount": 4, "target": "self" }
         },
         {
-          "type": "DISCARD_CARDS",
-          "params": {
-            "amount": 1,
-            "target": "self"
-          }
-        },
-        {
-          "type": "DRAW_CARDS",
-          "params": {
-            "amount": 2,
-            "target": "self"
-          }
+          "type": "IF_HAND_SIZE",
+          "params": { "op": ">=", "amount": 1 },
+          "then": [
+            {
+              "type": "DISCARD_CARDS",
+              "params": { "amount": 1, "target": "self" }
+            },
+            {
+              "type": "DRAW_CARDS",
+              "params": { "amount": 2, "target": "self" }
+            }
+          ]
         }
       ]
     },
@@ -1438,24 +1413,21 @@
       "primitives": [
         {
           "type": "MODIFY_POINTS",
-          "params": {
-            "amount": 3,
-            "target": "self"
-          }
+          "params": { "amount": 3, "target": "self" }
         },
         {
-          "type": "DISCARD_CARDS",
-          "params": {
-            "amount": 1,
-            "target": "self"
-          }
-        },
-        {
-          "type": "DRAW_CARDS",
-          "params": {
-            "amount": 1,
-            "target": "self"
-          }
+          "type": "IF_HAND_SIZE",
+          "params": { "op": ">=", "amount": 1 },
+          "then": [
+            {
+              "type": "DISCARD_CARDS",
+              "params": { "amount": 1, "target": "self" }
+            },
+            {
+              "type": "DRAW_CARDS",
+              "params": { "amount": 1, "target": "self" }
+            }
+          ]
         }
       ]
     },
@@ -1527,9 +1499,10 @@
           }
         },
         {
-          "type": "APPLY_BUFF",
+          "type": "ADD_TRIGGER",
           "params": {
-            "buffId": "redirect_negative",
+            "triggerKind": "REDIRECT_NEXT_NEGATIVE",
+            "duration": "round",
             "target": "self"
           }
         }
@@ -1543,17 +1516,17 @@
       "primitives": [
         {
           "type": "MODIFY_HEALTH",
-          "params": {
-            "amount": 1,
-            "target": "self"
-          }
+          "params": { "amount": 1, "target": "self" }
         },
         {
-          "type": "DISCARD_CARDS",
-          "params": {
-            "amount": 1,
-            "target": "self"
-          }
+          "type": "IF_HAND_SIZE",
+          "params": { "op": ">=", "amount": 1 },
+          "then": [
+            {
+              "type": "DISCARD_CARDS",
+              "params": { "amount": 1, "target": "self" }
+            }
+          ]
         }
       ]
     },
@@ -1610,24 +1583,21 @@
       "primitives": [
         {
           "type": "MODIFY_POINTS",
-          "params": {
-            "amount": 3,
-            "target": "self"
-          }
+          "params": { "amount": 3, "target": "self" }
         },
         {
-          "type": "DISCARD_CARDS",
-          "params": {
-            "amount": 1,
-            "target": "self"
-          }
-        },
-        {
-          "type": "DRAW_CARDS",
-          "params": {
-            "amount": 1,
-            "target": "self"
-          }
+          "type": "IF_HAND_SIZE",
+          "params": { "op": ">=", "amount": 1 },
+          "then": [
+            {
+              "type": "DISCARD_CARDS",
+              "params": { "amount": 1, "target": "self" }
+            },
+            {
+              "type": "DRAW_CARDS",
+              "params": { "amount": 1, "target": "self" }
+            }
+          ]
         }
       ]
     },
@@ -1653,7 +1623,7 @@
           }
         }
       ]
-    },
+},
     {
       "id": "survival_bio_reactor_core",
       "name": "Bio Reactor Core",
@@ -1668,18 +1638,27 @@
           }
         },
         {
-          "type": "DISCARD_CARDS",
+          "type": "IF_HAND_SIZE",
           "params": {
-            "amount": 1,
-            "target": "self"
-          }
-        },
-        {
-          "type": "MODIFY_HEALTH",
-          "params": {
-            "amount": 1,
-            "target": "self"
-          }
+            "op": ">=",
+            "amount": 1
+          },
+          "then": [
+            {
+              "type": "DISCARD_CARDS",
+              "params": {
+                "amount": 1,
+                "target": "self"
+              }
+            },
+            {
+              "type": "MODIFY_HEALTH",
+              "params": {
+                "amount": 1,
+                "target": "self"
+              }
+            }
+          ]
         }
       ]
     },
@@ -1812,13 +1791,6 @@
       "description": "All opponents lose 3 Health; can be blocked by Kinetic Dampener.",
       "disasterKind": "EARTHQUAKE",
       "primitives": [
-        {
-          "type": "MODIFY_HEALTH",
-          "params": {
-            "amount": -3,
-            "target": "target_player"
-          }
-        },
         {
           "type": "IF_UNBLOCKED",
           "params": {
@@ -2003,12 +1975,14 @@
       "disasterKind": "PLAGUE",
       "primitives": [
         {
-          "type": "ADD_TRIGGER",
-          "params": {
-            "triggerKind": "TEMP_DOUBLE_POWER_EFFECT",
-            "duration": "turn",
-            "target": "self"
-          }
+          "type": "IF_UNBLOCKED",
+          "params": { "target": "inherited" },
+          "then": [
+            {
+              "type": "DISCARD_CARDS",
+              "params": { "amount": 2, "target": "target_player" }
+            }
+          ]
         }
       ]
     },
@@ -2104,7 +2078,7 @@
       "name": "Storm Surge",
       "type": "DISASTER",
       "description": "All players lose 2 Points; blocked by Hydro-Gate.",
-      "disasterKind": "WILDFIRE",
+      "disasterKind": "FLOOD",
       "primitives": [
         {
           "type": "IF_UNBLOCKED",
@@ -3096,17 +3070,7 @@
       "primitives": [
         {
           "type": "MODIFY_HEALTH",
-          "params": {
-            "amount": 2,
-            "target": "self"
-          }
-        },
-        {
-          "type": "APPLY_BUFF",
-          "params": {
-            "buffId": "discard_after_use",
-            "target": "self"
-          }
+          "params": { "amount": 2, "target": "self" }
         }
       ]
     },
@@ -3380,13 +3344,6 @@
       "type": "CHAOS",
       "description": "Lose 2 Points; opponents gain 1 each.",
       "primitives": [
-        {
-          "type": "MODIFY_POINTS",
-          "params": {
-            "amount": 2,
-            "target": "self"
-          }
-        },
         {
           "type": "MODIFY_POINTS",
           "params": {
