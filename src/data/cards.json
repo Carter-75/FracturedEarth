@@ -3564,13 +3564,6 @@
             "amount": 15,
             "target": "self"
           }
-        },
-        {
-          "type": "MODIFY_POINTS",
-          "params": {
-            "amount": 15,
-            "target": "self"
-          }
         }
       ]
     },
@@ -3648,6 +3641,13 @@
           "type": "DRAW_CARDS",
           "params": {
             "amount": 5,
+            "target": "self"
+          }
+        },
+        {
+          "type": "DISCARD_CARDS",
+          "params": {
+            "amount": 2,
             "target": "self"
           }
         }
@@ -3737,13 +3737,6 @@
       "description": "All pinned Power cards gain +2 Points.",
       "tier": 3,
       "primitives": [
-        {
-          "type": "MODIFY_POINTS",
-          "params": {
-            "amount": 2,
-            "target": "self"
-          }
-        },
         {
           "type": "MODIFY_POINTS_SCALED",
           "params": {
@@ -3843,13 +3836,6 @@
           "type": "MODIFY_HEALTH",
           "params": {
             "amount": 5,
-            "target": "self"
-          }
-        },
-        {
-          "type": "MODIFY_POINTS",
-          "params": {
-            "amount": 10,
             "target": "self"
           }
         }
