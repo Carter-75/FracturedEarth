@@ -55,7 +55,8 @@ export type TriggerKind =
   | 'DISABLE_SURVIVAL_NEXT_TURN'
   | 'SKIP_NEXT_DRAW'
   | 'NEGATE_ALL_SURVIVAL_THIS_TURN'
-  | 'SWAP_HAND_WITH_DISCARD'
+  | 'POINTS_PER_TURN_1'
+  | 'HEAL_1_PER_TURN'
   | 'SKIP_NEXT_TURN';
 
 export interface Trigger {
@@ -530,6 +531,10 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string):
                const dumped = p.powers.slice(0, params.amount);
                p.powers = p.powers.slice(params.amount);
                next.discardPile = [...next.discardPile, ...dumped];
+               // Remove associated triggers
+               for (const d of dumped) {
+                   p.triggers = p.triggers.filter(t => t.sourceCardId !== d.id);
+               }
             }
             break;
           case 'SWAP_PINNED_POWERS': {
@@ -720,6 +725,12 @@ function advanceTurn(state: MatchPayload): MatchPayload {
       }
       if (t.kind === 'LOSE_1_HEALTH_PER_TURN_2') {
           prevP.health = Math.max(0, prevP.health - 1);
+      }
+      if (t.kind === 'POINTS_PER_TURN_1') {
+          prevP.survivalPoints += 1;
+      }
+      if (t.kind === 'HEAL_1_PER_TURN') {
+          prevP.health = Math.min(INITIAL_HEALTH, prevP.health + 1);
       }
   });
 

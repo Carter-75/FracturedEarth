@@ -2542,9 +2542,10 @@
           }
         },
         {
-          "type": "APPLY_BUFF",
+          "type": "ADD_TRIGGER",
           "params": {
-            "buffId": "points_per_turn_1",
+            "triggerKind": "POINTS_PER_TURN_1",
+            "duration": "permanent",
             "target": "self"
           }
         }
@@ -2564,9 +2565,10 @@
           }
         },
         {
-          "type": "APPLY_BUFF",
+          "type": "ADD_TRIGGER",
           "params": {
-            "buffId": "prevent_health_loss_1",
+            "triggerKind": "REDUCE_INCOMING_DISASTER_1",
+            "duration": "permanent",
             "target": "self"
           }
         }
@@ -2800,9 +2802,10 @@
           }
         },
         {
-          "type": "APPLY_BUFF",
+          "type": "ADD_TRIGGER",
           "params": {
-            "buffId": "health_per_turn_1",
+            "triggerKind": "HEAL_1_PER_TURN",
+            "duration": "permanent",
             "target": "self"
           }
         }
@@ -2817,9 +2820,10 @@
       "description": "Blocks Earthquake; draw 1 card.",
       "primitives": [
         {
-          "type": "APPLY_BUFF",
+          "type": "ADD_TRIGGER",
           "params": {
-            "buffId": "block_earthquake_draw_1",
+            "triggerKind": "BLOCK_EARTHQUAKE_DRAW_1",
+            "duration": "permanent",
             "target": "self"
           }
         }
@@ -2832,9 +2836,10 @@
       "description": "Blocks Wildfire; draw 1 card.",
       "primitives": [
         {
-          "type": "APPLY_BUFF",
+          "type": "ADD_TRIGGER",
           "params": {
-            "buffId": "block_wildfire_draw_1",
+            "triggerKind": "BLOCK_WILDFIRE_DRAW_1",
+            "duration": "permanent",
             "target": "self"
           }
         }
@@ -3174,13 +3179,6 @@
         {
           "type": "MODIFY_HEALTH",
           "params": {
-            "amount": 1,
-            "target": "self"
-          }
-        },
-        {
-          "type": "MODIFY_HEALTH",
-          "params": {
             "amount": -1,
             "target": "all_opponents"
           }
@@ -3240,21 +3238,7 @@
         {
           "type": "MODIFY_HEALTH",
           "params": {
-            "amount": 1,
-            "target": "self"
-          }
-        },
-        {
-          "type": "MODIFY_HEALTH",
-          "params": {
             "amount": -1,
-            "target": "self"
-          }
-        },
-        {
-          "type": "MODIFY_POINTS",
-          "params": {
-            "amount": 10,
             "target": "self"
           }
         }
@@ -3296,13 +3280,6 @@
       "description": "Randomly add/remove 1–5 Points from each player.",
       "primitives": [
         {
-          "type": "MODIFY_POINTS",
-          "params": {
-            "amount": 5,
-            "target": "self"
-          }
-        },
-        {
           "type": "MODIFY_POINTS_RANDOM",
           "params": {
             "min": -5,
@@ -3334,6 +3311,13 @@
           "params": {
             "amount": 3,
             "target": "self"
+          }
+        },
+        {
+          "type": "DISCARD_CARDS",
+          "params": {
+             "amount": 1,
+             "target": "self"
           }
         }
       ]
@@ -3395,13 +3379,6 @@
       "type": "CHAOS",
       "description": "Roll dice; gain/lose 1–3 Health.",
       "primitives": [
-        {
-          "type": "MODIFY_HEALTH",
-          "params": {
-            "amount": 3,
-            "target": "self"
-          }
-        },
         {
           "type": "MODIFY_HEALTH_RANDOM",
           "params": {
@@ -3902,13 +3879,6 @@
       "description": "50/50 chance gain/lose 3 Points.",
       "primitives": [
         {
-          "type": "MODIFY_POINTS",
-          "params": {
-            "amount": 3,
-            "target": "self"
-          }
-        },
-        {
           "type": "CHANCE",
           "params": {
             "probability": 0.5
@@ -3977,13 +3947,6 @@
       "type": "TWIST",
       "description": "Gain 5 Points.",
       "primitives": [
-        {
-          "type": "MODIFY_POINTS",
-          "params": {
-            "amount": 5,
-            "target": "self"
-          }
-        },
         {
           "type": "MODIFY_POINTS",
           "params": {
@@ -4065,13 +4028,6 @@
       "type": "TWIST",
       "description": "+3 Points; only affects drawer.",
       "primitives": [
-        {
-          "type": "MODIFY_POINTS",
-          "params": {
-            "amount": 3,
-            "target": "self"
-          }
-        },
         {
           "type": "MODIFY_POINTS",
           "params": {
@@ -4211,6 +4167,13 @@
             "amount": 2,
             "target": "self"
           }
+        },
+        {
+          "type": "DISCARD_CARDS",
+          "params": {
+            "amount": 1,
+            "target": "self"
+          }
         }
       ]
     },
@@ -4220,13 +4183,6 @@
       "type": "TWIST",
       "description": "+5 Points; only drawer affected.",
       "primitives": [
-        {
-          "type": "MODIFY_POINTS",
-          "params": {
-            "amount": 5,
-            "target": "self"
-          }
-        },
         {
           "type": "MODIFY_POINTS",
           "params": {
@@ -4263,14 +4219,14 @@
           "type": "MODIFY_POINTS",
           "params": {
             "amount": -10,
-            "target": "target_player"
+            "target": "all"
           }
         },
         {
           "type": "MODIFY_POINTS",
           "params": {
             "amount": -10,
-            "target": "all"
+            "target": "self"
           }
         },
         {
@@ -4292,8 +4248,15 @@
         {
           "type": "MODIFY_HEALTH",
           "params": {
-            "amount": -5,
-            "target": "target_player"
+            "amount": -3,
+            "target": "all"
+          }
+        },
+        {
+          "type": "MODIFY_HEALTH",
+          "params": {
+            "amount": -2,
+            "target": "self"
           }
         },
         {
@@ -4338,8 +4301,8 @@
         {
           "type": "MODIFY_POINTS",
           "params": {
-            "amount": -3,
-            "target": "target_player"
+            "amount": -2,
+            "target": "all"
           }
         },
         {
@@ -4414,8 +4377,8 @@
         {
           "type": "MODIFY_POINTS",
           "params": {
-            "amount": -3,
-            "target": "target_player"
+            "amount": -2,
+            "target": "all"
           }
         },
         {
@@ -4629,7 +4592,14 @@
           "type": "MODIFY_HEALTH",
           "params": {
             "amount": -1,
-            "target": "target_player"
+            "target": "all"
+          }
+        },
+        {
+          "type": "MODIFY_HEALTH",
+          "params": {
+            "amount": -1,
+            "target": "self"
           }
         },
         {
