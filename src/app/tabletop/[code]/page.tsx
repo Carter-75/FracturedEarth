@@ -135,12 +135,12 @@ function PlayerStatsHUD({ player, isActive }: { player: MatchPlayer; isActive: b
        {/* Opponent Pinned Powers */}
        {player.powers && player.powers.length > 0 && (
           <div 
-             className="absolute top-full mt-4 flex justify-center gap-2 [transform-style:preserve-3d] cursor-pointer hover:scale-105 transition-transform"
+             className="absolute top-full mt-4 flex justify-center gap-2 cursor-pointer hover:scale-105 transition-transform"
              onClick={() => window.dispatchEvent(new CustomEvent('fe:view-pile', { detail: player.powers }))}
              role="button"
           >
              {player.powers.map((card, i) => (
-                <div key={card.id} className="relative w-16 h-24 bg-slate-900 rounded-lg border border-amber-500/30 overflow-hidden shadow-[0_4px_10px_rgba(245,158,11,0.2)]" style={{ transform: `translateZ(10px)` }}>
+                <div key={card.id} className="relative w-16 h-24 bg-slate-900 rounded-lg border border-amber-500/30 overflow-hidden shadow-[0_4px_10px_rgba(245,158,11,0.2)]">
                    <div className="absolute inset-0 bg-amber-500/10" />
                    <div className="fe-hologram text-[6px] text-amber-500/80 p-1 text-center font-bold absolute bottom-0 w-full bg-black/50">{card.name}</div>
                 </div>
@@ -197,27 +197,25 @@ function OpponentHand({ count, angle, player, isActive }: { count: number; angle
   
   // Orbit radius (approximate based on CSS variables)
   const radius = 340; 
-  // CSS rotate(A) translateY(R) generates (-R*sin(A), R*cos(A)) geometrically
   const orbitX = -Math.sin(rad) * radius;
   const orbitY = Math.cos(rad) * radius;
 
   return (
     <div 
-      className="absolute flex flex-col items-center justify-center gap-4 pointer-events-none [transform-style:preserve-3d]"
+      className="absolute flex flex-col items-center justify-center gap-4 pointer-events-none"
       style={{ 
-        transform: `translate(${orbitX}px, ${orbitY}px)`,
+        transform: `translate(${orbitX}px, ${orbitY}px) rotate(${angle}deg)`,
         zIndex: 50
       }}
     >
-       {/* Opponent HUD completely upright and untouched by rotation! */}
-       <div className="fe-hologram pointer-events-auto [transform:rotateX(-60deg)]">
+       {/* Opponent HUD */}
+       <div className="fe-hologram pointer-events-auto">
           <PlayerStatsHUD player={player} isActive={isActive} />
        </div>
 
-       {/* Opponent Cards (Flipped upside down so the opponent can read them) */}
+       {/* Opponent Cards */}
        <div 
-         className="relative flex justify-center mt-4 w-full h-24 [transform-style:preserve-3d]"
-         style={{ transform: `rotateZ(180deg) rotateX(-45deg)` }}
+         className="relative flex justify-center mt-4 w-full h-24"
        >
           {[...Array(Math.max(0, count))].map((_, i) => (
              <motion.div
@@ -225,13 +223,12 @@ function OpponentHand({ count, angle, player, isActive }: { count: number; angle
                style={{ 
                  width: 'calc(var(--card-w) * 0.8)',
                  height: 'calc(var(--card-h) * 0.8)',
-                 transform: `translateX(calc(${(i - (count-1)/2)} * (var(--card-w) * 0.25))) rotateZ(${(i - (count-1)/2) * 6}deg) translateZ(${i * 2}px)`,
+                 transform: `translateX(calc(${(i - (count-1)/2)} * (var(--card-w) * 0.25))) rotate(${(i - (count-1)/2) * 6}deg)`,
                  transformOrigin: 'bottom center',
                  position: 'absolute',
-                 bottom: 0,
-                 transformStyle: 'preserve-3d'
+                 bottom: 0
                }}
-               className="bg-slate-900 border border-white/20 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] overflow-hidden"
+               className="bg-slate-900 border border-white/20 rounded-xl shadow-2xl overflow-hidden"
              >
                 {/* High-Fidelity Card Back */}
                 <div className="absolute inset-0 bg-[#020617]" />
@@ -531,19 +528,18 @@ export default function TabletopPage() {
         ))}
       </div>
 
-      {/* Cool Holographic Header (Restored & Enhanced) */}
-      <div className="absolute top-12 left-12 z-[1000] pointer-events-none">
-         <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-4">
-               <h1 className="text-3xl font-black italic tracking-tighter text-white fe-glow-text">
-                  FRACTURED<span className="text-amber-500">EARTH</span>
-               </h1>
-               <div className="w-[1px] h-6 bg-white/20" />
-               <div className="fe-hologram text-[10px] text-white/40 uppercase tracking-[0.2em] fe-flicker">SECTOR_{code}</div>
-            </div>
-            <div className="flex items-center gap-2">
-               <div className="w-12 h-[2px] bg-gradient-to-r from-amber-500/0 via-amber-500/50 to-amber-500/0" />
-               <div className="fe-hologram text-[8px] text-amber-500/60 font-bold uppercase tracking-widest">CYCLE_{payload?.round || 0}_LOGGED</div>
+      {/* Iconic Cinematic Logo (Phase 9 Revert) */}
+      <div className="absolute top-10 left-10 z-[1000] pointer-events-none">
+         <div className="flex flex-col -gap-4">
+            <h1 className="text-xl font-black italic tracking-[0.4em] text-white/30 fe-hologram uppercase fe-flicker">
+               FRACTURED
+            </h1>
+            <h1 className="text-6xl font-black italic tracking-tighter text-amber-500 fe-glow-text leading-[0.8] drop-shadow-[0_0_30px_rgba(245,158,11,0.5)]">
+               EARTH
+            </h1>
+            <div className="flex items-center gap-2 mt-4">
+               <div className="w-12 h-[1px] bg-amber-500/30" />
+               <div className="fe-hologram text-[7px] text-amber-500/50 font-bold uppercase tracking-[0.3em]">CYCLE_{payload?.round || 0}_LOGGED</div>
             </div>
          </div>
       </div>
