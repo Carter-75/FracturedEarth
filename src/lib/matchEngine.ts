@@ -216,6 +216,11 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string):
       return next;
   }
 
+  // --- TURN BLOCK CHECKS ---
+  if (card.type === 'SURVIVAL' && activeP.triggers.some(t => t.kind === 'DISABLE_SURVIVAL_NEXT_TURN')) {
+     throw new Error('Survival cards are disabled this turn');
+  }
+
   // --- REDIRECT LOGIC ---
   const isDisaster = card.type === 'DISASTER';
   const isNegativeCard = isDisaster || card.type === 'CHAOS' || card.type === 'CATACLYSM';

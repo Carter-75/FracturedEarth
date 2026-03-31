@@ -41,6 +41,12 @@ type MatchPlayer = {
   powers: MatchCard[];
   maxHandModifier?: number;
   twistEffect?: string;
+  triggers: Array<{
+    id: string;
+    kind: string;
+    value?: any;
+    duration: string;
+  }>;
 };
 
 type GameStatePayload = {
@@ -637,21 +643,30 @@ export default function TabletopPage() {
            <div className="relative h-[var(--card-h)] flex justify-center pointer-events-auto w-full max-w-2xl shrink-0">
               <AnimatePresence>
                  {myPlayer.hand.map((card, i) => (
-                   <motion.div
-                     key={card.id}
-                     role="button"
-                     tabIndex={0}
-                     aria-label={`Select ${card.name}`}
-                     initial={{ y: 200, opacity: 0 }}
-                     animate={{ 
-                       y: 0, opacity: 1, 
-                       rotate: (i - (myPlayer.hand.length-1)/2) * 4,
-                       x: `calc(${(i - (myPlayer.hand.length-1)/2)} * var(--hand-spread))`
-                     }}
-                     whileHover={isDrawPending ? {} : { y: -40, rotate: 0, scale: 1.1, zIndex: 1000 }}
-                     className={`absolute origin-bottom ${isDrawPending ? 'opacity-40 grayscale pointer-events-none cursor-not-allowed' : 'cursor-pointer'}`}
-                     onClick={() => !isDrawPending && setSelectedCardId(card.id)}
-                   >
+                    <motion.div
+                      key={card.id}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Select ${card.name}`}
+                      initial={{ y: 200, opacity: 0 }}
+                      animate={{ 
+                        y: 0, opacity: 1, 
+                        rotate: (i - (myPlayer.hand.length-1)/2) * 4,
+                        x: `calc(${(i - (myPlayer.hand.length-1)/2)} * var(--hand-spread))`
+                      }}
+                      whileHover={isDrawPending ? {} : { y: -40, rotate: 0, scale: 1.1, zIndex: 1000 }}
+                      className={`absolute origin-bottom 
+                        ${isDrawPending ? 'opacity-40 grayscale pointer-events-none cursor-not-allowed' : ''} 
+                        ${card.type === 'SURVIVAL' && myPlayer.triggers?.some(t => t.kind === 'DISABLE_SURVIVAL_NEXT_TURN') ? 'opacity-30 grayscale cursor-not-allowed' : 'cursor-pointer'}`}
+                      onClick={() => {
+                        if (isDrawPending) return;
+                        if (card.type === 'SURVIVAL' && myPlayer.triggers?.some(t => t.kind === 'DISABLE_SURVIVAL_NEXT_TURN')) {
+                            setError('Survival cards are currently disabled');
+                            return;
+                        }
+                        setSelectedCardId(card.id);
+                      }}
+                    >
                       <PhysicalCard card={card} />
                    </motion.div>
                  ))}
