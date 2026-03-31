@@ -108,6 +108,7 @@ export async function buildInitialMatch(humanUserId: string): Promise<MatchPaylo
       findCard('chaos_orbital_strike'),
     ],
     powers: [],
+    triggers: [],
   };
 
   const bot = {
@@ -119,6 +120,7 @@ export async function buildInitialMatch(humanUserId: string): Promise<MatchPaylo
     health: 5,
     hand: [findCard('disaster_megaquake'), findCard('survival_deep_core_drill')],
     powers: [],
+    triggers: [],
   };
 
   const usedIds = new Set<string>([...human.hand, ...bot.hand].map((c) => c.id));
@@ -137,9 +139,9 @@ export async function buildInitialMatch(humanUserId: string): Promise<MatchPaylo
     players: [human, bot],
     drawPile,
     discardPile: [],
+    turnPile: [],
     topCard: undefined,
     turnDirection: 1,
-    turnPile: [],
     isGlobalDisasterPhase: false,
     cardsPlayedThisTurn: 0,
     hasDrawnThisTurn: false,

@@ -167,9 +167,11 @@
       "description": "Upgrade one pinned Power card (temporarily doubles effect).",
       "primitives": [
         {
-          "type": "UNMAPPED",
+          "type": "ADD_TRIGGER",
           "params": {
-            "effect": "upgrade_one_pinned_power_card_temporarily_doubles_effect"
+            "triggerKind": "TEMP_DOUBLE_POWER_EFFECT",
+            "duration": "turn",
+            "target": "self"
           }
         }
       ]
@@ -188,9 +190,11 @@
           }
         },
         {
-          "type": "UNMAPPED",
+          "type": "ADD_TRIGGER",
           "params": {
-            "effect": "3_points_if_next_card_is_chaos_negate_effect"
+            "triggerKind": "NEGATE_NEXT_NEGATIVE_EFFECT",
+            "duration": "next_event",
+            "target": "self"
           }
         }
       ]
@@ -209,9 +213,11 @@
           }
         },
         {
-          "type": "UNMAPPED",
+          "type": "ADD_TRIGGER",
           "params": {
-            "effect": "heal_1_health_and_prevent_next_point_loss"
+            "triggerKind": "PREVENT_NEXT_POINT_LOSS",
+            "duration": "next_event",
+            "target": "self"
           }
         }
       ]
@@ -223,9 +229,11 @@
       "description": "Block first Disaster damage this turn.",
       "primitives": [
         {
-          "type": "UNMAPPED",
+          "type": "ADD_TRIGGER",
           "params": {
-            "effect": "block_first_disaster_damage_this_turn"
+            "triggerKind": "NEGATE_NEXT_DISASTER",
+            "duration": "round",
+            "target": "self"
           }
         }
       ]
@@ -244,9 +252,18 @@
           }
         },
         {
-          "type": "UNMAPPED",
+          "type": "DISCARD_CARDS",
           "params": {
-            "effect": "4_points_discard_one_card_to_double_points"
+            "amount": 1,
+            "target": "self"
+          }
+        },
+        {
+          "type": "ADD_TRIGGER",
+          "params": {
+            "triggerKind": "DOUBLE_NEXT_POINTS",
+            "duration": "next_event",
+            "target": "self"
           }
         }
       ]
@@ -265,9 +282,10 @@
           }
         },
         {
-          "type": "UNMAPPED",
+          "type": "DRAW_CARDS",
           "params": {
-            "effect": "2_health_draw_1_card"
+            "amount": 1,
+            "target": "self"
           }
         }
       ]
@@ -286,10 +304,20 @@
           }
         },
         {
-          "type": "UNMAPPED",
+          "type": "IF_HAND_SIZE",
           "params": {
-            "effect": "3_points_if_hand_3_cards_draw_1"
-          }
+            "op": "<=",
+            "amount": 3
+          },
+          "then": [
+            {
+              "type": "DRAW_CARDS",
+              "params": {
+                "amount": 1,
+                "target": "self"
+              }
+            }
+          ]
         }
       ]
     },
@@ -307,9 +335,11 @@
           }
         },
         {
-          "type": "UNMAPPED",
+          "type": "ADD_TRIGGER",
           "params": {
-            "effect": "5_points_reduce_incoming_disaster_effect_by_1"
+            "triggerKind": "REDUCE_INCOMING_DISASTER_1",
+            "duration": "round",
+            "target": "self"
           }
         }
       ]
@@ -328,9 +358,17 @@
           }
         },
         {
-          "type": "UNMAPPED",
+          "type": "DISCARD_CARDS",
           "params": {
-            "effect": "2_points_discard_1_to_draw_2"
+            "amount": 1,
+            "target": "self"
+          }
+        },
+        {
+          "type": "DRAW_CARDS",
+          "params": {
+            "amount": 2,
+            "target": "self"
           }
         }
       ]
@@ -342,17 +380,17 @@
       "description": "+3 Health if no other Survival card played.",
       "primitives": [
         {
-          "type": "MODIFY_HEALTH",
-          "params": {
-            "amount": 3,
-            "target": "self"
-          }
-        },
-        {
-          "type": "UNMAPPED",
-          "params": {
-            "effect": "3_health_if_no_other_survival_card_played"
-          }
+          "type": "IF_FIRST_CARD",
+          "params": {},
+          "then": [
+            {
+              "type": "MODIFY_HEALTH",
+              "params": {
+                "amount": 3,
+                "target": "self"
+              }
+            }
+          ]
         }
       ]
     },
@@ -370,10 +408,17 @@
           }
         },
         {
-          "type": "UNMAPPED",
-          "params": {
-            "effect": "3_points_1_if_chaos_card_played_previously"
-          }
+          "type": "IF_CHAOS_PLAYED",
+          "params": {},
+          "then": [
+            {
+              "type": "MODIFY_POINTS",
+              "params": {
+                "amount": 1,
+                "target": "self"
+              }
+            }
+          ]
         }
       ]
     },
@@ -384,16 +429,11 @@
       "description": "+1 Health per pinned Adapt card.",
       "primitives": [
         {
-          "type": "MODIFY_HEALTH",
+          "type": "MODIFY_HEALTH_SCALED",
           "params": {
-            "amount": 1,
+            "scaleBy": "pinned_adapt",
+            "multiplier": 1,
             "target": "self"
-          }
-        },
-        {
-          "type": "UNMAPPED",
-          "params": {
-            "effect": "1_health_per_pinned_adapt_card"
           }
         }
       ]
@@ -464,9 +504,17 @@
       "description": "Draw 2; opponent discards 1.",
       "primitives": [
         {
-          "type": "UNMAPPED",
+          "type": "DRAW_CARDS",
           "params": {
-            "effect": "draw_2_opponent_discards_1"
+            "amount": 2,
+            "target": "self"
+          }
+        },
+        {
+          "type": "DISCARD_CARDS",
+          "params": {
+            "amount": 1,
+            "target": "target_opponent"
           }
         }
       ]
@@ -485,9 +533,11 @@
           }
         },
         {
-          "type": "UNMAPPED",
+          "type": "ADD_TRIGGER",
           "params": {
-            "effect": "3_points_can_redirect_next_disaster"
+            "triggerKind": "REDIRECT_NEXT_DISASTER",
+            "duration": "round",
+            "target": "self"
           }
         }
       ]
@@ -499,9 +549,11 @@
       "description": "Prevent opponent from drawing next card.",
       "primitives": [
         {
-          "type": "UNMAPPED",
+          "type": "ADD_TRIGGER",
           "params": {
-            "effect": "prevent_opponent_from_drawing_next_card"
+            "triggerKind": "PREVENT_OPPONENT_DRAW_1",
+            "duration": "next_event",
+            "target": "target_opponent"
           }
         }
       ]
@@ -520,9 +572,10 @@
           }
         },
         {
-          "type": "UNMAPPED",
+          "type": "STEAL_POINTS",
           "params": {
-            "effect": "3_points_can_steal_1_point_from_target"
+            "amount": 1,
+            "target": "target_opponent"
           }
         }
       ]
@@ -541,9 +594,11 @@
           }
         },
         {
-          "type": "UNMAPPED",
+          "type": "ADD_TRIGGER",
           "params": {
-            "effect": "2_points_hand_limit_temporarily_1"
+            "triggerKind": "HAND_LIMIT_TEMP_1",
+            "duration": "turn",
+            "target": "self"
           }
         }
       ]
@@ -562,9 +617,11 @@
           }
         },
         {
-          "type": "UNMAPPED",
+          "type": "ADD_TRIGGER",
           "params": {
-            "effect": "2_health_protects_next_turn"
+            "triggerKind": "NEGATE_NEXT_DISASTER",
+            "duration": "round",
+            "target": "self"
           }
         }
       ]
@@ -583,9 +640,10 @@
           }
         },
         {
-          "type": "UNMAPPED",
+          "type": "DRAW_CARDS",
           "params": {
-            "effect": "draw_1_revive_1_health_if_needed"
+            "amount": 1,
+            "target": "self"
           }
         }
       ]
@@ -604,9 +662,11 @@
           }
         },
         {
-          "type": "UNMAPPED",
+          "type": "ADD_TRIGGER",
           "params": {
-            "effect": "1_health_next_disaster_negated"
+            "triggerKind": "NEGATE_NEXT_DISASTER",
+            "duration": "next_event",
+            "target": "self"
           }
         }
       ]
@@ -625,9 +685,17 @@
           }
         },
         {
-          "type": "UNMAPPED",
+          "type": "DISCARD_CARDS",
           "params": {
-            "effect": "3_points_discard_1_to_draw_2"
+            "amount": 1,
+            "target": "self"
+          }
+        },
+        {
+          "type": "DRAW_CARDS",
+          "params": {
+            "amount": 2,
+            "target": "self"
           }
         }
       ]
@@ -646,9 +714,11 @@
           }
         },
         {
-          "type": "UNMAPPED",
+          "type": "ADD_TRIGGER",
           "params": {
-            "effect": "2_points_block_chaos_effect_once"
+            "triggerKind": "NEGATE_NEXT_NEGATIVE_EFFECT",
+            "duration": "round",
+            "target": "self"
           }
         }
       ]
@@ -667,10 +737,20 @@
           }
         },
         {
-          "type": "UNMAPPED",
+          "type": "IF_HAND_SIZE",
           "params": {
-            "effect": "3_points_draw_1_card_if_hand_5"
-          }
+            "op": "<",
+            "amount": 5
+          },
+          "then": [
+            {
+              "type": "DRAW_CARDS",
+              "params": {
+                "amount": 1,
+                "target": "self"
+              }
+            }
+          ]
         }
       ]
     },
@@ -688,9 +768,11 @@
           }
         },
         {
-          "type": "UNMAPPED",
+          "type": "ADD_TRIGGER",
           "params": {
-            "effect": "2_points_temporary_hand_1"
+            "triggerKind": "HAND_LIMIT_TEMP_1",
+            "duration": "turn",
+            "target": "self"
           }
         }
       ]
@@ -709,9 +791,11 @@
           }
         },
         {
-          "type": "UNMAPPED",
+          "type": "ADD_TRIGGER",
           "params": {
-            "effect": "heal_1_health_prevent_next_catac_effect"
+            "triggerKind": "NEGATE_NEXT_CATAC_EFFECT",
+            "duration": "round",
+            "target": "self"
           }
         }
       ]
@@ -730,9 +814,11 @@
           }
         },
         {
-          "type": "UNMAPPED",
+          "type": "ADD_TRIGGER",
           "params": {
-            "effect": "2_health_can_block_next_disaster"
+            "triggerKind": "NEGATE_NEXT_DISASTER",
+            "duration": "round",
+            "target": "self"
           }
         }
       ]
@@ -772,9 +858,10 @@
           }
         },
         {
-          "type": "UNMAPPED",
+          "type": "ENSURE_HAND_SIZE",
           "params": {
-            "effect": "5_points_reset_hand_to_5_if_lower"
+            "amount": 5,
+            "target": "self"
           }
         }
       ]
@@ -815,9 +902,11 @@
           }
         },
         {
-          "type": "UNMAPPED",
+          "type": "ADD_TRIGGER",
           "params": {
-            "effect": "2_health_prevent_first_disaster_next_turn"
+            "triggerKind": "NEGATE_NEXT_DISASTER",
+            "duration": "round",
+            "target": "self"
           }
         }
       ]
@@ -836,10 +925,20 @@
           }
         },
         {
-          "type": "UNMAPPED",
+          "type": "IF_HAND_SIZE",
           "params": {
-            "effect": "3_points_1_if_hand_3"
-          }
+            "op": "<=",
+            "amount": 3
+          },
+          "then": [
+            {
+              "type": "MODIFY_POINTS",
+              "params": {
+                "amount": 1,
+                "target": "self"
+              }
+            }
+          ]
         }
       ]
     },
@@ -879,9 +978,11 @@
           }
         },
         {
-          "type": "UNMAPPED",
+          "type": "ADD_TRIGGER",
           "params": {
-            "effect": "2_points_block_next_disaster"
+            "triggerKind": "NEGATE_NEXT_DISASTER",
+            "duration": "round",
+            "target": "self"
           }
         }
       ]
@@ -900,9 +1001,17 @@
           }
         },
         {
-          "type": "UNMAPPED",
+          "type": "DISCARD_CARDS",
           "params": {
-            "effect": "2_health_discard_1_to_draw_1"
+            "amount": 1,
+            "target": "self"
+          }
+        },
+        {
+          "type": "DRAW_CARDS",
+          "params": {
+            "amount": 1,
+            "target": "self"
           }
         }
       ]
@@ -921,9 +1030,11 @@
           }
         },
         {
-          "type": "UNMAPPED",
+          "type": "ADD_TRIGGER",
           "params": {
-            "effect": "1_health_prevent_next_catac_effect"
+            "triggerKind": "NEGATE_NEXT_CATAC_EFFECT",
+            "duration": "round",
+            "target": "self"
           }
         }
       ]
@@ -942,9 +1053,17 @@
           }
         },
         {
-          "type": "UNMAPPED",
+          "type": "DISCARD_CARDS",
           "params": {
-            "effect": "4_points_discard_1_card_to_gain_2_points"
+            "amount": 1,
+            "target": "self"
+          }
+        },
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 2,
+            "target": "self"
           }
         }
       ]
@@ -956,9 +1075,9 @@
       "description": "Draw 2; +1 Health.",
       "primitives": [
         {
-          "type": "MODIFY_HEALTH",
+          "type": "DRAW_CARDS",
           "params": {
-            "amount": 1,
+            "amount": 2,
             "target": "self"
           }
         },
@@ -985,9 +1104,11 @@
           }
         },
         {
-          "type": "UNMAPPED",
+          "type": "ADD_TRIGGER",
           "params": {
-            "effect": "3_points_can_negate_one_chaos_card"
+            "triggerKind": "NEGATE_NEXT_NEGATIVE_EFFECT",
+            "duration": "round",
+            "target": "self"
           }
         }
       ]
@@ -1028,9 +1149,11 @@
           }
         },
         {
-          "type": "UNMAPPED",
+          "type": "ADD_TRIGGER",
           "params": {
-            "effect": "2_points_next_catac_effect_negated"
+            "triggerKind": "NEGATE_NEXT_CATAC_EFFECT",
+            "duration": "round",
+            "target": "self"
           }
         }
       ]
@@ -1049,9 +1172,10 @@
           }
         },
         {
-          "type": "UNMAPPED",
+          "type": "DRAW_CARDS",
           "params": {
-            "effect": "1_health_draw_1_card"
+            "amount": 1,
+            "target": "self"
           }
         }
       ]
@@ -1070,9 +1194,11 @@
           }
         },
         {
-          "type": "UNMAPPED",
+          "type": "ADD_TRIGGER",
           "params": {
-            "effect": "2_health_prevent_one_negative_effect"
+            "triggerKind": "NEGATE_NEXT_NEGATIVE_EFFECT",
+            "duration": "round",
+            "target": "self"
           }
         }
       ]
@@ -1084,10 +1210,27 @@
       "description": "Draw 2; discard 1 if hand >5.",
       "primitives": [
         {
-          "type": "UNMAPPED",
+          "type": "DRAW_CARDS",
           "params": {
-            "effect": "draw_2_discard_1_if_hand_5"
+            "amount": 2,
+            "target": "self"
           }
+        },
+        {
+          "type": "IF_HAND_SIZE",
+          "params": {
+            "op": ">=",
+            "amount": 6
+          },
+          "then": [
+            {
+              "type": "DISCARD_CARDS",
+              "params": {
+                "amount": 1,
+                "target": "self"
+              }
+            }
+          ]
         }
       ]
     },
@@ -1105,9 +1248,11 @@
           }
         },
         {
-          "type": "UNMAPPED",
+          "type": "ADD_TRIGGER",
           "params": {
-            "effect": "3_points_block_one_disaster"
+            "triggerKind": "NEGATE_NEXT_DISASTER",
+            "duration": "round",
+            "target": "self"
           }
         }
       ]
@@ -1148,10 +1293,17 @@
           }
         },
         {
-          "type": "UNMAPPED",
-          "params": {
-            "effect": "1_health_1_if_chaos_played_last_turn"
-          }
+          "type": "IF_CHAOS_PLAYED",
+          "params": {},
+          "then": [
+            {
+              "type": "MODIFY_HEALTH",
+              "params": {
+                "amount": 1,
+                "target": "self"
+              }
+            }
+          ]
         }
       ]
     },
@@ -1184,10 +1336,20 @@
           }
         },
         {
-          "type": "UNMAPPED",
+          "type": "IF_HAND_SIZE",
           "params": {
-            "effect": "3_points_draw_1_if_hand_4"
-          }
+            "op": "<=",
+            "amount": 4
+          },
+          "then": [
+            {
+              "type": "DRAW_CARDS",
+              "params": {
+                "amount": 1,
+                "target": "self"
+              }
+            }
+          ]
         }
       ]
     },
@@ -1226,9 +1388,17 @@
           }
         },
         {
-          "type": "UNMAPPED",
+          "type": "DISCARD_CARDS",
           "params": {
-            "effect": "4_points_discard_1_to_draw_2"
+            "amount": 1,
+            "target": "self"
+          }
+        },
+        {
+          "type": "DRAW_CARDS",
+          "params": {
+            "amount": 2,
+            "target": "self"
           }
         }
       ]
@@ -1247,9 +1417,11 @@
           }
         },
         {
-          "type": "UNMAPPED",
+          "type": "ADD_TRIGGER",
           "params": {
-            "effect": "heal_2_health_prevent_one_negative_effect"
+            "triggerKind": "NEGATE_NEXT_NEGATIVE_EFFECT",
+            "duration": "round",
+            "target": "self"
           }
         }
       ]
@@ -1268,9 +1440,17 @@
           }
         },
         {
-          "type": "UNMAPPED",
+          "type": "DISCARD_CARDS",
           "params": {
-            "effect": "3_points_discard_1_to_draw_1"
+            "amount": 1,
+            "target": "self"
+          }
+        },
+        {
+          "type": "DRAW_CARDS",
+          "params": {
+            "amount": 1,
+            "target": "self"
           }
         }
       ]
@@ -1289,10 +1469,20 @@
           }
         },
         {
-          "type": "UNMAPPED",
+          "type": "IF_HAND_SIZE",
           "params": {
-            "effect": "2_health_draw_1_if_hand_3"
-          }
+            "op": "<=",
+            "amount": 3
+          },
+          "then": [
+            {
+              "type": "DRAW_CARDS",
+              "params": {
+                "amount": 1,
+                "target": "self"
+              }
+            }
+          ]
         }
       ]
     },
@@ -1310,9 +1500,11 @@
           }
         },
         {
-          "type": "UNMAPPED",
+          "type": "ADD_TRIGGER",
           "params": {
-            "effect": "4_points_temporary_hand_1"
+            "triggerKind": "HAND_LIMIT_TEMP_1",
+            "duration": "turn",
+            "target": "self"
           }
         }
       ]
@@ -1375,9 +1567,11 @@
           }
         },
         {
-          "type": "UNMAPPED",
+          "type": "ADD_TRIGGER",
           "params": {
-            "effect": "2_points_block_first_catac"
+            "triggerKind": "NEGATE_NEXT_CATAC_EFFECT",
+            "duration": "round",
+            "target": "self"
           }
         }
       ]
@@ -1396,9 +1590,10 @@
           }
         },
         {
-          "type": "UNMAPPED",
+          "type": "DRAW_CARDS",
           "params": {
-            "effect": "2_health_draw_1_card"
+            "amount": 1,
+            "target": "self"
           }
         }
       ]
@@ -1417,9 +1612,17 @@
           }
         },
         {
-          "type": "UNMAPPED",
+          "type": "DISCARD_CARDS",
           "params": {
-            "effect": "3_points_discard_1_to_draw_1"
+            "amount": 1,
+            "target": "self"
+          }
+        },
+        {
+          "type": "DRAW_CARDS",
+          "params": {
+            "amount": 1,
+            "target": "self"
           }
         }
       ]
@@ -1431,9 +1634,18 @@
       "description": "Heal 1; prevent next Disaster.",
       "primitives": [
         {
-          "type": "UNMAPPED",
+          "type": "MODIFY_HEALTH",
           "params": {
-            "effect": "heal_1_prevent_next_disaster"
+            "amount": 1,
+            "target": "self"
+          }
+        },
+        {
+          "type": "ADD_TRIGGER",
+          "params": {
+            "triggerKind": "NEGATE_NEXT_DISASTER",
+            "duration": "round",
+            "target": "self"
           }
         }
       ]
@@ -1452,16 +1664,17 @@
           }
         },
         {
-          "type": "MODIFY_HEALTH",
+          "type": "DISCARD_CARDS",
           "params": {
             "amount": 1,
             "target": "self"
           }
         },
         {
-          "type": "UNMAPPED",
+          "type": "MODIFY_HEALTH",
           "params": {
-            "effect": "4_points_discard_1_to_gain_1_health"
+            "amount": 1,
+            "target": "self"
           }
         }
       ]
@@ -1480,9 +1693,11 @@
           }
         },
         {
-          "type": "UNMAPPED",
+          "type": "ADD_TRIGGER",
           "params": {
-            "effect": "2_health_block_one_catac"
+            "triggerKind": "NEGATE_NEXT_CATAC_EFFECT",
+            "duration": "round",
+            "target": "self"
           }
         }
       ]
@@ -1501,9 +1716,17 @@
           }
         },
         {
-          "type": "UNMAPPED",
+          "type": "DISCARD_CARDS",
           "params": {
-            "effect": "3_points_discard_1_to_draw_1"
+            "amount": 1,
+            "target": "self"
+          }
+        },
+        {
+          "type": "DRAW_CARDS",
+          "params": {
+            "amount": 1,
+            "target": "self"
           }
         }
       ]
@@ -1522,9 +1745,10 @@
           }
         },
         {
-          "type": "UNMAPPED",
+          "type": "DRAW_CARDS",
           "params": {
-            "effect": "draw_2_1_point"
+            "amount": 2,
+            "target": "self"
           }
         }
       ]
@@ -1543,9 +1767,11 @@
           }
         },
         {
-          "type": "UNMAPPED",
+          "type": "ADD_TRIGGER",
           "params": {
-            "effect": "5_points_hand_temporary_1"
+            "triggerKind": "HAND_LIMIT_TEMP_1",
+            "duration": "turn",
+            "target": "self"
           }
         }
       ]
@@ -1564,9 +1790,11 @@
           }
         },
         {
-          "type": "UNMAPPED",
+          "type": "ADD_TRIGGER",
           "params": {
-            "effect": "heal_1_health_prevent_next_disaster"
+            "triggerKind": "NEGATE_NEXT_DISASTER",
+            "duration": "round",
+            "target": "self"
           }
         }
       ]
@@ -1588,10 +1816,19 @@
           }
         },
         {
-          "type": "UNMAPPED",
+          "type": "IF_UNBLOCKED",
           "params": {
-            "effect": "all_opponents_lose_3_health_can_be_blocked_by_kinetic_dampener"
-          }
+            "target": "all_opponents"
+          },
+          "then": [
+            {
+              "type": "MODIFY_HEALTH",
+              "params": {
+                "amount": -3,
+                "target": "target_player"
+              }
+            }
+          ]
         }
       ]
     },
@@ -1603,17 +1840,17 @@
       "disasterKind": "WILDFIRE",
       "primitives": [
         {
-          "type": "MODIFY_POINTS",
-          "params": {
-            "amount": -4,
-            "target": "target_player"
-          }
-        },
-        {
-          "type": "UNMAPPED",
-          "params": {
-            "effect": "target_loses_4_points_blocked_by_thermal_layer"
-          }
+          "type": "IF_UNBLOCKED",
+          "params": { "target": "inherited" },
+          "then": [
+            {
+              "type": "MODIFY_POINTS",
+              "params": {
+                "amount": -4,
+                "target": "target_player"
+              }
+            }
+          ]
         }
       ]
     },
@@ -1625,10 +1862,18 @@
       "disasterKind": "PLAGUE",
       "primitives": [
         {
-          "type": "UNMAPPED",
-          "params": {
-            "effect": "target_cannot_regain_health_next_turn_blocked_by_stasis_field"
-          }
+          "type": "IF_UNBLOCKED",
+          "params": { "target": "inherited" },
+          "then": [
+            {
+              "type": "ADD_TRIGGER",
+              "params": {
+                "triggerKind": "PREVENT_HEALTH_REGAIN",
+                "duration": "turn",
+                "target": "target_player"
+              }
+            }
+          ]
         }
       ]
     },
@@ -1640,17 +1885,17 @@
       "disasterKind": "FLOOD",
       "primitives": [
         {
-          "type": "MODIFY_HEALTH",
-          "params": {
-            "amount": -2,
-            "target": "target_player"
-          }
-        },
-        {
-          "type": "UNMAPPED",
-          "params": {
-            "effect": "all_opponents_lose_2_health_blocked_by_hydrogate"
-          }
+          "type": "IF_UNBLOCKED",
+          "params": { "target": "all_opponents" },
+          "then": [
+            {
+              "type": "MODIFY_HEALTH",
+              "params": {
+                "amount": -2,
+                "target": "target_player"
+              }
+            }
+          ]
         }
       ]
     },
@@ -1665,13 +1910,7 @@
           "type": "MODIFY_POINTS",
           "params": {
             "amount": -5,
-            "target": "target_player"
-          }
-        },
-        {
-          "type": "UNMAPPED",
-          "params": {
-            "effect": "all_opponents_lose_5_points_cannot_be_blocked"
+            "target": "all_opponents"
           }
         }
       ]
@@ -1699,17 +1938,18 @@
       "disasterKind": "FLOOD",
       "primitives": [
         {
-          "type": "MODIFY_POINTS",
-          "params": {
-            "amount": -1,
-            "target": "target_player"
-          }
-        },
-        {
-          "type": "UNMAPPED",
-          "params": {
-            "effect": "target_loses_1_point_per_turn_for_3_turns_blocked_by_hydrogate"
-          }
+          "type": "IF_UNBLOCKED",
+          "params": { "target": "inherited" },
+          "then": [
+            {
+              "type": "ADD_TRIGGER",
+              "params": {
+                "triggerKind": "LOSE_1_PT_PER_TURN_3",
+                "duration": "round",
+                "target": "target_player"
+              }
+            }
+          ]
         }
       ]
     },
@@ -1726,12 +1966,6 @@
             "amount": -5,
             "target": "target_player"
           }
-        },
-        {
-          "type": "UNMAPPED",
-          "params": {
-            "effect": "target_loses_5_health_cannot_be_blocked"
-          }
         }
       ]
     },
@@ -1743,17 +1977,17 @@
       "disasterKind": "WILDFIRE",
       "primitives": [
         {
-          "type": "MODIFY_POINTS",
-          "params": {
-            "amount": -3,
-            "target": "target_player"
-          }
-        },
-        {
-          "type": "UNMAPPED",
-          "params": {
-            "effect": "target_loses_3_points_blocked_by_thermal_layer"
-          }
+          "type": "IF_UNBLOCKED",
+          "params": { "target": "inherited" },
+          "then": [
+            {
+              "type": "MODIFY_POINTS",
+              "params": {
+                "amount": -3,
+                "target": "target_player"
+              }
+            }
+          ]
         }
       ]
     },
@@ -1765,9 +1999,11 @@
       "disasterKind": "PLAGUE",
       "primitives": [
         {
-          "type": "UNMAPPED",
+          "type": "ADD_TRIGGER",
           "params": {
-            "effect": "target_discards_2_cards_blocked_by_stasis_field"
+            "triggerKind": "TEMP_DOUBLE_POWER_EFFECT",
+            "duration": "turn",
+            "target": "self"
           }
         }
       ]
@@ -1819,9 +2055,10 @@
       "disasterKind": "GLOBAL",
       "primitives": [
         {
-          "type": "UNMAPPED",
+          "type": "DISCARD_CARDS",
           "params": {
-            "effect": "all_opponents_discard_1_card_cannot_be_blocked"
+            "amount": 1,
+            "target": "all_opponents"
           }
         }
       ]
@@ -1834,17 +2071,27 @@
       "disasterKind": "FLOOD",
       "primitives": [
         {
-          "type": "MODIFY_HEALTH",
+          "type": "IF_UNBLOCKED",
           "params": {
-            "amount": -2,
-            "target": "target_player"
-          }
-        },
-        {
-          "type": "UNMAPPED",
-          "params": {
-            "effect": "target_loses_2_health_next_catac_effect_negated"
-          }
+            "target": "inherited"
+          },
+          "then": [
+            {
+              "type": "MODIFY_HEALTH",
+              "params": {
+                "amount": -2,
+                "target": "target_player"
+              }
+            },
+            {
+              "type": "ADD_TRIGGER",
+              "params": {
+                "triggerKind": "NEGATE_NEXT_CATAC_EFFECT",
+                "duration": "round",
+                "target": "target_player"
+              }
+            }
+          ]
         }
       ]
     },
@@ -1856,17 +2103,19 @@
       "disasterKind": "WILDFIRE",
       "primitives": [
         {
-          "type": "MODIFY_POINTS",
+          "type": "IF_UNBLOCKED",
           "params": {
-            "amount": -2,
-            "target": "target_player"
-          }
-        },
-        {
-          "type": "UNMAPPED",
-          "params": {
-            "effect": "all_players_lose_2_points_blocked_by_hydrogate"
-          }
+            "target": "all"
+          },
+          "then": [
+            {
+              "type": "MODIFY_POINTS",
+              "params": {
+                "amount": -2,
+                "target": "inherited"
+              }
+            }
+          ]
         }
       ]
     },
@@ -1878,10 +2127,18 @@
       "disasterKind": "EARTHQUAKE",
       "primitives": [
         {
-          "type": "UNMAPPED",
+          "type": "IF_UNBLOCKED",
           "params": {
-            "effect": "swap_targets_hand_with_discard_pile_blocked_by_kinetic_dampener"
-          }
+            "target": "inherited"
+          },
+          "then": [
+            {
+              "type": "SWAP_HAND_WITH_DISCARD",
+              "params": {
+                "target": "target_player"
+              }
+            }
+          ]
         }
       ]
     },
@@ -1893,17 +2150,19 @@
       "disasterKind": "WILDFIRE",
       "primitives": [
         {
-          "type": "MODIFY_HEALTH",
+          "type": "IF_UNBLOCKED",
           "params": {
-            "amount": -3,
-            "target": "target_player"
-          }
-        },
-        {
-          "type": "UNMAPPED",
-          "params": {
-            "effect": "target_loses_3_health_blocked_by_thermal_layer"
-          }
+            "target": "inherited"
+          },
+          "then": [
+            {
+              "type": "MODIFY_HEALTH",
+              "params": {
+                "amount": -3,
+                "target": "target_player"
+              }
+            }
+          ]
         }
       ]
     },
@@ -1915,10 +2174,20 @@
       "disasterKind": "PLAGUE",
       "primitives": [
         {
-          "type": "UNMAPPED",
+          "type": "IF_UNBLOCKED",
           "params": {
-            "effect": "target_cannot_play_survival_cards_next_turn_blocked_by_stasis_field"
-          }
+            "target": "inherited"
+          },
+          "then": [
+            {
+              "type": "ADD_TRIGGER",
+              "params": {
+                "triggerKind": "DISABLE_SURVIVAL_NEXT_TURN",
+                "duration": "turn",
+                "target": "target_player"
+              }
+            }
+          ]
         }
       ]
     },
@@ -1933,13 +2202,7 @@
           "type": "MODIFY_HEALTH",
           "params": {
             "amount": -3,
-            "target": "target_player"
-          }
-        },
-        {
-          "type": "UNMAPPED",
-          "params": {
-            "effect": "all_opponents_lose_3_health_cannot_be_blocked"
+            "target": "all_opponents"
           }
         }
       ]
@@ -1952,17 +2215,19 @@
       "disasterKind": "PLAGUE",
       "primitives": [
         {
-          "type": "MODIFY_HEALTH",
+          "type": "IF_UNBLOCKED",
           "params": {
-            "amount": -2,
-            "target": "target_player"
-          }
-        },
-        {
-          "type": "UNMAPPED",
-          "params": {
-            "effect": "target_loses_2_health_blocked_by_stasis_field"
-          }
+            "target": "inherited"
+          },
+          "then": [
+            {
+              "type": "MODIFY_HEALTH",
+              "params": {
+                "amount": -2,
+                "target": "target_player"
+              }
+            }
+          ]
         }
       ]
     },
@@ -1974,10 +2239,20 @@
       "disasterKind": "EARTHQUAKE",
       "primitives": [
         {
-          "type": "UNMAPPED",
+          "type": "IF_UNBLOCKED",
           "params": {
-            "effect": "target_skips_next_draw_blocked_by_kinetic_dampener"
-          }
+            "target": "inherited"
+          },
+          "then": [
+            {
+              "type": "ADD_TRIGGER",
+              "params": {
+                "triggerKind": "SKIP_NEXT_DRAW",
+                "duration": "round",
+                "target": "target_player"
+              }
+            }
+          ]
         }
       ]
     },
@@ -1989,17 +2264,17 @@
       "disasterKind": "WILDFIRE",
       "primitives": [
         {
-          "type": "MODIFY_POINTS",
-          "params": {
-            "amount": -3,
-            "target": "target_player"
-          }
-        },
-        {
-          "type": "UNMAPPED",
-          "params": {
-            "effect": "target_loses_3_points_blocked_by_thermal_layer"
-          }
+          "type": "IF_UNBLOCKED",
+          "params": { "target": "inherited" },
+          "then": [
+            {
+              "type": "MODIFY_POINTS",
+              "params": {
+                "amount": -3,
+                "target": "target_player"
+              }
+            }
+          ]
         }
       ]
     },
@@ -2011,10 +2286,19 @@
       "disasterKind": "PLAGUE",
       "primitives": [
         {
-          "type": "UNMAPPED",
+          "type": "IF_UNBLOCKED",
           "params": {
-            "effect": "target_discards_1_card_blocked_by_stasis_field"
-          }
+            "target": "inherited"
+          },
+          "then": [
+            {
+              "type": "DISCARD_CARDS",
+              "params": {
+                "amount": 1,
+                "target": "target_player"
+              }
+            }
+          ]
         }
       ]
     },
@@ -2026,10 +2310,19 @@
       "disasterKind": "FLOOD",
       "primitives": [
         {
-          "type": "UNMAPPED",
+          "type": "IF_UNBLOCKED",
           "params": {
-            "effect": "all_opponents_discard_1_card_blocked_by_hydrogate"
-          }
+            "target": "all_opponents"
+          },
+          "then": [
+            {
+              "type": "DISCARD_CARDS",
+              "params": {
+                "amount": 1,
+                "target": "target_player"
+              }
+            }
+          ]
         }
       ]
     },
@@ -2041,17 +2334,19 @@
       "disasterKind": "EARTHQUAKE",
       "primitives": [
         {
-          "type": "MODIFY_POINTS",
+          "type": "IF_UNBLOCKED",
           "params": {
-            "amount": -2,
-            "target": "target_player"
-          }
-        },
-        {
-          "type": "UNMAPPED",
-          "params": {
-            "effect": "target_loses_2_points_blocked_by_kinetic_dampener"
-          }
+            "target": "inherited"
+          },
+          "then": [
+            {
+              "type": "MODIFY_POINTS",
+              "params": {
+                "amount": -2,
+                "target": "target_player"
+              }
+            }
+          ]
         }
       ]
     },
@@ -2063,17 +2358,20 @@
       "disasterKind": "PLAGUE",
       "primitives": [
         {
-          "type": "MODIFY_HEALTH",
+          "type": "IF_UNBLOCKED",
           "params": {
-            "amount": -1,
-            "target": "target_player"
-          }
-        },
-        {
-          "type": "UNMAPPED",
-          "params": {
-            "effect": "target_loses_1_health_each_turn_for_2_turns_blocked_by_stasis_field"
-          }
+            "target": "inherited"
+          },
+          "then": [
+            {
+              "type": "ADD_TRIGGER",
+              "params": {
+                "triggerKind": "LOSE_1_HEALTH_PER_TURN_2",
+                "duration": "round",
+                "target": "target_player"
+              }
+            }
+          ]
         }
       ]
     },
@@ -2085,9 +2383,10 @@
       "disasterKind": "GLOBAL",
       "primitives": [
         {
-          "type": "UNMAPPED",
+          "type": "DISCARD_CARDS",
           "params": {
-            "effect": "target_discards_2_cards_cannot_be_blocked"
+            "amount": 2,
+            "target": "target_player"
           }
         }
       ]
@@ -2100,17 +2399,19 @@
       "disasterKind": "EARTHQUAKE",
       "primitives": [
         {
-          "type": "MODIFY_HEALTH",
+          "type": "IF_UNBLOCKED",
           "params": {
-            "amount": -2,
-            "target": "target_player"
-          }
-        },
-        {
-          "type": "UNMAPPED",
-          "params": {
-            "effect": "all_opponents_lose_2_health_blocked_by_kinetic_dampener"
-          }
+            "target": "all_opponents"
+          },
+          "then": [
+            {
+              "type": "MODIFY_HEALTH",
+              "params": {
+                "amount": -2,
+                "target": "target_player"
+              }
+            }
+          ]
         }
       ]
     },
@@ -2122,17 +2423,17 @@
       "disasterKind": "WILDFIRE",
       "primitives": [
         {
-          "type": "MODIFY_POINTS",
-          "params": {
-            "amount": -4,
-            "target": "target_player"
-          }
-        },
-        {
-          "type": "UNMAPPED",
-          "params": {
-            "effect": "target_loses_4_points_blocked_by_thermal_layer"
-          }
+          "type": "IF_UNBLOCKED",
+          "params": { "target": "inherited" },
+          "then": [
+            {
+              "type": "MODIFY_POINTS",
+              "params": {
+                "amount": -4,
+                "target": "target_player"
+              }
+            }
+          ]
         }
       ]
     },
@@ -2144,10 +2445,27 @@
       "disasterKind": "FLOOD",
       "primitives": [
         {
-          "type": "UNMAPPED",
+          "type": "IF_UNBLOCKED",
           "params": {
-            "effect": "target_discards_1_card_all_survival_cards_negated_this_turn"
-          }
+            "target": "inherited"
+          },
+          "then": [
+            {
+              "type": "DISCARD_CARDS",
+              "params": {
+                "amount": 1,
+                "target": "target_player"
+              }
+            },
+            {
+              "type": "ADD_TRIGGER",
+              "params": {
+                "triggerKind": "NEGATE_ALL_SURVIVAL_THIS_TURN",
+                "duration": "turn",
+                "target": "all"
+              }
+            }
+          ]
         }
       ]
     }

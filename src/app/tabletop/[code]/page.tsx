@@ -154,11 +154,12 @@ function PlayerStatsHUD({ player, isActive }: { player: MatchPlayer; isActive: b
 function PlayPile({ cards }: { cards: MatchCard[] }) {
   return (
     <div 
-      className="relative [transform-style:preserve-3d]" 
+      className="relative [transform-style:preserve-3d] cursor-pointer group" 
       style={{ width: 'var(--card-w)', height: 'var(--card-h)' }}
+      onClick={() => window.dispatchEvent(new CustomEvent('fe:view-pile', { detail: cards }))}
     >
        {/* 3D Box Container */}
-       <div className="absolute inset-0 bg-white/5 border border-white/10 rounded-2xl [transform:translateZ(-10px)]" />
+       <div className="absolute inset-0 bg-white/5 border border-white/10 rounded-2xl [transform:translateZ(-10px)] group-hover:bg-white/10 transition-colors" />
        
        <AnimatePresence>
           {cards.map((card, i) => (
@@ -464,7 +465,7 @@ export default function TabletopPage() {
       {/* Bot Turn Replay Cinematic Modal (BUG 5 FIX) */}
       <AnimatePresence>
         {replayEvent && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 z-[3000] bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center pointer-events-auto">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 z-[4000] bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center pointer-events-auto">
              <div className="flex flex-col items-center gap-6">
                  <div className="text-xl md:text-3xl text-sky-400 fe-hologram animate-pulse tracking-[0.3em] fe-glow-text">
                    NEXUS_AI_PROCESSING
@@ -491,13 +492,13 @@ export default function TabletopPage() {
       {/* Event Effects (BUGS 3/4 FIX: Subdued non-intrusive badges) */}
       <AnimatePresence>
         {payload?.isGlobalDisasterPhase && (
-          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] pointer-events-none bg-rose-950/80 border border-rose-500/50 px-6 py-2 rounded-full shadow-[0_0_20px_rgba(225,29,72,0.5)] flex items-center gap-3">
+          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="absolute top-4 left-1/2 -translate-x-1/2 z-[2500] pointer-events-none bg-rose-950/80 border border-rose-500/50 px-6 py-2 rounded-full shadow-[0_0_20px_rgba(225,29,72,0.5)] flex items-center gap-3">
              <div className="w-2 h-2 bg-rose-500 rounded-full animate-pulse" />
              <div className="text-rose-500 fe-hologram text-sm fe-flicker whitespace-nowrap">CATACLYSM_ACTIVE</div>
           </motion.div>
         )}
         {payload && payload.round % 3 === 0 && !payload.isGlobalDisasterPhase && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute bottom-4 left-4 z-[1000] pointer-events-none bg-sky-950/80 border border-sky-400/50 px-4 py-2 rounded-full shadow-[0_0_15px_rgba(56,189,248,0.3)] flex items-center gap-3">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute bottom-4 left-4 z-[2500] pointer-events-none bg-sky-950/80 border border-sky-400/50 px-4 py-2 rounded-full shadow-[0_0_15px_rgba(56,189,248,0.3)] flex items-center gap-3">
              <div className="w-2 h-2 bg-sky-400 rounded-full animate-pulse" />
              <div className="text-sky-400 fe-hologram text-xs fe-flicker whitespace-nowrap">AETHER_SHIFT_ACTIVE</div>
           </motion.div>
@@ -530,7 +531,7 @@ export default function TabletopPage() {
       </div>
 
       {/* Cool Holographic Header (Restored & Enhanced) */}
-      <div className="absolute top-12 left-12 z-[100] pointer-events-none">
+      <div className="absolute top-12 left-12 z-[1000] pointer-events-none">
          <div className="flex flex-col gap-1">
             <div className="flex items-center gap-4">
                <h1 className="text-3xl font-black italic tracking-tighter text-white fe-glow-text">
@@ -614,7 +615,7 @@ export default function TabletopPage() {
             exit={{ y: 50, opacity: 0 }}
             onClick={handlePass}
             disabled={myPlayer ? myPlayer.hand.length > (5 + (myPlayer.maxHandModifier || 0)) : false}
-            className={`absolute bottom-[35%] md:bottom-[28%] right-[5%] md:right-[20%] z-[1500] fe-holo-btn !py-5 !px-10 !text-xl !border-amber-500 !text-amber-500 bg-black/50 shadow-[0_0_50px_rgba(245,158,11,0.2)] ${myPlayer && myPlayer.hand.length > (5 + (myPlayer.maxHandModifier || 0)) ? 'opacity-50 !cursor-not-allowed !border-amber-500/30' : ''}`}
+            className={`absolute bottom-[35%] md:bottom-[28%] right-[5%] md:right-[20%] z-[1300] fe-holo-btn !py-5 !px-10 !text-xl !border-amber-500 !text-amber-500 bg-black/50 shadow-[0_0_50px_rgba(245,158,11,0.2)] ${myPlayer && myPlayer.hand.length > (5 + (myPlayer.maxHandModifier || 0)) ? 'opacity-50 !cursor-not-allowed !border-amber-500/30' : ''}`}
           >
             Pass Control
           </motion.button>
@@ -623,7 +624,7 @@ export default function TabletopPage() {
 
       {/* Cinematic Player Area (HUD + Hand physically adjacent) */}
       {myPlayer && (
-        <div className="absolute bottom-6 md:bottom-12 left-0 right-0 z-[200] flex flex-col md:flex-row items-center md:items-end justify-center gap-6 md:gap-16 pointer-events-none px-4">
+        <div className="absolute bottom-6 md:bottom-12 left-0 right-0 z-[1100] flex flex-col md:flex-row items-center md:items-end justify-center gap-6 md:gap-16 pointer-events-none px-4">
            {/* HUD physically next to Hand */}
            <div className="pointer-events-auto shrink-0 transform scale-75 md:scale-100 origin-bottom">
               <PlayerStatsHUD player={myPlayer} isActive={isMyTurn} />
@@ -659,7 +660,7 @@ export default function TabletopPage() {
       {/* Pinned Powers Layer */}
       {myPlayer && myPlayer.powers && myPlayer.powers.length > 0 && (
          <div 
-            className="absolute bottom-40 md:bottom-24 left-1/2 -translate-x-1/2 cursor-pointer z-[150] group"
+            className="absolute bottom-40 md:bottom-24 left-1/2 -translate-x-1/2 cursor-pointer z-[1200] group"
             onClick={() => window.dispatchEvent(new CustomEvent('fe:view-pile', { detail: myPlayer.powers }))}
             role="button"
             aria-label="View Player Pile"
@@ -683,7 +684,7 @@ export default function TabletopPage() {
          {(selectedCard || (showFullInspect && inspectedCard)) && (
             <motion.div 
                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-               className="absolute inset-0 z-[500] bg-black/80 backdrop-blur-xl flex flex-col items-center justify-center p-12"
+               className="absolute inset-0 z-[2000] bg-black/80 backdrop-blur-xl flex flex-col items-center justify-center p-12"
                onClick={(e) => e.target === e.currentTarget && (setSelectedCardId(''), setShowFullInspect(false))}
             >
                <motion.div initial={{ scale: 0.8 }} animate={{ scale: 1.2 }} className="mb-12">
@@ -741,7 +742,7 @@ export default function TabletopPage() {
       {/* Win/Loss Hologram */}
       <AnimatePresence>
         {winner && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 z-[1000] bg-black/95 backdrop-blur-3xl flex items-center justify-center">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 z-[3000] bg-black/95 backdrop-blur-3xl flex items-center justify-center">
               <div className="text-center">
                 <p className="fe-hologram text-amber-500/60 mb-8 uppercase tracking-[0.4em]">Simulation Ended</p>
                 <h2 className="text-9xl font-black italic tracking-tighter text-white uppercase">{winner?.id === userId ? 'ASCENDED' : 'FALLEN'}</h2>
@@ -791,7 +792,7 @@ export default function TabletopPage() {
       </AnimatePresence>
 
       {error && (
-        <div className="absolute top-12 left-1/2 -translate-x-1/2 z-[2000] bg-red-500/20 border border-red-500 text-red-500 text-[10px] font-black uppercase tracking-widest px-6 py-2 rounded-full fe-flicker">
+        <div className="absolute top-12 left-1/2 -translate-x-1/2 z-[5000] bg-red-500/20 border border-red-500 text-red-500 text-[10px] font-black uppercase tracking-widest px-6 py-2 rounded-full fe-flicker">
            System Failure: {error}
          </div>
       )}

@@ -129,6 +129,8 @@ export function describeCardEffect(input: {
   const pointsPrim = input.primitives?.find(p => p.type === 'MODIFY_POINTS');
   const drawPrim = input.primitives?.find(p => p.type === 'DRAW_CARDS');
   const healthPrim = input.primitives?.find(p => p.type === 'MODIFY_HEALTH');
+  const discardPrim = input.primitives?.find(p => p.type === 'DISCARD_CARDS');
+  const triggerPrim = input.primitives?.find(p => p.type === 'ADD_TRIGGER');
 
   const ptsDelta = pointsPrim?.params?.amount || 0;
   const drawCnt = drawPrim?.params?.amount || 0;
@@ -139,14 +141,20 @@ export function describeCardEffect(input: {
       label: 'NET_YIELD', 
       value: `${ptsDelta > 0 ? '+' : ''}${ptsDelta}`, 
       icon: '📊', 
-      color 
+      color: ptsDelta > 0 ? 'emerald-400' : 'rose-400'
     });
   }
-  if (hpDelta > 0) {
-    pips.push({ label: 'REPAIR_SEQ', value: `+${hpDelta}`, icon: '🔧', color: 'emerald-400' });
+  if (hpDelta !== 0) {
+    pips.push({ label: hpDelta > 0 ? 'REPAIR_SEQ' : 'SYS_DMG', value: `${hpDelta > 0 ? '+' : ''}${hpDelta}`, icon: hpDelta > 0 ? '🔧' : '💀', color: hpDelta > 0 ? 'emerald-400' : 'rose-500' });
   }
   if (drawCnt > 0) {
     pips.push({ label: 'DATA_LINK', value: `x${drawCnt}`, icon: '📡', color: 'sky-400' });
+  }
+  if (discardPrim) {
+    pips.push({ label: 'VOLATILE', value: `-${discardPrim.params.amount}`, icon: '🗑️', color: 'rose-400' });
+  }
+  if (triggerPrim) {
+    pips.push({ label: 'AUTO_CMD', value: 'ACTIVE', icon: '⚡', color: 'amber-400' });
   }
   if (input.disasterKind) {
     pips.push({ label: 'THREAT_LVL', value: input.disasterKind.toUpperCase(), icon: '⚠️', color: 'rose-500' });

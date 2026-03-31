@@ -102,7 +102,7 @@ export default function LanRoomsPage() {
            router.push(`/tabletop/${code}?userId=${encodeURIComponent(userId)}`);
         }
       } catch { setError('Sync error.'); } finally {
-        if (!cancelled) pollTimer = setTimeout(refresh, 2000);
+        if (!cancelled) pollTimer = setTimeout(refresh, 1000);
       }
     };
     refresh();
