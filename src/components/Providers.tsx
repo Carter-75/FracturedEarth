@@ -12,23 +12,28 @@ export function Providers({ children }: { children: React.ReactNode }) {
       const preset = THEME_PRESETS[next.theme];
       const root = document.documentElement;
       root.dataset.theme = next.theme;
-      root.style.setProperty('--bg', preset.bg);
-      root.style.setProperty('--fg', preset.fg);
-      root.style.setProperty('--panel', preset.panel);
-      root.style.setProperty('--panel-alt', preset.panelAlt);
-      root.style.setProperty('--border', preset.border);
-      root.style.setProperty('--accent', preset.accent);
-      root.style.setProperty('--accent-soft', preset.accentSoft);
-      root.style.setProperty('--muted', preset.muted);
 
-      // Extract RGB for shadow coloring
+      // Hex to RGB helper
       const hexToRgb = (hex: string) => {
         const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
         return result
           ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}`
-          : '20, 184, 166';
+          : '245, 158, 11'; // Default Amber
       };
+
+      // Apply all tokens from the preset
+      for (const [key, value] of Object.entries(preset)) {
+        const cssKey = `--${key.replace(/([a-z0-9]|(?=[A-Z]))([A-Z])/g, '$1-$2').toLowerCase()}`;
+        root.style.setProperty(cssKey, value as string);
+      }
+
       root.style.setProperty('--accent-rgb', hexToRgb(preset.accent));
+      
+      if (next.theme === 'Pale Signal') {
+        root.style.setProperty('color-scheme', 'light');
+      } else {
+        root.style.setProperty('color-scheme', 'dark');
+      }
     };
 
     applyTheme();

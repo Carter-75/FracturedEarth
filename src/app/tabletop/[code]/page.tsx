@@ -79,7 +79,7 @@ function PhysicalCard({ card, onClick, isSelected, className, style }: { card: M
     <motion.div
       onClick={onClick}
       style={style}
-      className={`fe-card-physical ${isSelected ? 'border-amber-500 shadow-[0_0_30px_rgba(245,158,11,0.5)] z-[200]' : ''} ${className || ''}`}
+      className={`fe-card-physical ${isSelected ? 'border-[var(--accent)] shadow-[0_0_30px_rgba(var(--accent-rgb),0.5)] z-[200]' : ''} ${className || ''}`}
     >
       <img src={theme.bg} alt="" className="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-screen pointer-events-none" />
       <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black opacity-80 pointer-events-none" />
@@ -99,7 +99,7 @@ function PhysicalCard({ card, onClick, isSelected, className, style }: { card: M
                     </span>
                 )}
                 {card.gainHealth && card.gainHealth > 0 && (
-                    <span className="text-[8px] font-bold text-sky-400">+{card.gainHealth}H</span>
+                    <span className="text-[8px] font-bold text-[var(--accent-soft)]">+{card.gainHealth}H</span>
                 )}
             </div>
         </div>
@@ -114,26 +114,26 @@ function PhysicalCard({ card, onClick, isSelected, className, style }: { card: M
 
 function PlayerStatsHUD({ player, isActive }: { player: MatchPlayer; isActive: boolean }) {
   return (
-    <div className={`flex flex-col gap-2 p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] bg-black/40 backdrop-blur-3xl border transition-all duration-700 ${isActive ? 'border-amber-500 shadow-[0_0_50px_rgba(245,158,11,0.4)] ring-2 ring-amber-500/20' : 'border-white/10'} w-40 md:w-48`}>
+    <div className={`flex flex-col gap-2 p-4 md:p-6 rounded-[var(--radius)] bg-[var(--panel)] backdrop-blur-3xl border transition-all duration-700 ${isActive ? 'border-[var(--accent)] shadow-[0_0_50px_rgba(var(--accent-rgb),0.4)] ring-2 ring-[var(--accent)]/20' : 'border-[var(--border)]'} w-40 md:w-48`}>
         <div className="flex items-center gap-2 md:gap-3">
            <div className={`text-xl md:text-2xl transition-transform duration-500 ${isActive ? 'scale-110 md:scale-125' : ''}`}>{player.emoji}</div>
            <div className="flex flex-col">
-              <span className={`text-[8px] md:text-[10px] font-black uppercase tracking-widest transition-colors truncate max-w-[80px] md:max-w-none ${isActive ? 'text-amber-500' : 'text-white/40'}`}>{player.displayName}</span>
-              <div className={`h-[1px] md:h-[2px] transition-all duration-500 ${isActive ? 'bg-amber-500 shadow-[0_0_10px_#f59e0b] w-10 md:w-12' : 'bg-white/10 w-6 md:w-8'} mt-1`} />
+              <span className={`text-[8px] md:text-[10px] font-black uppercase tracking-widest transition-colors truncate max-w-[80px] md:max-w-none ${isActive ? 'text-[var(--accent)]' : 'text-[var(--fg)] opacity-40'}`}>{player.displayName}</span>
+              <div className={`h-[1px] md:h-[2px] transition-all duration-500 ${isActive ? 'bg-[var(--accent)] shadow-[0_0_10px_var(--glow-color)] w-10 md:w-12' : 'bg-[var(--border)] w-6 md:w-8'} mt-1`} />
            </div>
         </div>
         <div className="flex justify-between items-end mt-2 md:mt-4">
            {/* ADDED: Bug 3 Hand Count */}
            <div className="flex flex-col">
-              <span className="text-[6px] md:text-[7px] font-black text-white/50 uppercase tracking-widest">Cards</span>
-              <div className="text-xl md:text-3xl font-black italic text-white/80 fe-glow-text">{player.hand?.length ?? 0}</div>
+              <span className="text-[6px] md:text-[7px] font-black text-[var(--fg)] opacity-50 uppercase tracking-widest">Cards</span>
+              <div className="text-xl md:text-3xl font-black italic text-[var(--fg)] opacity-80 fe-glow-text">{player.hand?.length ?? 0}</div>
            </div>
            <div className="flex flex-col items-center">
-              <span className="text-[6px] md:text-[7px] font-black text-sky-400/60 uppercase tracking-widest">Energy</span>
-              <div className="text-xl md:text-3xl font-black italic text-sky-400 fe-glow-text">{player.survivalPoints}</div>
+              <span className="text-[6px] md:text-[7px] font-black text-[var(--accent-soft)] opacity-60 uppercase tracking-widest">Energy</span>
+              <div className="text-xl md:text-3xl font-black italic text-[var(--accent-soft)] fe-glow-text">{player.survivalPoints}</div>
            </div>
            <div className="flex flex-col items-end">
-              <span className="text-[6px] md:text-[7px] font-black text-rose-500/60 uppercase tracking-widest">Health</span>
+              <span className="text-[6px] md:text-[7px] font-black text-rose-500 opacity-60 uppercase tracking-widest">Health</span>
               <div className="text-xl md:text-3xl font-black italic text-rose-500 fe-glow-text">{player.health}</div>
            </div>
         </div>
@@ -146,9 +146,9 @@ function PlayerStatsHUD({ player, isActive }: { player: MatchPlayer; isActive: b
              role="button"
           >
              {player.powers.map((card, i) => (
-                <div key={card.id} className="relative w-16 h-24 bg-slate-900 rounded-lg border border-amber-500/30 overflow-hidden shadow-[0_4px_10px_rgba(245,158,11,0.2)]">
-                   <div className="absolute inset-0 bg-amber-500/10" />
-                   <div className="fe-hologram text-[6px] text-amber-500/80 p-1 text-center font-bold absolute bottom-0 w-full bg-black/50">{card.name}</div>
+                <div key={card.id} className="relative w-16 h-24 bg-[var(--bg)] rounded-lg border border-[var(--accent)]/30 overflow-hidden shadow-[0_4px_10px_rgba(var(--accent-rgb),0.2)]">
+                   <div className="absolute inset-0 bg-[var(--accent)]/10" />
+                   <div className="fe-hologram text-[6px] text-[var(--accent)] opacity-80 p-1 text-center font-bold absolute bottom-0 w-full bg-black/50">{card.name}</div>
                 </div>
              ))}
           </div>
@@ -248,16 +248,16 @@ function OpponentHand({ count, angle, player, isActive }: { count: number; angle
                className="bg-slate-900 border border-white/20 rounded-lg md:rounded-xl shadow-2xl overflow-hidden"
              >
                 {/* High-Fidelity Card Back */}
-                <div className="absolute inset-0 bg-[#020617]" />
-                <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(56,189,248,0.1)_0%,transparent_100%)]" />
+                <div className="absolute inset-0 bg-[var(--bg)]" />
+                <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(var(--accent-rgb),0.1)_0%,transparent_100%)]" />
                 <div className="fe-grid opacity-30" />
                 <div className="absolute inset-0 flex items-center justify-center">
-                   <div className="w-8 h-8 md:w-12 md:h-12 rounded-full border-2 border-white/5 flex items-center justify-center opacity-40 shadow-[0_0_15px_rgba(56,189,248,0.2)]">
-                      <div className="w-2 h-2 md:w-3 md:h-3 bg-sky-400 rounded-full" />
+                   <div className="w-8 h-8 md:w-12 md:h-12 rounded-full border-2 border-white/5 flex items-center justify-center opacity-40 shadow-[0_0_15px_rgba(var(--accent-rgb),0.2)]">
+                      <div className="w-2 h-2 md:w-3 md:h-3 bg-[var(--accent-soft)] rounded-full" />
                    </div>
                 </div>
                 <div className="absolute top-2 left-0 right-0 text-center opacity-30">
-                   <span className="text-[4px] md:text-[6px] fe-hologram tracking-[0.3em] text-sky-200 uppercase">Opponent</span>
+                   <span className="text-[4px] md:text-[6px] fe-hologram tracking-[0.3em] text-[var(--accent-soft)] uppercase">Opponent</span>
                 </div>
                 <div className="absolute inset-0 fe-scanline opacity-10" />
              </motion.div>
@@ -285,14 +285,14 @@ function FloatingDeck({ count, canDraw, onDraw }: { count: number; canDraw: bool
        ))}
        <motion.div 
          whileHover={canDraw ? { y: -5, rotateX: -5 } : {}}
-         className={`absolute inset-0 bg-indigo-950 border-2 border-white/20 rounded-xl flex items-center justify-center overflow-hidden ${!canDraw ? 'opacity-30' : ''}`}
+         className={`absolute inset-0 bg-[var(--panel-alt)] border-2 border-[var(--border)] rounded-[calc(var(--radius)/2)] flex items-center justify-center overflow-hidden ${!canDraw ? 'opacity-30' : ''}`}
        >
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,#1e1b4b_0%,#020617_100%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,var(--bg)_0%,var(--panel)_100%)]" />
           <div className="fe-grid" />
           <div className="relative z-10 flex flex-col items-center gap-2">
              <div className="w-10 h-10 rounded-full border-2 border-white/10 flex items-center justify-center">
-                <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 10, ease: 'linear' }} className="absolute inset-0 rounded-full border-t-2 border-sky-400" />
-                <div className="w-2 h-2 bg-sky-400 rounded-full shadow-[0_0_10px_#38bdf8]" />
+                <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 10, ease: 'linear' }} className="absolute inset-0 rounded-full border-t-2 border-[var(--accent-soft)]" />
+                <div className="w-2 h-2 bg-[var(--accent-soft)] rounded-full shadow-[0_0_10px_var(--accent-soft)]" />
              </div>
              <span className="text-[10px] font-black tracking-[0.4em] opacity-40">DECK</span>
              <span className="text-[8px] font-black opacity-20">{count} UNITS</span>
@@ -477,8 +477,8 @@ export default function TabletopPage() {
 
   if (!state) {
      return (
-       <main className="fe-scene bg-black flex-1 flex items-center justify-center">
-         <div className="fe-hologram animate-pulse text-sky-400 text-xl tracking-[0.5em] fe-flicker">SYNCING_SECTOR_STATE...</div>
+       <main className="fe-scene flex-1 flex items-center justify-center">
+         <div className="fe-hologram animate-pulse text-[var(--accent-soft)] text-xl tracking-[0.5em] fe-flicker">SYNCING_SECTOR_STATE...</div>
        </main>
      );
   }
@@ -490,12 +490,12 @@ export default function TabletopPage() {
         {replayEvent && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 z-[4000] bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center pointer-events-auto">
              <div className="flex flex-col items-center gap-6">
-                 <div className="text-xl md:text-3xl text-sky-400 fe-hologram animate-pulse tracking-[0.3em] fe-glow-text">
+                 <div className="text-xl md:text-3xl text-[var(--accent-soft)] fe-hologram animate-pulse tracking-[0.3em] fe-glow-text">
                    NEXUS_AI_PROCESSING
                  </div>
-                 <div className="bg-indigo-950/80 border border-indigo-500/50 p-8 md:p-12 rounded-3xl shadow-[0_0_50px_rgba(99,102,241,0.3)] text-center max-w-lg w-full flex flex-col items-center transition-all">
-                    <span className="text-white font-black italic tracking-widest uppercase text-lg md:text-xl mb-6 leading-relaxed">
-                       <span className="text-sky-400">{replayEvent.actorName}</span><br/>
+                 <div className="bg-[var(--panel)] border border-[var(--border)] p-8 md:p-12 rounded-[var(--radius)] shadow-[0_0_50px_rgba(0,0,0,0.5)] text-center max-w-lg w-full flex flex-col items-center transition-all">
+                    <span className="text-[var(--fg)] font-black italic tracking-widest uppercase text-lg md:text-xl mb-6 leading-relaxed">
+                       <span className="text-[var(--accent-soft)]">{replayEvent.actorName}</span><br/>
                        {replayEvent.action === 'THINKING' && 'Calculating Vector...'}
                        {replayEvent.action === 'DRAW' && 'Downloads Data...'}
                        {replayEvent.action === 'END_TURN' && 'Terminates Control.'}
@@ -521,9 +521,9 @@ export default function TabletopPage() {
           </motion.div>
         )}
         {payload && payload.round % 3 === 0 && !payload.isGlobalDisasterPhase && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute bottom-4 left-4 z-[2500] pointer-events-none bg-sky-950/80 border border-sky-400/50 px-4 py-2 rounded-full shadow-[0_0_15px_rgba(56,189,248,0.3)] flex items-center gap-3">
-             <div className="w-2 h-2 bg-sky-400 rounded-full animate-pulse" />
-             <div className="text-sky-400 fe-hologram text-xs fe-flicker whitespace-nowrap">AETHER_SHIFT_ACTIVE</div>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute bottom-4 left-4 z-[2500] pointer-events-none bg-[var(--panel)] border border-[var(--accent-soft)]/50 px-4 py-2 rounded-full shadow-[0_0_15px_rgba(var(--accent-rgb),0.3)] flex items-center gap-3">
+             <div className="w-2 h-2 bg-[var(--accent-soft)] rounded-full animate-pulse" />
+             <div className="text-[var(--accent-soft)] fe-hologram text-xs fe-flicker whitespace-nowrap">AETHER_SHIFT_ACTIVE</div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -556,20 +556,20 @@ export default function TabletopPage() {
       {/* Iconic Cinematic Logo (Phase 9 Revert) */}
       {/* Sector Frequency Header */}
       <div className="absolute top-4 left-4 md:top-8 md:left-8 z-[1200] flex flex-col gap-1 pointer-events-none">
-         <div className="fe-hologram text-sky-400 opacity-60 text-[8px] md:text-[10px]">Sector_Frequency</div>
-         <div className="text-xl md:text-3xl font-black italic tracking-widest text-white leading-none uppercase">{code}</div>
+         <div className="fe-hologram text-[var(--accent-soft)] opacity-60 text-[8px] md:text-[10px]">Sector_Frequency</div>
+         <div className="text-xl md:text-3xl font-black italic tracking-widest text-[var(--fg)] leading-none uppercase">{code}</div>
       </div>
       <div className="absolute top-10 left-10 z-[1000] pointer-events-none">
          <div className="flex flex-col -gap-4">
-            <h1 className="text-xl font-black italic tracking-[0.4em] text-white/30 fe-hologram uppercase fe-flicker">
+            <h1 className="text-xl font-black italic tracking-[0.4em] text-[var(--fg)] opacity-30 fe-hologram uppercase fe-flicker">
                FRACTURED
             </h1>
-            <h1 className="text-6xl font-black italic tracking-tighter text-amber-500 fe-glow-text leading-[0.8] drop-shadow-[0_0_30px_rgba(245,158,11,0.5)]">
+            <h1 className="text-6xl font-black italic tracking-tighter text-[var(--accent)] fe-glow-text leading-[0.8] drop-shadow-[0_0_30px_rgba(var(--accent-rgb),0.5)]">
                EARTH
             </h1>
             <div className="flex items-center gap-2 mt-4">
-               <div className="w-12 h-[1px] bg-amber-500/30" />
-               <div className="fe-hologram text-[7px] text-amber-500/50 font-bold uppercase tracking-[0.3em]">CYCLE_{payload?.round || 0}_LOGGED</div>
+               <div className="w-12 h-[1px] bg-[var(--accent)]/30" />
+               <div className="fe-hologram text-[7px] text-[var(--accent)] opacity-50 font-bold uppercase tracking-[0.3em]">CYCLE_{payload?.round || 0}_LOGGED</div>
             </div>
          </div>
       </div>
@@ -648,7 +648,7 @@ export default function TabletopPage() {
             exit={{ y: 50, opacity: 0 }}
             onClick={handlePass}
             disabled={(myPlayer?.hand.length || 0) > (5 + (myPlayer?.maxHandModifier || 0))}
-            className={`fixed top-[45%] md:top-auto md:bottom-[28%] right-4 md:right-[20%] z-[1300] fe-holo-btn !py-3 md:!py-5 !px-6 md:!px-10 text-sm md:!text-xl !border-amber-500 !text-amber-500 bg-black/50 shadow-[0_0_50px_rgba(245,158,11,0.2)] ${(myPlayer?.hand.length || 0) > (5 + (myPlayer?.maxHandModifier || 0)) ? 'opacity-50 !cursor-not-allowed !border-amber-500/30' : ''}`}
+            className={`fixed top-[45%] md:top-auto md:bottom-[28%] right-4 md:right-[20%] z-[1300] fe-holo-btn !py-3 md:!py-5 !px-6 md:!px-10 text-sm md:!text-xl !border-[var(--accent)] !text-[var(--accent)] bg-black/50 shadow-[0_0_50px_rgba(var(--accent-rgb),0.2)] ${(myPlayer?.hand.length || 0) > (5 + (myPlayer?.maxHandModifier || 0)) ? 'opacity-50 !cursor-not-allowed !border-[var(--accent)]/30' : ''}`}
           >
             Pass Control
           </motion.button>
@@ -702,26 +702,26 @@ export default function TabletopPage() {
       )}
 
       {/* Pinned Powers Layer */}
-      {myPlayer && myPlayer.powers && myPlayer.powers.length > 0 && (
-         <div 
-            className="absolute bottom-40 md:bottom-24 left-1/2 -translate-x-1/2 cursor-pointer z-[1200] group"
-            onClick={() => window.dispatchEvent(new CustomEvent('fe:view-pile', { detail: myPlayer.powers }))}
-            role="button"
-            aria-label="View Player Pile"
-         >
-            <div className="relative w-20 h-28">
-              {myPlayer.powers.map((card, i) => (
-                 <div key={card.id} className="absolute inset-0 bg-slate-900 border-2 border-amber-500/50 rounded-xl group-hover:-translate-y-2 transition-transform shadow-[0_10px_20px_rgba(245,158,11,0.2)]" style={{ transform: `translateX(${Math.min(i * 3, 15)}px) translateY(-${Math.min(i * 3, 15)}px)` }}>
-                   <img src={cardTheme(card.type).bg} className="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-screen" alt="" />
-                   <div className="absolute bottom-0 w-full bg-black/80 p-1 text-center">
-                      <span className="fe-hologram text-[6px] text-amber-400 font-bold block truncate px-1">{card.name}</span>
-                   </div>
-                 </div>
-              ))}
-            </div>
-            <div className="fe-hologram text-[8px] text-amber-500 bg-black/60 px-2 py-1 rounded text-center mt-2 border border-amber-500/30 whitespace-nowrap shadow-xl">PLAYER PILE ({myPlayer.powers.length})</div>
-         </div>
-      )}
+       {myPlayer && myPlayer.powers && myPlayer.powers.length > 0 && (
+          <div 
+             className="absolute bottom-40 md:bottom-24 left-1/2 -translate-x-1/2 cursor-pointer z-[1200] group"
+             onClick={() => window.dispatchEvent(new CustomEvent('fe:view-pile', { detail: myPlayer.powers }))}
+             role="button"
+             aria-label="View Player Pile"
+          >
+             <div className="relative w-20 h-28">
+               {myPlayer.powers.map((card, i) => (
+                  <div key={card.id} className="absolute inset-0 bg-[var(--bg)] border-2 border-[var(--accent)]/50 rounded-xl group-hover:-translate-y-2 transition-transform shadow-[0_10px_20px_rgba(var(--accent-rgb),0.2)]" style={{ transform: `translateX(${Math.min(i * 3, 15)}px) translateY(-${Math.min(i * 3, 15)}px)` }}>
+                    <img src={cardTheme(card.type).bg} className="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-screen" alt="" />
+                    <div className="absolute bottom-0 w-full bg-black/80 p-1 text-center">
+                       <span className="fe-hologram text-[6px] text-[var(--accent)] font-bold block truncate px-1">{card.name}</span>
+                    </div>
+                  </div>
+               ))}
+             </div>
+             <div className="fe-hologram text-[8px] text-[var(--accent)] bg-black/60 px-2 py-1 rounded text-center mt-2 border border-[var(--accent)]/30 whitespace-nowrap shadow-xl">PLAYER PILE ({myPlayer.powers.length})</div>
+          </div>
+       )}
 
        {/* Cinematic Inspection Layer */}
        <AnimatePresence>
@@ -746,7 +746,7 @@ export default function TabletopPage() {
                                   <button 
                                     key={p.id} 
                                     onClick={() => setSelectedTargetId(p.id)} 
-                                    className={`fe-holo-btn !py-2 !px-4 !text-[10px] md:!text-xs ${selectedTargetId === p.id ? '!border-rose-500 !text-rose-500 !bg-rose-500/10' : ''}`}
+                                    className={`fe-holo-btn !py-2 !px-4 !text-[10px] md:!text-xs ${selectedTargetId === p.id ? '!border-[var(--accent)] !text-[var(--accent)] !bg-[var(--accent)]/10' : ''}`}
                                   >
                                     Target {p.displayName}
                                   </button>
@@ -754,25 +754,25 @@ export default function TabletopPage() {
                              </div>
                           )}
                           
-                          <div className="flex gap-3 md:gap-4 justify-center flex-wrap">
+                           <div className="flex gap-3 md:gap-4 justify-center flex-wrap">
                              {selectedCard && (
-                                <>
-                                   <button onClick={() => { setSelectedCardId(''); setSelectedTargetId(''); }} className="fe-holo-btn !px-4 md:!px-8 text-xs md:text-base">Stow_Card</button>
-                                   <button 
-                                     onClick={handlePlay} 
-                                     disabled={busy || maxPlayReached || (selectedCard.type === 'DISASTER' && selectedCard.disasterKind !== 'GLOBAL' && !selectedTargetId)} 
-                                     className="fe-holo-btn !text-amber-500 !border-amber-500/50 disabled:!opacity-30 disabled:!cursor-not-allowed !px-4 md:!px-8 text-xs md:text-base"
-                                   >
-                                     Deploy_Tactical
-                                   </button>
-                                   <button 
-                                     onClick={handleDiscard} 
-                                     disabled={busy} 
-                                     className="fe-holo-btn !text-rose-500 !border-rose-500/50 !px-4 md:!px-8 text-xs md:text-base"
-                                   >
-                                     Discard_Data
-                                   </button>
-                                </>
+                                 <>
+                                    <button onClick={() => { setSelectedCardId(''); setSelectedTargetId(''); }} className="fe-holo-btn !px-4 md:!px-8 text-xs md:text-base">Stow_Card</button>
+                                    <button 
+                                      onClick={handlePlay} 
+                                      disabled={busy || maxPlayReached || (selectedCard.type === 'DISASTER' && selectedCard.disasterKind !== 'GLOBAL' && !selectedTargetId)} 
+                                      className="fe-holo-btn !text-[var(--accent)] !border-[var(--accent)]/50 disabled:!opacity-30 disabled:!cursor-not-allowed !px-4 md:!px-8 text-xs md:text-base"
+                                    >
+                                      Deploy_Tactical
+                                    </button>
+                                    <button 
+                                      onClick={handleDiscard} 
+                                      disabled={busy} 
+                                      className="fe-holo-btn !text-[var(--accent-soft)] !border-[var(--accent-soft)]/50 !px-4 md:!px-8 text-xs md:text-base"
+                                    >
+                                      Discard_Data
+                                    </button>
+                                 </>
                              )}
                              {inspectedCard && !selectedCard && (
                                 <button onClick={() => { setInspectedCard(null); setShowFullInspect(false); }} className="fe-holo-btn !px-4 md:!px-8 text-xs md:text-base">Dismiss_Intel</button>
@@ -790,9 +790,9 @@ export default function TabletopPage() {
         {winner && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 z-[3000] bg-black/95 backdrop-blur-3xl flex items-center justify-center">
               <div className="text-center">
-                <p className="fe-hologram text-amber-500/60 mb-8 uppercase tracking-[0.4em]">Simulation Ended</p>
-                <h2 className="text-9xl font-black italic tracking-tighter text-white uppercase">{winner?.id === userId ? 'ASCENDED' : 'FALLEN'}</h2>
-                <div className="mt-4 fe-hologram text-[10px] text-white/40 uppercase tracking-widest">
+                <p className="fe-hologram text-[var(--accent)] opacity-60 mb-8 uppercase tracking-[0.4em]">Simulation Ended</p>
+                <h2 className="text-9xl font-black italic tracking-tighter text-[var(--fg)] uppercase">{winner?.id === userId ? 'ASCENDED' : 'FALLEN'}</h2>
+                <div className="mt-4 fe-hologram text-[10px] text-[var(--fg)] opacity-40 uppercase tracking-widest">
                    Commander {winner?.displayName} Claims the Sector
                 </div>
                 

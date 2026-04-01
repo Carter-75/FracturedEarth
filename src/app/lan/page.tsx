@@ -202,8 +202,8 @@ export default function LanRoomsPage() {
 
       {/* Header Overlay */}
       <div className="absolute top-12 left-12 z-50">
-         <div className="fe-hologram text-amber-500/60 mb-2 font-bold tracking-[0.2em] text-[10px]">Sector Frequency Link 1.0</div>
-         <h1 className="text-5xl font-black italic tracking-tighter text-white uppercase leading-none">SECTOR<span className="text-amber-500 font-bold block">LOBBY</span></h1>
+         <div className="fe-hologram text-[var(--accent)] opacity-60 mb-2 font-bold tracking-[0.2em] text-[10px]">Sector Frequency Link 1.0</div>
+         <h1 className="text-5xl font-black italic tracking-tighter text-[var(--fg)] uppercase leading-none">SECTOR<span className="text-[var(--accent)] font-bold block">LOBBY</span></h1>
       </div>
 
       <div className="relative z-10 w-full max-w-7xl px-4 md:px-12 grid lg:grid-cols-[1.3fr_0.7fr] gap-12 items-center py-20 lg:py-0">
@@ -228,20 +228,20 @@ export default function LanRoomsPage() {
          </div>
 
          {/* Configuration Panel */}
-         <div className="bg-[#0a0c0f]/80 border border-white/10 rounded-[2rem] md:rounded-[3rem] p-6 md:p-12 backdrop-blur-3xl space-y-8 md:space-y-10 shadow-3xl relative mx-4 lg:mx-0">
-            <div className="absolute top-0 right-10 w-24 h-1 bg-amber-500" />
+         <div className="bg-[var(--panel)] border border-[var(--border)] rounded-[var(--radius)] p-6 md:p-12 backdrop-blur-3xl space-y-8 md:space-y-10 shadow-3xl relative mx-4 lg:mx-0">
+            <div className="absolute top-0 right-10 w-24 h-1 bg-[var(--accent)]" />
             
             <div className="space-y-4">
-               <div className="fe-hologram text-sky-400 text-[10px] uppercase font-black">Candidate Identification</div>
+               <div className="fe-hologram text-[var(--accent-soft)] text-[10px] uppercase font-black">Candidate Identification</div>
                <div className="grid grid-cols-[1fr_auto] gap-3 md:gap-4">
                   <input 
-                    className="bg-white/5 border border-white/10 rounded-xl md:rounded-2xl px-4 md:px-6 py-4 md:py-5 text-white outline-none focus:border-amber-500 transition-all font-bold tracking-tight text-lg md:text-xl placeholder:text-white/40 w-full"
+                    className="bg-white/5 border border-white/10 rounded-xl md:rounded-2xl px-4 md:px-6 py-4 md:py-5 text-[var(--fg)] outline-none focus:border-[var(--accent)] transition-all font-bold tracking-tight text-lg md:text-xl placeholder:text-[var(--fg)] opacity-40 w-full"
                     value={displayName}
                     onChange={e => setDisplayName(e.target.value)}
                     placeholder="Candidate Name"
                   />
                   <select 
-                    className="bg-white/5 border border-white/10 rounded-xl md:rounded-2xl px-4 md:px-6 py-4 md:py-5 text-2xl md:text-3xl outline-none appearance-none cursor-pointer hover:bg-white/10 transition-all"
+                    className="bg-white/5 border border-white/10 rounded-xl md:rounded-2xl px-4 md:px-6 py-4 md:py-5 text-2xl md:text-3xl outline-none appearance-none cursor-pointer hover:bg-white/10 transition-all text-[var(--fg)]"
                     value={emoji}
                     onChange={e => setEmoji(e.target.value)}
                   >
@@ -251,10 +251,10 @@ export default function LanRoomsPage() {
             </div>
 
             <div className="space-y-4">
-               <div className="fe-hologram text-sky-400 text-[10px] uppercase font-black">Sector Frequency Code</div>
+               <div className="fe-hologram text-[var(--accent-soft)] text-[10px] uppercase font-black">Sector Frequency Code</div>
                <div className="grid grid-cols-[1fr_auto] gap-3 md:gap-4">
                   <input 
-                    className="flex-1 bg-white/5 border border-white/10 rounded-xl md:rounded-2xl px-4 md:px-6 py-4 md:py-5 text-white outline-none focus:border-amber-500 transition-all font-black tracking-[0.3em] md:tracking-[0.5em] uppercase text-lg md:text-2xl text-center placeholder:text-white/40 w-full"
+                    className="flex-1 bg-white/5 border border-white/10 rounded-xl md:rounded-2xl px-4 md:px-6 py-4 md:py-5 text-[var(--fg)] outline-none focus:border-[var(--accent)] transition-all font-black tracking-[0.3em] md:tracking-[0.5em] uppercase text-lg md:text-2xl text-center placeholder:text-[var(--fg)] opacity-40 w-full"
                     value={roomCode}
                     onChange={e => setRoomCode(e.target.value.toUpperCase())}
                     placeholder="SCANNING"
@@ -266,20 +266,20 @@ export default function LanRoomsPage() {
 
             <div className="flex flex-col gap-4 pt-6 border-t border-white/5">
                 {!room ? (
-                   <button onClick={createRoom} className="fe-holo-btn !py-6 !text-lg !border-amber-500/50 !text-amber-500 !bg-amber-500/5 hover:!bg-amber-500/10 transition-all font-black">ESTABLISH SECTOR</button>
+                   <button onClick={createRoom} className="fe-holo-btn !py-6 !text-lg !border-[var(--accent)]/50 !text-[var(--accent)] !bg-[var(--accent)]/5 hover:!bg-[var(--accent)]/10 transition-all font-black">ESTABLISH SECTOR</button>
                 ) : (
                    <div className="space-y-4">
-                      <div className="flex items-center justify-between text-xs fe-hologram text-white/40 px-2 font-bold uppercase tracking-widest">
+                      <div className="flex items-center justify-between text-xs fe-hologram text-[var(--fg)] opacity-40 px-2 font-bold uppercase tracking-widest">
                          <span>Players: {activeMembers.length}/4</span>
                          <span className="text-emerald-500">Linked</span>
                       </div>
                       {canStart ? (
                          <button onClick={startRoom} className="fe-holo-btn !py-6 !text-lg !bg-emerald-500/10 !border-emerald-500 !text-emerald-400 animate-pulse transition-all font-black">INITIATE PROTOCOL</button>
                       ) : (
-                         <div className="fe-holo-btn !py-6 !text-lg !bg-white/5 !border-white/10 !text-white/20 !cursor-not-allowed text-center uppercase font-black">Waiting for Participants</div>
+                         <div className="fe-holo-btn !py-6 !text-lg !bg-white/5 !border-white/10 !text-[var(--fg)] opacity-20 !cursor-not-allowed text-center uppercase font-black">Waiting for Participants</div>
                       )}
                       {amHost && activeMembers.length < 4 && (
-                         <button onClick={addBot} className="fe-holo-btn !py-4 !text-xs !text-sky-400/60 hover:!text-sky-400">Deploy Tactical Bot</button>
+                         <button onClick={addBot} className="fe-holo-btn !py-4 !text-xs !text-[var(--accent-soft)] opacity-60 hover:opacity-100">Deploy Tactical Bot</button>
                       )}
                    </div>
                 )}
@@ -289,7 +289,7 @@ export default function LanRoomsPage() {
          </div>
       </div>
 
-      <Link href="/" className="absolute bottom-12 left-12 fe-hologram text-white/20 hover:text-white transition-all text-[10px] tracking-[0.4em] font-black uppercase">← TERMINATE SESSION</Link>
+      <Link href="/" className="absolute bottom-12 left-12 fe-hologram text-[var(--fg)] opacity-20 hover:opacity-100 transition-all text-[10px] tracking-[0.4em] font-black uppercase">← TERMINATE SESSION</Link>
 
       {showInterstitial && (
          <InterstitialAd onComplete={() => {
@@ -310,7 +310,7 @@ function SeatCard({ seat, member, active, onKick, onAddBot, amHost }: { seat: Se
       className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center transition-all duration-1000 ${member ? 'opacity-100 scale-100' : 'opacity-10 scale-90'}`}
       style={{ transform: `translate(calc(-50% + ${radiusX}px), calc(-50% + ${radiusY}px))` }}
     >
-       <div className={`group w-32 h-32 md:w-36 md:h-36 rounded-[2rem] flex flex-col items-center justify-center text-4xl md:text-5xl bg-[#050608] border-2 transition-all duration-500 relative ${active ? 'border-amber-500 shadow-[0_0_50px_rgba(245,158,11,0.2)]' : 'border-white/5 focus-within:border-white/20'}`}>
+       <div className={`group w-32 h-32 md:w-36 md:h-36 rounded-[var(--radius)] flex flex-col items-center justify-center text-4xl md:text-5xl bg-[var(--bg)] border-2 transition-all duration-500 relative ${active ? 'border-[var(--accent)] shadow-[0_0_50px_rgba(var(--accent-rgb),0.2)]' : 'border-[var(--border)] focus-within:border-[var(--accent-soft)]'}`}>
           <div className="fe-grid absolute inset-0 opacity-10 pointer-events-none" />
           
           <span className="relative z-10 transition-transform group-hover:scale-110 duration-500">{member ? member.emoji : '?'}</span>
@@ -320,14 +320,14 @@ function SeatCard({ seat, member, active, onKick, onAddBot, amHost }: { seat: Se
              <button onClick={onKick} className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-rose-500/20 border border-rose-500/50 text-rose-500 text-lg flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all opacity-0 group-hover:opacity-100 shadow-lg">×</button>
           )}
           {!member && amHost && (
-             <button onClick={onAddBot} className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-all bg-sky-500/10 rounded-[2rem]">
-                <span className="fe-hologram text-sky-400 text-xs font-black">+ BOT</span>
+             <button onClick={onAddBot} className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-all bg-[var(--accent-soft)]/10 rounded-[var(--radius)]">
+                <span className="fe-hologram text-[var(--accent-soft)] text-xs font-black">+ BOT</span>
              </button>
           )}
        </div>
        <div className="mt-6 md:mt-8 text-center pointer-events-none">
-          <div className="fe-hologram text-[8px] md:text-[9px] text-sky-400/40 mb-1 font-black tracking-[0.2em]">{seat.toUpperCase()} TERMINAL</div>
-          <div className="text-lg md:text-xl font-black tracking-tighter text-white uppercase italic leading-none">{member ? member.displayName : 'NO SIGNAL'}</div>
+          <div className="fe-hologram text-[8px] md:text-[9px] text-[var(--accent-soft)] opacity-40 mb-1 font-black tracking-[0.2em]">{seat.toUpperCase()} TERMINAL</div>
+          <div className="text-lg md:text-xl font-black tracking-tighter text-[var(--fg)] uppercase italic leading-none">{member ? member.displayName : 'NO SIGNAL'}</div>
        </div>
     </div>
   );

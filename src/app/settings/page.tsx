@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { EMOJI_OPTIONS, THEME_OPTIONS } from '@/lib/gameConfig';
+import { EMOJI_OPTIONS, THEME_OPTIONS, THEME_PRESETS } from '@/lib/gameConfig';
 import { isTutorialDone, loadLocalSettings, resetTutorialDone, saveLocalSettings, setTutorialDone } from '@/lib/localProfile';
 
 export default function SettingsPage() {
@@ -74,19 +74,63 @@ export default function SettingsPage() {
               ))}
             </select>
           </div>
-          <div className="space-y-1">
+          <div className="sm:col-span-2 space-y-3">
             <label className="text-[10px] uppercase font-black text-white/20 ml-1">Interface Theme</label>
-            <select className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-amber-500 outline-none transition-all" value={theme} onChange={(event) => {
-              const newTheme = event.target.value as (typeof THEME_OPTIONS)[number];
-              setTheme(newTheme);
-              window.dispatchEvent(new CustomEvent('fe:settings-changed', {
-                detail: { ...loadLocalSettings(), theme: newTheme }
-              }));
-            }}>
-              {THEME_OPTIONS.map((candidate) => (
-                <option key={candidate} value={candidate} className="bg-slate-900">{candidate}</option>
-              ))}
-            </select>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+              {THEME_OPTIONS.map((candidate) => {
+                const preset = THEME_PRESETS[candidate];
+                const isActive = theme === candidate;
+                return (
+                  <button
+                    key={candidate}
+                    onClick={() => {
+                      setTheme(candidate);
+                      window.dispatchEvent(new CustomEvent('fe:settings-changed', {
+                        detail: { ...loadLocalSettings(), theme: candidate }
+                      }));
+                    }}
+                    className={`group relative flex flex-col items-center p-3 rounded-2xl border transition-all duration-300 ${isActive ? 'border-sky-400 bg-sky-400/10 scale-105 shadow-[0_0_20px_rgba(56,189,248,0.2)]' : 'border-white/5 bg-white/5 hover:border-white/20 hover:bg-white/10'}`}
+                  >
+                    <div 
+                      className="w-full aspect-square rounded-xl mb-2 flex items-center justify-center relative overflow-hidden"
+                      style={{ backgroundColor: preset.bg }}
+                    >
+                      {/* Mini Card Representation */}
+                      <div 
+                        className="w-8 h-10 rounded border border-white/20"
+                        style={{ backgroundColor: preset.panelAlt, borderRadius: preset.radius === '0px' ? '0px' : '4px' }}
+                      >
+                         <div className="w-full h-1" style={{ backgroundColor: preset.accent, opacity: 0.5 }} />
+                         <div className="p-1 space-y-1">
+                            <div className="h-0.5 w-4 bg-white/10" />
+                            <div className="h-0.5 w-3 bg-white/10" />
+                         </div>
+                      </div>
+                      
+                      {/* Color Swatches */}
+                      <div className="absolute bottom-1 right-1 flex gap-1">
+                         <div className="w-2 h-2 rounded-full" style={{ backgroundColor: preset.accent }} />
+                         <div className="w-2 h-2 rounded-full" style={{ backgroundColor: preset.accentSoft }} />
+                      </div>
+                    </div>
+                    <span 
+                      className={`text-[9px] font-black uppercase tracking-widest text-center leading-none ${isActive ? 'text-sky-400' : 'text-white/40 group-hover:text-white'}`}
+                      style={{ fontFamily: preset.fontDisplay }}
+                    >
+                      {candidate}
+                    </span>
+                    
+                    {isActive && (
+                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-sky-400 rounded-full flex items-center justify-center shadow-lg">
+                        <svg className="w-2.5 h-2.5 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
 

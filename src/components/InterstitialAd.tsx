@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export function InterstitialAd({ 
@@ -49,31 +50,31 @@ export function InterstitialAd({
         <div className="fe-scanline absolute inset-0 opacity-10" />
         
         <div className="relative z-10 text-center max-w-lg">
-           <div className="fe-hologram text-sky-400 mb-8 uppercase font-black text-xs tracking-widest animate-pulse">
+           <div className="fe-hologram text-[var(--accent-soft)] mb-8 uppercase font-black text-xs tracking-widest animate-pulse">
               Sponsor Interruption: Universal Signal 0xCC
            </div>
 
            {/* Ad Content Placeholder */}
-           <div className="w-full aspect-video bg-white/5 border border-white/10 rounded-3xl flex items-center justify-center mb-10 overflow-hidden relative">
+           <div className="w-full aspect-video bg-white/5 border border-white/10 rounded-[var(--radius)] flex items-center justify-center mb-10 overflow-hidden relative">
               <div className="absolute inset-0 fe-grid opacity-5" />
-              <div className="text-white/20 fe-hologram text-xs uppercase font-black tracking-[0.5em]">Transmitting Message...</div>
+              <div className="text-[var(--fg)] opacity-20 fe-hologram text-xs uppercase font-black tracking-[0.5em]">Transmitting Message...</div>
            </div>
 
            <div className="flex flex-col items-center space-y-6">
               {countdown > 0 ? (
-                <div className="text-white/40 fe-hologram text-[10px] uppercase font-bold tracking-widest">
+                <div className="text-[var(--fg)] opacity-40 fe-hologram text-[10px] uppercase font-bold tracking-widest">
                    Transmission Secure in {countdown}s
                 </div>
               ) : (
                 <button 
                   onClick={onComplete}
-                  className="fe-holo-btn !py-4 !px-12 !text-emerald-400 !border-emerald-500 !bg-emerald-500/10 transition-all font-black uppercase text-sm tracking-widest active:scale-95"
+                  className="fe-holo-btn !py-4 !px-12 !text-[var(--accent)] !border-[var(--accent)] !bg-[var(--accent)]/10 transition-all font-black uppercase text-sm tracking-widest active:scale-95"
                 >
                    Close Transmission
                 </button>
               )}
               
-              <Link href="/store" onClick={onComplete} className="text-[9px] fe-hologram text-white/10 hover:text-white transition-all uppercase tracking-[0.3em]">
+              <Link href="/store" onClick={onComplete} className="text-[9px] fe-hologram text-[var(--fg)] opacity-10 hover:opacity-100 transition-all uppercase tracking-[0.3em]">
                  Upgrade to Sector Pass to Mute Interstellar Ads
               </Link>
            </div>
@@ -82,5 +83,3 @@ export function InterstitialAd({
     </AnimatePresence>
   );
 }
-
-import Link from 'next/link';

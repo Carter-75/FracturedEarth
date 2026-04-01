@@ -5,11 +5,20 @@
 :root {
   --bg: #020408;
   --fg: #f8fafc;
-  --accent: #f59e0b; /* Amber Alert */
-  --accent-soft: #38bdf8; /* Plasma Blue */
+  --accent: #f59e0b;
+  --accent-soft: #38bdf8;
   --panel: rgba(10, 15, 25, 0.8);
+  --panel-alt: rgba(15, 20, 35, 0.9);
   --border: rgba(255, 255, 255, 0.1);
-  --neon-glow: 0 0 15px rgba(245, 158, 11, 0.4);
+  --muted: #64748b;
+  
+  /* Brand/Theme Overrides */
+  --radius: 2rem;
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+  --text-transform: uppercase;
+  --glow-color: var(--accent);
+  --neon-glow: 0 0 15px rgba(var(--accent-rgb), var(--glow-strength, 0.4));
   
   /* Responsive Game Units */
   --card-w: 5rem;
@@ -38,28 +47,38 @@
 
 @layer base {
   body {
-    @apply bg-[#020408] text-slate-100 font-sans overflow-hidden select-none;
+    @apply bg-[var(--bg)] text-[var(--fg)] overflow-hidden select-none transition-colors duration-500;
+    font-family: var(--font-body), sans-serif;
     background-image: 
-      radial-gradient(circle at 50% -20%, rgba(56, 189, 248, 0.15), transparent 60%),
-      radial-gradient(circle at 50% 120%, rgba(245, 158, 11, 0.1), transparent 60%);
+      radial-gradient(circle at 50% -20%, rgba(var(--accent-rgb), 0.15), transparent 60%),
+      radial-gradient(circle at 50% 120%, rgba(var(--accent-rgb), 0.1), transparent 60%);
+  }
+  
+  h1, h2, h3, .fe-hologram {
+    font-family: var(--font-display), sans-serif;
+    text-transform: var(--text-transform);
   }
 }
 
 @layer components {
   
 /* --- Cinematic Global Components --- */
-  /* --- Cinematic Global Components --- */
   .fe-modal-overlay {
     @apply fixed inset-0 z-[2000] bg-black/60 backdrop-blur-2xl flex items-center justify-center p-4 md:p-6;
   }
 
   .fe-modal-content {
-    @apply w-full max-w-xl bg-[#0a0c0f]/80 border border-white/10 rounded-[2rem] md:rounded-[3rem] p-6 md:p-12 shadow-2xl relative overflow-hidden max-h-[90vh] overflow-y-auto;
+    background-color: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    @apply w-full max-w-xl p-6 md:p-12 shadow-2xl relative overflow-hidden max-h-[90vh] overflow-y-auto transition-all duration-500;
     box-shadow: 0 0 100px rgba(0, 0, 0, 0.8), inset 0 0 30px rgba(255, 255, 255, 0.02);
   }
 
   .fe-modal-content::after {
-    content: ''; @apply absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-amber-500/50 to-transparent;
+    content: ''; @apply absolute top-0 left-0 w-full h-1;
+    background: linear-gradient(to right, transparent, var(--accent), transparent);
+    opacity: 0.5;
   }
   
   /* Responsive Utility for Layout Padding */
@@ -69,7 +88,7 @@
   }
 
   .fe-glow-text {
-    text-shadow: 0 0 15px currentColor;
+    text-shadow: 0 0 15px var(--glow-color);
   }
 
 .fe-blur-bg {
@@ -80,15 +99,19 @@
   .fe-scene {
     @apply relative w-full h-full overflow-hidden flex items-center justify-center;
     perspective: 2000px;
+    background-color: var(--bg);
   }
 
   .fe-table {
-    @apply absolute left-1/2 top-1/2 w-[200vw] h-[150vh] md:w-[250vw] bg-[#05080f] rounded-[50%] border-[8px] border-white/5;
+    background-color: var(--bg);
+    border: 8px solid var(--border);
+    border-radius: var(--radius);
+    @apply absolute left-1/2 top-1/2 w-[200vw] h-[150vh] md:w-[250vw] transition-all duration-700;
     transform: translate(-50%, -50%) rotateX(65deg) scale(0.9);
     box-shadow: 
       0 100px 300px rgba(0,0,0,0.9),
       inset 0 0 100px rgba(0,0,0,0.9),
-      inset 0 0 20px rgba(56, 189, 248, 0.1);
+      inset 0 0 20px rgba(var(--accent-rgb), 0.1);
     transform-style: preserve-3d;
   }
 
@@ -103,8 +126,9 @@
 
   /* Cinematic Effects */
   .fe-scanline {
-    @apply absolute inset-0 pointer-events-none z-[1000] opacity-[0.03];
-    background: linear-gradient(to bottom, transparent 50%, #fff 50%);
+    @apply absolute inset-0 pointer-events-none z-[1000];
+    opacity: var(--scanline-opacity, 0.03);
+    background: linear-gradient(to bottom, transparent 50%, var(--fg) 50%);
     background-size: 100% 4px;
   }
 
@@ -115,7 +139,10 @@
 
   /* Physical Cards */
   .fe-card-physical {
-    @apply relative bg-[#0a0f1a] rounded-xl border border-white/10 overflow-hidden;
+    background-color: var(--panel-alt);
+    border: 1px solid var(--border);
+    border-radius: calc(var(--radius) / 2.5);
+    @apply relative overflow-hidden transition-all duration-300;
     width: var(--card-w);
     height: var(--card-h);
     box-shadow: 
@@ -124,7 +151,7 @@
   }
 
   .fe-card-physical:hover {
-    @apply border-white/30;
+    border-color: var(--accent);
     box-shadow: -10px 20px 40px rgba(0,0,0,0.8);
   }
 
@@ -132,22 +159,46 @@
   .fe-hologram {
     @apply font-black tracking-[0.3em] uppercase text-xs;
     text-shadow: 0 0 10px currentColor;
+    letter-spacing: 0.3em;
   }
 
   .fe-holo-btn {
-    @apply px-8 py-3 bg-white/5 backdrop-blur-md border border-white/10 rounded-full fe-hologram text-white/60 hover:text-white hover:bg-white/10 hover:border-white/30 transition-all active:scale-95;
-    box-shadow: 0 0 20px rgba(56, 189, 248, 0.1);
+    border: 1px solid var(--border);
+    border-radius: 9999px;
+    @apply px-8 py-3 bg-white/5 backdrop-blur-md fe-hologram text-white/60 hover:text-white hover:bg-white/10 hover:border-[var(--accent)] transition-all active:scale-95 duration-300;
+    box-shadow: 0 0 20px rgba(var(--accent-rgb), 0.1);
   }
 
   /* Mesh Grid */
   .fe-grid {
     @apply absolute inset-0 pointer-events-none opacity-[0.05];
     background-image: 
-      linear-gradient(rgba(56, 189, 248, 0.5) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(56, 189, 248, 0.5) 1px, transparent 1px);
+      linear-gradient(rgba(var(--accent-rgb), 0.5) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(var(--accent-rgb), 0.5) 1px, transparent 1px);
     background-size: 50px 50px;
   }
 }
+
+/* Custom Animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(1deg); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes holographic-flicker {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  98% { opacity: 0.8; transform: scale(1.002); }
+  99% { opacity: 1; transform: scale(0.998); }
+}
+
+.fe-flicker {
+  animation: holographic-flicker 4s infinite;
+}
+
 
 /* Custom Animations */
 @keyframes float {
