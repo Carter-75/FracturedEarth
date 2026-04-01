@@ -42,22 +42,22 @@ export function SectorPassPopup() {
             <div className="fe-blur-bg bg-sky-500/10" />
             
             <div className="relative z-10 text-center">
-               <div className="fe-hologram text-sky-400 mb-2 uppercase font-black text-[10px]">Priority Transmission</div>
-               <h2 className="text-3xl font-black italic tracking-tighter text-white uppercase mb-4">Secure Your Sector</h2>
-               <p className="text-white/40 leading-relaxed font-light mb-8 text-sm">
+               <div className="fe-hologram text-sky-400 mb-2 uppercase font-black text-[9px] md:text-[10px]">Priority Transmission</div>
+               <h2 className="text-2xl md:text-3xl font-black italic tracking-tighter text-white uppercase mb-4">Secure Your Sector</h2>
+               <p className="text-white/40 leading-relaxed font-light mb-8 text-xs md:text-sm">
                   Upgrade to the **Sector Pass** to eliminate sponsor interruptions and unlock premium planetary themes.
                </p>
 
                <div className="space-y-3">
                   <Link 
                     href="/store" onClick={() => setVisible(false)}
-                    className="fe-holo-btn w-full !bg-sky-500/10 !border-sky-500 !text-white !py-4"
+                    className="fe-holo-btn w-full !bg-sky-500/10 !border-sky-500 !text-white !py-3 md:!py-4 text-sm md:text-base"
                   >
                     View Packages
                   </Link>
                   <button 
                     onClick={handleDismiss}
-                    className="text-[10px] fe-hologram text-white/20 hover:text-white transition-all uppercase tracking-[0.3em]"
+                    className="text-[9px] md:text-[10px] fe-hologram text-white/20 hover:text-white transition-all uppercase tracking-[0.3em]"
                   >
                     Continue as Candidate
                   </button>

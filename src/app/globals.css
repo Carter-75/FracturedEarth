@@ -48,22 +48,29 @@
 @layer components {
   
 /* --- Cinematic Global Components --- */
-.fe-modal-overlay {
-  @apply fixed inset-0 z-[2000] bg-black/60 backdrop-blur-2xl flex items-center justify-center p-6;
-}
+  /* --- Cinematic Global Components --- */
+  .fe-modal-overlay {
+    @apply fixed inset-0 z-[2000] bg-black/60 backdrop-blur-2xl flex items-center justify-center p-4 md:p-6;
+  }
 
-.fe-modal-content {
-  @apply w-full max-w-xl bg-[#0a0c0f]/80 border border-white/10 rounded-[3rem] p-12 shadow-2xl relative overflow-hidden;
-  box-shadow: 0 0 100px rgba(0, 0, 0, 0.8), inset 0 0 30px rgba(255, 255, 255, 0.02);
-}
+  .fe-modal-content {
+    @apply w-full max-w-xl bg-[#0a0c0f]/80 border border-white/10 rounded-[2rem] md:rounded-[3rem] p-6 md:p-12 shadow-2xl relative overflow-hidden max-h-[90vh] overflow-y-auto;
+    box-shadow: 0 0 100px rgba(0, 0, 0, 0.8), inset 0 0 30px rgba(255, 255, 255, 0.02);
+  }
 
-.fe-modal-content::after {
-  content: ''; @apply absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-amber-500/50 to-transparent;
-}
+  .fe-modal-content::after {
+    content: ''; @apply absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-amber-500/50 to-transparent;
+  }
+  
+  /* Responsive Utility for Layout Padding */
+  .fe-layout-content {
+    @apply flex-1 flex flex-col overflow-hidden relative;
+    padding-top: var(--header-height, 60px);
+  }
 
-.fe-glow-text {
-  text-shadow: 0 0 15px currentColor;
-}
+  .fe-glow-text {
+    text-shadow: 0 0 15px currentColor;
+  }
 
 .fe-blur-bg {
   @apply absolute inset-0 opacity-20 blur-[80px] pointer-events-none;

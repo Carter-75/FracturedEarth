@@ -13,12 +13,17 @@ export function AdBanner() {
   useEffect(() => {
     // Check local storage for ad-free entitlement
     const settings = localStorage.getItem('fe:user-settings:v1');
+    let isAdFree = false;
     if (settings) {
        try {
          const parsed = JSON.parse(settings);
-         if (parsed.adFree) setAdFree(true);
+         if (parsed.adFree) isAdFree = true;
        } catch (e) {}
     }
+    setAdFree(isAdFree);
+    
+    // Set global CSS variable for layout padding
+    document.documentElement.style.setProperty('--header-height', isAdFree ? '0px' : '60px');
   }, []);
 
   if (adFree) return null;

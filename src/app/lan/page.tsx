@@ -206,13 +206,13 @@ export default function LanRoomsPage() {
          <h1 className="text-5xl font-black italic tracking-tighter text-white uppercase leading-none">SECTOR<span className="text-amber-500 font-bold block">LOBBY</span></h1>
       </div>
 
-      <div className="relative z-10 w-full max-w-7xl px-12 grid lg:grid-cols-[1.3fr_0.7fr] gap-12 items-center">
+      <div className="relative z-10 w-full max-w-7xl px-4 md:px-12 grid lg:grid-cols-[1.3fr_0.7fr] gap-12 items-center py-20 lg:py-0">
          
          {/* The 3D Table for Seats */}
-         <div className="relative h-[48rem] flex items-center justify-center">
-             <div className="absolute w-[45rem] h-[34rem] border border-white/5 rounded-[100%] [transform:rotateX(60deg)] bg-blue-500/[0.03] shadow-[0_0_100px_rgba(59,130,246,0.05)]" />
+         <div className="relative h-[30rem] md:h-[48rem] flex items-center justify-center overflow-hidden lg:overflow-visible">
+             <div className="absolute w-[45rem] h-[34rem] border border-white/5 rounded-[100%] [transform:rotateX(60deg)] bg-blue-500/[0.03] shadow-[0_0_100px_rgba(59,130,246,0.05)] scale-50 md:scale-100" />
              
-             <div className="relative w-full h-full">
+             <div className="relative w-full h-full scale-[0.4] sm:scale-[0.6] md:scale-100 transition-transform duration-700">
                 {seats.map((seat) => (
                   <SeatCard 
                     key={seat.position} 
@@ -228,20 +228,20 @@ export default function LanRoomsPage() {
          </div>
 
          {/* Configuration Panel */}
-         <div className="bg-[#0a0c0f]/80 border border-white/10 rounded-[3rem] p-12 backdrop-blur-3xl space-y-10 shadow-3xl relative">
+         <div className="bg-[#0a0c0f]/80 border border-white/10 rounded-[2rem] md:rounded-[3rem] p-6 md:p-12 backdrop-blur-3xl space-y-8 md:space-y-10 shadow-3xl relative mx-4 lg:mx-0">
             <div className="absolute top-0 right-10 w-24 h-1 bg-amber-500" />
             
             <div className="space-y-4">
                <div className="fe-hologram text-sky-400 text-[10px] uppercase font-black">Candidate Identification</div>
-               <div className="grid grid-cols-[1fr_auto] gap-4">
+               <div className="grid grid-cols-[1fr_auto] gap-3 md:gap-4">
                   <input 
-                    className="bg-white/5 border border-white/10 rounded-2xl px-6 py-5 text-white outline-none focus:border-amber-500 transition-all font-bold tracking-tight text-xl placeholder:text-white/40"
+                    className="bg-white/5 border border-white/10 rounded-xl md:rounded-2xl px-4 md:px-6 py-4 md:py-5 text-white outline-none focus:border-amber-500 transition-all font-bold tracking-tight text-lg md:text-xl placeholder:text-white/40 w-full"
                     value={displayName}
                     onChange={e => setDisplayName(e.target.value)}
                     placeholder="Candidate Name"
                   />
                   <select 
-                    className="bg-white/5 border border-white/10 rounded-2xl px-6 py-5 text-3xl outline-none appearance-none cursor-pointer hover:bg-white/10 transition-all"
+                    className="bg-white/5 border border-white/10 rounded-xl md:rounded-2xl px-4 md:px-6 py-4 md:py-5 text-2xl md:text-3xl outline-none appearance-none cursor-pointer hover:bg-white/10 transition-all"
                     value={emoji}
                     onChange={e => setEmoji(e.target.value)}
                   >
@@ -252,15 +252,15 @@ export default function LanRoomsPage() {
 
             <div className="space-y-4">
                <div className="fe-hologram text-sky-400 text-[10px] uppercase font-black">Sector Frequency Code</div>
-               <div className="grid grid-cols-[1fr_auto] gap-4">
+               <div className="grid grid-cols-[1fr_auto] gap-3 md:gap-4">
                   <input 
-                    className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-6 py-5 text-white outline-none focus:border-amber-500 transition-all font-black tracking-[0.5em] uppercase text-2xl text-center placeholder:text-white/40"
+                    className="flex-1 bg-white/5 border border-white/10 rounded-xl md:rounded-2xl px-4 md:px-6 py-4 md:py-5 text-white outline-none focus:border-amber-500 transition-all font-black tracking-[0.3em] md:tracking-[0.5em] uppercase text-lg md:text-2xl text-center placeholder:text-white/40 w-full"
                     value={roomCode}
                     onChange={e => setRoomCode(e.target.value.toUpperCase())}
                     placeholder="SCANNING"
                     maxLength={6}
                   />
-                  <button onClick={joinRoom} className="fe-holo-btn !px-10 !text-lg !font-black !tracking-widest active:scale-95 transition-all">SYNC</button>
+                  <button onClick={joinRoom} className="fe-holo-btn !px-6 md:!px-10 !text-sm md:!text-lg !font-black !tracking-widest active:scale-95 transition-all">SYNC</button>
                </div>
             </div>
 
@@ -310,7 +310,7 @@ function SeatCard({ seat, member, active, onKick, onAddBot, amHost }: { seat: Se
       className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center transition-all duration-1000 ${member ? 'opacity-100 scale-100' : 'opacity-10 scale-90'}`}
       style={{ transform: `translate(calc(-50% + ${radiusX}px), calc(-50% + ${radiusY}px))` }}
     >
-       <div className={`group w-36 h-36 rounded-[2rem] flex flex-col items-center justify-center text-5xl bg-[#050608] border-2 transition-all duration-500 relative ${active ? 'border-amber-500 shadow-[0_0_50px_rgba(245,158,11,0.2)]' : 'border-white/5 focus-within:border-white/20'}`}>
+       <div className={`group w-32 h-32 md:w-36 md:h-36 rounded-[2rem] flex flex-col items-center justify-center text-4xl md:text-5xl bg-[#050608] border-2 transition-all duration-500 relative ${active ? 'border-amber-500 shadow-[0_0_50px_rgba(245,158,11,0.2)]' : 'border-white/5 focus-within:border-white/20'}`}>
           <div className="fe-grid absolute inset-0 opacity-10 pointer-events-none" />
           
           <span className="relative z-10 transition-transform group-hover:scale-110 duration-500">{member ? member.emoji : '?'}</span>
@@ -325,9 +325,9 @@ function SeatCard({ seat, member, active, onKick, onAddBot, amHost }: { seat: Se
              </button>
           )}
        </div>
-       <div className="mt-8 text-center pointer-events-none">
-          <div className="fe-hologram text-[9px] text-sky-400/40 mb-1 font-black tracking-[0.2em]">{seat.toUpperCase()} TERMINAL</div>
-          <div className="text-xl font-black tracking-tighter text-white uppercase italic leading-none">{member ? member.displayName : 'NO SIGNAL'}</div>
+       <div className="mt-6 md:mt-8 text-center pointer-events-none">
+          <div className="fe-hologram text-[8px] md:text-[9px] text-sky-400/40 mb-1 font-black tracking-[0.2em]">{seat.toUpperCase()} TERMINAL</div>
+          <div className="text-lg md:text-xl font-black tracking-tighter text-white uppercase italic leading-none">{member ? member.displayName : 'NO SIGNAL'}</div>
        </div>
     </div>
   );

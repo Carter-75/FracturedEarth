@@ -32,7 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <AdBanner />
           <TutorialLaunchGate />
           <SectorPassPopup />
-          <div className="pt-[60px] h-screen overflow-hidden flex flex-col">
+          <div className="fe-layout-content h-screen">
             {children}
           </div>
         </Providers>
