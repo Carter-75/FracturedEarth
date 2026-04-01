@@ -13,10 +13,14 @@ import timber.log.Timber
 
 class GoogleAuthManager(context: Context) {
 
-    private val signInOptions = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-        .requestIdToken(BuildConfig.GOOGLE_WEB_CLIENT_ID)
-        .requestEmail()
-        .build()
+    private val signInOptions = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).apply {
+        if (BuildConfig.GOOGLE_WEB_CLIENT_ID.isNotBlank()) {
+            requestIdToken(BuildConfig.GOOGLE_WEB_CLIENT_ID)
+        } else {
+            Timber.w("GOOGLE_WEB_CLIENT_ID is blank; requestIdToken skipped. Google login may not provide an ID token.")
+        }
+        requestEmail()
+    }.build()
 
     private val client: GoogleSignInClient = GoogleSignIn.getClient(context, signInOptions)
 
