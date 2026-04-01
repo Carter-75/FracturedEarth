@@ -1,5 +1,15 @@
 .gradle/
+# Secrets and Signing
+.env
+.env.local
 local.properties
+keystore.properties
+*.jks
+*.keystore
+*.p12
+
+# Next.js
+.next/
 **/build/
 .idea/
 *.iml
