@@ -29,6 +29,7 @@ export interface RedisLike {
   zAdd(key: string, entry: { score: number; value: string }): Promise<number>;
   zRem(key: string, value: string): Promise<number>;
   zRangeWithScores(key: string, start: number, stop: number, options?: ZRangeOptions): Promise<Array<{ value: string; score: number }>>;
+  hIncrBy(key: string, field: string, increment: number): Promise<number>;
   multi(): RedisMultiLike;
 }
 
@@ -111,6 +112,16 @@ class InMemoryRedisClient implements RedisLike {
     this.hashes.set(key, hash);
     this.saveToFile();
     return created;
+  }
+
+  async hIncrBy(key: string, field: string, increment: number): Promise<number> {
+    const hash = this.hashes.get(key) ?? new Map<string, string>();
+    const current = Number(hash.get(field) ?? 0);
+    const next = current + increment;
+    hash.set(field, String(next));
+    this.hashes.set(key, hash);
+    this.saveToFile();
+    return next;
   }
 
   async hGetAll(key: string): Promise<Record<string, string>> {
@@ -290,6 +301,10 @@ class RedisAdapter implements RedisLike {
     options?: ZRangeOptions,
   ): Promise<Array<{ value: string; score: number }>> {
     return this.client.zRangeWithScores(key, start, stop, options as { REV?: boolean });
+  }
+
+  async hIncrBy(key: string, field: string, increment: number): Promise<number> {
+    return this.client.hIncrBy(key, field, increment);
   }
 
   multi(): RedisMultiLike {

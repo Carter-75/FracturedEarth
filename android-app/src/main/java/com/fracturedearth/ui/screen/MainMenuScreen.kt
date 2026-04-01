@@ -38,7 +38,14 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import coil.compose.AsyncImage
+import com.fracturedearth.R
 import com.fracturedearth.game.BotDifficulty
 import com.fracturedearth.ui.component.FeButton
 import com.fracturedearth.ui.theme.Spacing
@@ -52,6 +59,7 @@ data class MatchConfig(
 )
 
 
+@Suppress("DEPRECATION")
 @Composable
 fun MainMenuScreen(
     currentUser: GoogleSignInAccount?,
@@ -78,87 +86,113 @@ fun MainMenuScreen(
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        Column(
+        // Cinematic Background
+        Image(
+            painter = painterResource(id = R.drawable.bg_main),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+
+        // Subtle Overlay for readability
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(
                     Brush.verticalGradient(
                         listOf(
-                            MaterialTheme.colorScheme.background,
-                            MaterialTheme.colorScheme.surface,
+                            Color.Black.copy(alpha = 0.4f),
+                            Color.Transparent,
+                            Color.Black.copy(alpha = 0.6f),
                         )
                     )
                 )
+        )
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
                 .padding(Spacing.x6),
             verticalArrangement = Arrangement.spacedBy(Spacing.x4, Alignment.CenterVertically),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            // ... (Title stays the same) ...
             AnimatedVisibility(
                 visible = visible,
-                enter = fadeIn(tween(420)) + slideInVertically(tween(420), initialOffsetY = { -it / 3 }),
+                enter = fadeIn(tween(600)) + slideInVertically(tween(600), initialOffsetY = { -it / 2 }),
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = "FRACTURED EARTH",
-                        style = MaterialTheme.typography.headlineLarge,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = MaterialTheme.colorScheme.onBackground,
-                    )
-                    Spacer(modifier = Modifier.height(Spacing.x1))
-                    Text(
-                        text = "A Chaos Survival Card Game",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.secondary,
-                    )
-                }
+                // Cinematic Logo
+                Image(
+                    painter = painterResource(id = R.drawable.logo_main),
+                    contentDescription = "Fractured Earth",
+                    modifier = Modifier
+                        .height(120.dp)
+                        .fillMaxWidth(0.8f),
+                    contentScale = ContentScale.Fit
+                )
             }
 
             AnimatedVisibility(
                 visible = visible,
-                enter = fadeIn(tween(520)) + slideInVertically(tween(520), initialOffsetY = { it / 4 }),
+                enter = fadeIn(tween(800)) + slideInVertically(tween(800), initialOffsetY = { it / 3 }),
             ) {
+                // GLASSMORPHISM Match Config Card
                 Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(20),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .border(
+                            width = 1.dp,
+                            brush = Brush.verticalGradient(
+                                listOf(
+                                    Color.White.copy(alpha = 0.2f),
+                                    Color.Transparent
+                                )
+                            ),
+                            shape = RoundedCornerShape(24.dp)
+                        ),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f)
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 12.dp)
                 ) {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(Spacing.x4),
+                            .padding(Spacing.x5),
                         verticalArrangement = Arrangement.spacedBy(Spacing.x3),
                     ) {
                         OutlinedTextField(
                             value = playerName,
                             onValueChange = { playerName = it },
-                            label = { Text("Commander Name") },
+                            label = { Text("COMMANDER NAME", fontWeight = FontWeight.Bold) },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp)
                         )
 
-                        Text("Local Skirmish Bots", style = MaterialTheme.typography.titleMedium)
+                        Text("LOCAL SKIRMISH BOTS", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.primary)
                         Row(horizontalArrangement = Arrangement.spacedBy(Spacing.x2)) {
                             listOf(1, 2, 3).forEach { value ->
                                 AssistChip(
                                     onClick = { botCount = value },
                                     label = { Text("$value") },
+                                    shape = CircleShape,
                                     colors = AssistChipDefaults.assistChipColors(
-                                        containerColor = if (botCount == value) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.background,
+                                        containerColor = if (botCount == value) MaterialTheme.colorScheme.primary else Color.Transparent,
                                         labelColor = if (botCount == value) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onBackground,
                                     ),
                                 )
                             }
                         }
 
-                        Text("Difficulty", style = MaterialTheme.typography.titleMedium)
+                        Text("DIFFICULTY", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.secondary)
                         Row(horizontalArrangement = Arrangement.spacedBy(Spacing.x2)) {
                             BotDifficulty.entries.forEach { level ->
                                 AssistChip(
                                     onClick = { difficulty = level },
                                     label = { Text(level.name) },
                                     colors = AssistChipDefaults.assistChipColors(
-                                        containerColor = if (difficulty == level) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.background,
+                                        containerColor = if (difficulty == level) MaterialTheme.colorScheme.secondary else Color.Transparent,
                                         labelColor = if (difficulty == level) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.onBackground,
                                     ),
                                 )

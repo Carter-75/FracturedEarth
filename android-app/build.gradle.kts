@@ -32,7 +32,8 @@ val hasReleaseSigning = listOf("storeFile", "storePassword", "keyAlias", "keyPas
     .all { keystoreValue(it).isNotBlank() }
 
 fun localValue(key: String, fallback: String): String {
-    return localProperties.getProperty(key) ?: fallback
+    val value = localProperties.getProperty(key)
+    return if (value != null && value.trim().isNotEmpty()) value.trim() else fallback
 }
 
 android {
@@ -43,12 +44,13 @@ android {
         applicationId = "com.fracturedearth"
         minSdk = 26
         targetSdk = 35
-        versionCode = 32
+        versionCode = 46
         versionName = "1.0.0"
-
+        
+        multiDexEnabled = true
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
-
+        
         buildConfigField(
             "String",
             "ADMOB_BANNER_AD_UNIT",
@@ -218,6 +220,20 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4:1.6.8")
     debugImplementation("androidx.compose.ui:ui-tooling:1.6.8")
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

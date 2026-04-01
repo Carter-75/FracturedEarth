@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 
+@Suppress("DEPRECATION")
 class MainActivity : FragmentActivity(), AndroidFragmentApplication.Callbacks {
     private lateinit var authManager: GoogleAuthManager
     private val currentUser = MutableStateFlow<GoogleSignInAccount?>(null)

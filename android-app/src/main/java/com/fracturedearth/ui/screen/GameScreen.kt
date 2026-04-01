@@ -1,51 +1,29 @@
 package com.fracturedearth.ui.screen
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.*
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.*
+import androidx.compose.ui.draw.*
+import androidx.compose.ui.graphics.*
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.fracturedearth.R
 import com.fracturedearth.BuildConfig
 import com.fracturedearth.core.model.Card as GameCard
+import com.fracturedearth.core.model.GameState
 import com.fracturedearth.game.GameUiState
 import com.fracturedearth.ui.component.BannerAdSlot
 import com.fracturedearth.ui.component.FeButton
@@ -81,29 +59,54 @@ fun GameScreen(
         label = "phase_color",
     )
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    listOf(
-                        MaterialTheme.colorScheme.background,
-                        MaterialTheme.colorScheme.surface,
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp.dp
+    val cardWidth = remember(screenWidth) { (screenWidth / 3.2f).coerceIn(100.dp, 140.dp) }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Cinematic Background
+        Image(
+            painter = painterResource(id = R.drawable.bg_main),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+
+        // Subtle Glow Overlay
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        listOf(
+                            Color.Black.copy(alpha = 0.5f),
+                            Color.Transparent,
+                            Color.Black.copy(alpha = 0.7f),
+                        )
                     )
                 )
-            )
-            .padding(Spacing.x4),
-        verticalArrangement = Arrangement.spacedBy(Spacing.x2),
-    ) {
+        )
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(Spacing.x4),
+            verticalArrangement = Arrangement.spacedBy(Spacing.x2),
+        ) {
         Row(horizontalArrangement = Arrangement.spacedBy(Spacing.x2)) {
             FeButton(label = "Menu", onClick = onOpenMenu, modifier = Modifier.weight(1f))
             FeButton(label = "Settings", onClick = onOpenSettings, modifier = Modifier.weight(1f))
         }
 
+        // GLASSMORPHISM Stats Card
         Card(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(16.dp)),
             shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f)
+            ),
         ) {
             Column(
                 modifier = Modifier.padding(Spacing.x3),
@@ -171,7 +174,18 @@ fun GameScreen(
                     shape = RoundedCornerShape(14.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
                 ) {
-                    LibGdxBoardView(modifier = Modifier.fillMaxSize())
+                    LibGdxBoardView(
+                        modifier = Modifier.fillMaxSize(),
+                        gameState = state.rawState ?: GameState(
+                            round = 0,
+                            activePlayerIndex = 0,
+                            players = emptyList(),
+                            drawPile = emptyList(),
+                            discardPile = emptyList(),
+                            isGlobalDisasterPhase = false,
+                            winnerId = null
+                        )
+                    )
                 }
             }
         }
@@ -186,9 +200,9 @@ fun GameScreen(
                     targetValue = if (state.isHumanTurn) 6.dp else 1.dp,
                     label = "card_elevation",
                 )
-                UnoFaceUpCard(
+                FeCard(
                     card = card,
-                    modifier = Modifier.width(138.dp),
+                    modifier = Modifier.width(cardWidth * 0.9f),
                     elevation = elevation,
                     onClick = { selectedCard = card },
                 )
@@ -242,6 +256,7 @@ fun GameScreen(
                     selectedCard = null
                 },
             )
+        }
         }
     }
 }
@@ -298,7 +313,7 @@ private fun FaceDownCards(count: Int) {
 }
 
 @Composable
-private fun UnoFaceUpCard(
+private fun FeCard(
     card: GameCard,
     modifier: Modifier = Modifier,
     elevation: androidx.compose.ui.unit.Dp,
@@ -313,7 +328,7 @@ private fun UnoFaceUpCard(
     }
     Card(
         modifier = modifier
-            .height(176.dp)
+            .height(180.dp)
             .clickable { onClick() },
         shape = RoundedCornerShape(14.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = elevation),
@@ -330,15 +345,32 @@ private fun UnoFaceUpCard(
                 .padding(10.dp),
         ) {
             Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.SpaceBetween) {
-                Text(card.type.name, style = MaterialTheme.typography.labelSmall, color = Color.White)
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text(card.type.name, style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.8f))
+                    if (card.drawCount > 0) {
+                        Text("+${card.drawCount} DRAW", style = MaterialTheme.typography.labelSmall, color = Color(0xFF81C784), fontWeight = FontWeight.Bold)
+                    }
+                }
+                
+                Column {
+                    Text(
+                        card.name,
+                        style = MaterialTheme.typography.titleSmall,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 2,
+                    )
+                    
+                    if (card.disasterKind != null) {
+                        Text("TYPE: ${card.disasterKind}", style = MaterialTheme.typography.bodySmall, color = Color.White.copy(alpha = 0.6f))
+                    }
+                    if (card.blocksDisaster != null) {
+                        Text("BLOCKS: ${card.blocksDisaster}", style = MaterialTheme.typography.bodySmall, color = Color(0xFFFFD54F), fontWeight = FontWeight.Medium)
+                    }
+                }
+
                 Text(
-                    card.name,
-                    style = MaterialTheme.typography.titleSmall,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                )
-                Text(
-                    if (card.pointsDelta != 0) "${if (card.pointsDelta > 0) "+" else ""}${card.pointsDelta}" else "Ability",
+                    if (card.pointsDelta != 0) "${if (card.pointsDelta > 0) "+" else ""}${card.pointsDelta}" else "ABILITY",
                     style = MaterialTheme.typography.headlineSmall,
                     color = Color.White,
                     fontWeight = FontWeight.ExtraBold,
@@ -365,18 +397,24 @@ private fun CardDetailDialog(
         ) {
             Column(
                 modifier = Modifier
-                    .padding(Spacing.x3)
+                    .padding(16.dp)
                     .width(280.dp),
-                verticalArrangement = Arrangement.spacedBy(Spacing.x2),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                UnoFaceUpCard(card = card, modifier = Modifier.fillMaxWidth(), elevation = 0.dp, onClick = { })
+                FeCard(card = card, modifier = Modifier.width(160.dp), elevation = 0.dp, onClick = { })
+                
                 Text(
-                    "Tap Play to use this card, or tap outside to close.",
+                    "This card can be played during your turn to alter the state of the world.",
                     style = MaterialTheme.typography.bodySmall,
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
                 )
-                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.x2)) {
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     FeButton(label = "Close", onClick = onDismiss, modifier = Modifier.weight(1f))
                     FeButton(label = "Play", onClick = onPlay, modifier = Modifier.weight(1f), enabled = canPlay)
                 }

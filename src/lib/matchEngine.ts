@@ -33,6 +33,7 @@ export interface MatchCard {
   disasterKind?: DisasterKind;
   blocksDisaster?: DisasterKind;
   primitives?: any[];
+  discardCost?: number;
 }
 
 export type TriggerKind = 
@@ -100,9 +101,10 @@ export interface MatchPayload {
 export function canPlayCard(state: MatchPayload, card: MatchCard): boolean {
   const active = state.players[state.activePlayerIndex];
   
-  // Handle color blocking from Twist effects
-  if (active?.twistEffect === "block_red" && card.name.toLowerCase().includes("red")) return false;
-  if (active?.twistEffect === "block_blue" && card.name.toLowerCase().includes("blue")) return false;
+  // Handle mandatory discard costs
+  if (card.discardCost && card.discardCost > 0) {
+    if (active.hand.length - 1 < card.discardCost) return false;
+  }
 
   return true; // Core rule: Play up to 3 of any cards per turn
 }
@@ -350,6 +352,12 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string):
                 p.triggers = p.triggers.filter(t => t.kind !== 'PREVENT_NEXT_POINT_LOSS');
                 return;
             }
+
+            // Epicenter Scaling: Global disasters/cataclysms penalize drawer +1
+            if (finalAmount < 0 && (card.disasterKind === 'GLOBAL' || card.type === 'CATACLYSM') && p.id === active.id) {
+                finalAmount -= 1;
+            }
+
             p.survivalPoints += finalAmount;
             break;
          }
@@ -385,6 +393,12 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string):
                 p.triggers = p.triggers.filter(t => t.kind !== 'NEGATE_NEXT_DISASTER');
                 break;
             }
+
+            // Epicenter Scaling: Global disasters/cataclysms penalize drawer +1
+            if (finalAmountH < 0 && (card.disasterKind === 'GLOBAL' || card.type === 'CATACLYSM') && p.id === active.id) {
+                finalAmountH -= 1;
+            }
+
             p.health = Math.min(INITIAL_HEALTH, Math.max(0, p.health + finalAmountH));
             break;
          }
@@ -755,21 +769,35 @@ function playCard(
   if (!card) throw new Error("Card not in hand");
   if (!canPlayCard(state, card)) throw new Error("Card does not match top card");
 
-  const newHand = active.hand.filter((c) => c.id !== card.id);
   const isPinned = Boolean(card.blocksDisaster);
+  const discardCost = card.discardCost || 0;
+  const newHand = active.hand.filter((c) => c.id !== card.id);
   
   let next: MatchPayload = {
     ...state,
-    players: state.players.map((p, i) =>
-      i === activeIndex 
-        ? { ...active, hand: newHand, powers: isPinned ? [...active.powers, card] : active.powers } 
-        : p
-    ),
-    discardPile: isPinned ? state.discardPile : [...state.discardPile, card],
     topCard: card,
     turnPile: [...state.turnPile, card],
     cardsPlayedThisTurn: state.cardsPlayedThisTurn + 1,
   };
+
+  if (discardCost > 0) {
+    const cardsToDiscard = newHand.slice(0, discardCost);
+    const handAfterCost = newHand.filter(c => !cardsToDiscard.includes(c));
+    next.discardPile = [...state.discardPile, ...cardsToDiscard];
+    next.players = state.players.map((p, i) =>
+      i === activeIndex 
+        ? { ...active, hand: handAfterCost, powers: isPinned ? [...active.powers, card] : active.powers } 
+        : p
+    );
+  } else {
+    next.players = state.players.map((p, i) =>
+      i === activeIndex 
+        ? { ...active, hand: newHand, powers: isPinned ? [...active.powers, card] : active.powers } 
+        : p
+    );
+  }
+
+  next.discardPile = isPinned ? next.discardPile : [...next.discardPile, card];
 
   return resolveEffect(next, card, targetPlayerId);
 }

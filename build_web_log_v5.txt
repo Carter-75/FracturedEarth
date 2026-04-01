@@ -1,0 +1,90 @@
+
+> fractured-earth-web@0.1.0 build
+> next build
+
+  Γû▓ Next.js 14.2.5
+  - Environments: .env.local
+
+   Creating an optimized production build ...
+ Γ£ô Compiled successfully
+   Linting and checking validity of types ...
+
+./app/lan/page.tsx
+197:10  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/leaderboard/page.tsx
+13:10  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/page.tsx
+18:10  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/rules/page.tsx
+8:10  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/store/page.tsx
+48:10  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/tabletop/[code]/page.tsx
+85:7  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+598:11  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+734:21  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/tutorial/page.tsx
+72:7  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+314:10  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+402:19  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/basic-features/eslint#disabling-rules
+   Collecting page data ...
+   Generating static pages (0/22) ...
+   Generating static pages (5/22) 
+   Generating static pages (10/22) 
+   Generating static pages (16/22) 
+ Γ£ô Generating static pages (22/22)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                              Size     First Load JS
+Γöî Γùï /                                    3.45 kB        97.3 kB
+Γö£ Γùï /_not-found                          871 B            88 kB
+Γö£ ╞Æ /api/auth/[...nextauth]              0 B                0 B
+Γö£ ╞Æ /api/kv                              0 B                0 B
+Γö£ ╞Æ /api/lan/rooms                       0 B                0 B
+Γö£ ╞Æ /api/lan/rooms/[code]                0 B                0 B
+Γö£ ╞Æ /api/lan/rooms/[code]/join           0 B                0 B
+Γö£ ╞Æ /api/lan/rooms/[code]/leave          0 B                0 B
+Γö£ ╞Æ /api/lan/rooms/[code]/start          0 B                0 B
+Γö£ ╞Æ /api/leaderboard                     0 B                0 B
+Γö£ ╞Æ /api/rooms                           0 B                0 B
+Γö£ ╞Æ /api/rooms/[code]                    0 B                0 B
+Γö£ ╞Æ /api/rooms/[code]/action             0 B                0 B
+Γö£ ╞Æ /api/rooms/[code]/heartbeat          0 B                0 B
+Γö£ ╞Æ /api/rooms/[code]/join               0 B                0 B
+Γö£ ╞Æ /api/rooms/[code]/leave              0 B                0 B
+Γö£ ╞Æ /api/rooms/[code]/lobby              0 B                0 B
+Γö£ ╞Æ /api/rooms/[code]/start              0 B                0 B
+Γö£ ╞Æ /api/rooms/[code]/state              0 B                0 B
+Γö£ ╞Æ /api/tutorial/action                 0 B                0 B
+Γö£ ╞Æ /api/tutorial/start                  0 B                0 B
+Γö£ ╞Æ /api/user                            0 B                0 B
+Γö£ ╞Æ /api/user/result                     0 B                0 B
+Γö£ Γùï /delete-account                      2.01 kB        95.9 kB
+Γö£ Γùï /game                                2.67 kB        96.6 kB
+Γö£ Γùï /icon.svg                            0 B                0 B
+Γö£ Γùï /lan                                 7.77 kB         142 kB
+Γö£ ╞Æ /leaderboard                         178 B          94.1 kB
+Γö£ Γùï /privacy                             178 B          94.1 kB
+Γö£ Γùï /rules                               178 B          94.1 kB
+Γö£ Γùï /settings                            4.2 kB         98.1 kB
+Γö£ Γùï /store                               1.71 kB         136 kB
+Γö£ ╞Æ /tabletop/[code]                     7.81 kB         141 kB
+Γöö Γùï /tutorial                            5.12 kB         145 kB
++ First Load JS shared by all            87.1 kB
+  Γö£ chunks/23-68b493f91180a142.js        31.5 kB
+  Γö£ chunks/fd9d1056-00bb33a35b5f8051.js  53.6 kB
+  Γöö other shared chunks (total)          1.95 kB
+
+
+Γùï  (Static)   prerendered as static content
+╞Æ  (Dynamic)  server-rendered on demand
+

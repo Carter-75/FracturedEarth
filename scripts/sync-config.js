@@ -68,23 +68,24 @@ function syncConfig() {
   console.log(`Synced: Updated src/.env.local with ${syncedKeys.length} mapped values.`);
 
   // 3. Sync to Vercel (Only if running locally and CLI is detected)
-  if (!process.env.VERCEL && !process.env.CI) {
+  if (!process.env.VERCEL && !process.env.CI && !process.env.NEURALATLAS_SKIP_VERCEL) {
     console.log('\n--- ATTEMPTING CLOUD SYNC: local.properties -> Vercel ---');
     try {
+      // Check if vercel is available and linked
       execSync('npx vercel --version', { stdio: 'ignore' });
       
       syncedKeys.forEach(({ web, value }) => {
         try {
           console.log(`Cloud Push: ${web}...`);
-          execSync(`npx vercel env add ${web} "${value}" production -f`, { stdio: 'ignore' });
+          // Use --yes to avoid interactive prompts and 1s timeout to prevent hangs
+          execSync(`npx vercel env add ${web} "${value}" production -f`, { stdio: 'ignore', timeout: 5000 });
         } catch (err) {
-          // Failure here is usually because project isn't linked, we log and continue
-          console.warn(`Could not push ${web} to Vercel. Ensure 'npx vercel link' is done.`);
+          console.warn(`Could not push ${web} to Vercel. (Error: ${err.message})`);
         }
       });
       console.log('--- CLOUD SYNC ATTEMPT COMPLETE ---');
     } catch (e) {
-      console.warn('Vercel CLI not detected. Skipping Cloud Push.');
+      console.warn('Vercel CLI not detected or not linked. Skipping Cloud Push.');
     }
   }
 

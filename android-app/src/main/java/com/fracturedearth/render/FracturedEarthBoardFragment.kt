@@ -1,22 +1,30 @@
 package com.fracturedearth.render
 
-import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import com.badlogic.gdx.backends.android.AndroidFragmentApplication
+import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration
+import com.fracturedearth.core.model.GameState
 
 class FracturedEarthBoardFragment : AndroidFragmentApplication() {
-    override fun onCreateView(
-        inflater: android.view.LayoutInflater,
-        container: android.view.ViewGroup?,
-        savedInstanceState: android.os.Bundle?,
-    ): android.view.View {
+    private var game: FracturedEarthBoardGame? = null
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val config = AndroidApplicationConfiguration().apply {
-            useImmersiveMode = false
+            useImmersiveMode = true
             useCompass = false
             useAccelerometer = false
             useGyroscope = false
             useRotationVectorSensor = false
-            numSamples = 2
+            numSamples = 4
         }
-        return initializeForView(FracturedEarthBoardGame(), config)
+        game = FracturedEarthBoardGame()
+        return initializeForView(game, config)
+    }
+
+    fun updateState(state: GameState) {
+        game?.updateState(state)
     }
 }

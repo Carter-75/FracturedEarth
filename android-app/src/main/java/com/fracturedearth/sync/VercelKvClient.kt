@@ -87,31 +87,55 @@ class VercelKvClient(
         return post("/api/user/result", payload)
     }
 
-    // Legacy method signatures maintained for compatibility, mapping to best effort
+    // ── Generic KV methods restored for compatibility ──────────────────
+
     suspend fun hset(key: String, field: String, value: String): Boolean {
-        if (key.startsWith("user:")) {
-            val userId = key.removePrefix("user:")
-            // We don't have a partial update for user profile yet, but we can just use the existing data
-            return setUserProfile(userId, field, value, "") // Placeholder logic
+        val payload = """{"cmd":"hset","key":"$key","field":"$field","value":"$value"}"""
+        return post("/api/kv", payload)
+    }
+
+    suspend fun hgetall(key: String): Map<String, String> = withContext(Dispatchers.IO) {
+        val raw = apiGet("/api/kv?cmd=hgetall&key=$key") ?: return@withContext emptyMap()
+        try {
+            val element = json.parseToJsonElement(raw).jsonObject
+            element.mapValues { it.value.jsonPrimitive.content }
+        } catch (e: Exception) {
+            emptyMap()
         }
-        return false
     }
 
-    suspend fun hgetall(key: String): Map<String, String> {
-        if (key.startsWith("user:")) return getUserProfile(key.removePrefix("user:"))
-        return emptyMap()
-    }
-
-    suspend fun hincrby(_key: String, _field: String, _amount: Long): Long? {
-        // Handled via /api/user/result now
-        return null
+    suspend fun hincrby(key: String, field: String, amount: Long): Long? = withContext(Dispatchers.IO) {
+        val payload = """{"cmd":"hincrby","key":"$key","field":"$field","amount":$amount}"""
+        try {
+            if (baseUrl.isBlank()) return@withContext null
+            val body = payload.toRequestBody(jsonMedia)
+            val request = Request.Builder().url("${baseUrl.trimEnd('/')}/api/kv").post(body).build()
+            val response = http.newCall(request).execute()
+            if (!response.isSuccessful) return@withContext null
+            val raw = response.body?.string() ?: return@withContext null
+            json.parseToJsonElement(raw).jsonObject["value"]?.jsonPrimitive?.content?.toLongOrNull()
+        } catch (e: Exception) {
+            null
+        }
     }
 
     suspend fun zadd(key: String, score: Double, member: String): Boolean {
-        if (key == "leaderboard") return recordGameResult(member, false, score.toInt())
-        return false
+        val payload = """{"cmd":"zadd","key":"$key","score":$score,"member":"$member"}"""
+        return post("/api/kv", payload)
     }
 
-    suspend fun set(_key: String, _value: String): Boolean = false
-    suspend fun get(_key: String): String? = null
+    suspend fun set(key: String, value: String): Boolean {
+        val payload = """{"cmd":"set","key":"$key","value":"$value"}"""
+        return post("/api/kv", payload)
+    }
+
+    suspend fun get(key: String): String? = withContext(Dispatchers.IO) {
+        val raw = apiGet("/api/kv?cmd=get&key=$key") ?: return@withContext null
+        try {
+            json.parseToJsonElement(raw).jsonObject["value"]?.jsonPrimitive?.content
+        } catch (e: Exception) {
+            null
+        }
+    }
 }
+

@@ -30,6 +30,7 @@ data class GameUiState(
     val humanHealth: Int = 3,
     val isHumanTurn: Boolean = true,
     val playerSummaries: List<PlayerSummary> = emptyList(),
+    val rawState: com.fracturedearth.core.model.GameState? = null,
 )
 
 data class PlayerSummary(
@@ -38,6 +39,7 @@ data class PlayerSummary(
     val survivalPoints: Int,
     val health: Int,
     val traitCount: Int,
+    val powerCount: Int,
     val handCount: Int,
     val isBot: Boolean,
 )
@@ -159,9 +161,11 @@ private fun GameState.toUi(cardsPlayed: Int): GameUiState {
                 survivalPoints = it.survivalPoints,
                 health = it.health,
                 traitCount = it.traits.size,
+                powerCount = it.powers.size,
                 handCount = it.hand.size,
                 isBot = it.isBot,
             )
         },
+        rawState = this,
     )
 }

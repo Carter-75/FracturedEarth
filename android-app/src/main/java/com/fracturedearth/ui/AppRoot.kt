@@ -40,6 +40,7 @@ private object Routes {
     const val MULTIPLAYER_PLACEHOLDER = "multiplayer_placeholder"
 }
 
+@Suppress("DEPRECATION")
 @Composable
 fun AppRoot(
     currentUser: com.google.android.gms.auth.api.signin.GoogleSignInAccount?,

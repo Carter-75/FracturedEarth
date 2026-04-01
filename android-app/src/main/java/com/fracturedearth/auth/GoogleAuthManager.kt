@@ -11,6 +11,7 @@ import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.tasks.Task
 import timber.log.Timber
 
+@Suppress("DEPRECATION")
 class GoogleAuthManager(context: Context) {
 
     private val signInOptions = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).apply {

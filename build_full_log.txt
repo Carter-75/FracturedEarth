@@ -1,0 +1,213 @@
+
+> fractured-earth-monorepo@1.0.0 build
+> npm run sync-config && cd src && npm run build
+
+
+> fractured-earth-monorepo@1.0.0 sync-config
+> node scripts/sync-config.js
+
+--- NEURALATLAS SYNC: Absolute Master Config (Local -> App & Vercel) ---
+Loaded Master Config from local.properties.
+Synced: Updated src/.env.local with 4 mapped values.
+
+--- MASTER SYNC COMPLETE ---
+
+
+> fractured-earth-web@0.1.0 build
+> next build
+
+  Γû▓ Next.js 14.2.5
+  - Environments: .env.local
+
+   Creating an optimized production build ...
+ Γ£ô Compiled successfully
+   Linting and checking validity of types ...
+
+./app/lan/page.tsx
+197:10  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/leaderboard/page.tsx
+13:10  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/page.tsx
+18:10  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/rules/page.tsx
+8:10  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/store/page.tsx
+48:10  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/tabletop/[code]/page.tsx
+85:7  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+598:11  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+734:21  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/tutorial/page.tsx
+72:7  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+314:10  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+402:19  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/basic-features/eslint#disabling-rules
+   Collecting page data ...
+   Generating static pages (0/22) ...
+   Generating static pages (5/22) 
+   Generating static pages (10/22) 
+   Generating static pages (16/22) 
+ Γ£ô Generating static pages (22/22)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                              Size     First Load JS
+Γöî Γùï /                                    3.45 kB        97.3 kB
+Γö£ Γùï /_not-found                          871 B            88 kB
+Γö£ ╞Æ /api/auth/[...nextauth]              0 B                0 B
+Γö£ ╞Æ /api/kv                              0 B                0 B
+Γö£ ╞Æ /api/lan/rooms                       0 B                0 B
+Γö£ ╞Æ /api/lan/rooms/[code]                0 B                0 B
+Γö£ ╞Æ /api/lan/rooms/[code]/join           0 B                0 B
+Γö£ ╞Æ /api/lan/rooms/[code]/leave          0 B                0 B
+Γö£ ╞Æ /api/lan/rooms/[code]/start          0 B                0 B
+Γö£ ╞Æ /api/leaderboard                     0 B                0 B
+Γö£ ╞Æ /api/rooms                           0 B                0 B
+Γö£ ╞Æ /api/rooms/[code]                    0 B                0 B
+Γö£ ╞Æ /api/rooms/[code]/action             0 B                0 B
+Γö£ ╞Æ /api/rooms/[code]/heartbeat          0 B                0 B
+Γö£ ╞Æ /api/rooms/[code]/join               0 B                0 B
+Γö£ ╞Æ /api/rooms/[code]/leave              0 B                0 B
+Γö£ ╞Æ /api/rooms/[code]/lobby              0 B                0 B
+Γö£ ╞Æ /api/rooms/[code]/start              0 B                0 B
+Γö£ ╞Æ /api/rooms/[code]/state              0 B                0 B
+Γö£ ╞Æ /api/tutorial/action                 0 B                0 B
+Γö£ ╞Æ /api/tutorial/start                  0 B                0 B
+Γö£ ╞Æ /api/user                            0 B                0 B
+Γö£ ╞Æ /api/user/result                     0 B                0 B
+Γö£ Γùï /delete-account                      2.01 kB        95.9 kB
+Γö£ Γùï /game                                2.67 kB        96.6 kB
+Γö£ Γùï /icon.svg                            0 B                0 B
+Γö£ Γùï /lan                                 7.77 kB         142 kB
+Γö£ ╞Æ /leaderboard                         178 B          94.1 kB
+Γö£ Γùï /privacy                             178 B          94.1 kB
+Γö£ Γùï /rules                               178 B          94.1 kB
+Γö£ Γùï /settings                            4.2 kB         98.1 kB
+Γö£ Γùï /store                               1.71 kB         136 kB
+Γö£ ╞Æ /tabletop/[code]                     7.81 kB         141 kB
+Γöö Γùï /tutorial                            5.12 kB         145 kB
++ First Load JS shared by all            87.1 kB
+  Γö£ chunks/23-68b493f91180a142.js        31.5 kB
+  Γö£ chunks/fd9d1056-00bb33a35b5f8051.js  53.6 kB
+  Γöö other shared chunks (total)          1.95 kB
+
+
+Γùï  (Static)   prerendered as static content
+╞Æ  (Dynamic)  server-rendered on demand
+
+
+> Configure project :game-core
+Path for java installation 'C:\Program Files\Microsoft\jdk-21.0.8.9-hotspot' (Windows Registry) does not contain a java executable
+Path for java installation 'C:\Program Files\Microsoft\jdk-21.0.8.9-hotspot' (Windows Registry) does not contain a java executable
+Path for java installation 'C:\Program Files\Microsoft\jdk-21.0.8.9-hotspot' (Windows Registry) does not contain a java executable
+
+> Task :android-app:clean
+> Task :game-core:clean
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.7/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 32s
+2 actionable tasks: 2 executed
+
+> Configure project :game-core
+Path for java installation 'C:\Program Files\Microsoft\jdk-21.0.8.9-hotspot' (Windows Registry) does not contain a java executable
+Path for java installation 'C:\Program Files\Microsoft\jdk-21.0.8.9-hotspot' (Windows Registry) does not contain a java executable
+Path for java installation 'C:\Program Files\Microsoft\jdk-21.0.8.9-hotspot' (Windows Registry) does not contain a java executable
+WARNING: We recommend using a newer Android Gradle plugin to use compileSdk = 35
+
+This Android Gradle plugin (8.5.2) was tested up to compileSdk = 34.
+
+You are strongly encouraged to update your project to use a newer
+Android Gradle plugin that has been tested with compileSdk = 35.
+
+If you are already using the latest version of the Android Gradle plugin,
+you may need to wait until a newer version with support for compileSdk = 35 is available.
+
+For more information refer to the compatibility table:
+https://d.android.com/r/tools/api-level-support
+
+To suppress this warning, add/update
+    android.suppressUnsupportedCompileSdk=35
+to this project's gradle.properties.
+
+> Task :android-app:preBuild UP-TO-DATE
+> Task :android-app:preDebugBuild UP-TO-DATE
+> Task :android-app:mergeDebugNativeDebugMetadata NO-SOURCE
+> Task :game-core:checkKotlinGradlePluginConfigurationErrors
+> Task :game-core:processResources NO-SOURCE
+> Task :android-app:checkKotlinGradlePluginConfigurationErrors
+> Task :android-app:generateDebugBuildConfig
+> Task :android-app:generateDebugResValues
+> Task :android-app:mapDebugSourceSetPaths
+> Task :android-app:generateDebugResources
+> Task :android-app:checkDebugAarMetadata
+> Task :android-app:packageDebugResources
+> Task :android-app:createDebugCompatibleScreenManifests
+> Task :android-app:parseDebugLocalResources
+> Task :android-app:extractDeepLinksDebug
+> Task :android-app:processDebugMainManifest
+> Task :android-app:processDebugManifest
+> Task :android-app:processDebugManifestForPackage
+> Task :android-app:mergeDebugShaders
+> Task :android-app:compileDebugShaders NO-SOURCE
+> Task :android-app:generateDebugAssets UP-TO-DATE
+> Task :android-app:javaPreCompileDebug
+> Task :android-app:mergeDebugAssets
+> Task :android-app:compressDebugAssets
+> Task :android-app:desugarDebugFileDependencies
+> Task :android-app:mergeDebugResources
+> Task :android-app:mergeDebugStartupProfile UP-TO-DATE
+> Task :android-app:mergeDebugJniLibFolders
+> Task :android-app:validateSigningDebug
+> Task :android-app:writeDebugAppMetadata
+> Task :android-app:writeDebugSigningConfigVersions
+> Task :android-app:checkDebugDuplicateClasses
+> Task :game-core:compileKotlin
+> Task :android-app:processDebugResources
+> Task :game-core:compileJava NO-SOURCE
+> Task :game-core:classes UP-TO-DATE
+> Task :game-core:jar
+> Task :android-app:mergeDebugNativeLibs
+
+> Task :android-app:stripDebugDebugSymbols
+Unable to strip the following libraries, packaging them as they are: libandroidx.graphics.path.so.
+
+> Task :android-app:mergeExtDexDebug
+> Task :android-app:kspDebugKotlin
+> Task :android-app:mergeLibDexDebug
+
+> Task :android-app:compileDebugKotlin FAILED
+e: file:///C:/Users/carte/OneDrive/Desktop/Code/Apps/FracturedEarth/android-app/src/main/java/com/fracturedearth/sync/VercelKvClient.kt:116:78 Unresolved reference: long
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':android-app:compileDebugKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.7/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 1m 15s
+35 actionable tasks: 34 executed, 1 up-to-date

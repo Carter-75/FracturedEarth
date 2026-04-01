@@ -1,19 +1,18 @@
 package com.fracturedearth.core.engine
 
-import com.fracturedearth.core.model.Card
-import com.fracturedearth.core.model.CardType
-import com.fracturedearth.core.model.CardCatalog
-import com.fracturedearth.core.model.DisasterKind
-import com.fracturedearth.core.model.GameState
-import com.fracturedearth.core.model.PlayerState
-import com.fracturedearth.core.bot.BotStrategy
+import com.fracturedearth.core.model.*
+import kotlinx.serialization.json.*
 import kotlin.random.Random
 
 class GameEngine(
     private val random: Random = Random.Default,
 ) {
+    private val INITIAL_HEALTH = 3
+    private val WINNING_POINTS = 50
+    private val MAX_HAND_SIZE = 7
+
     fun newMatch(humanName: String, botCount: Int): GameState {
-        val clampedBots = botCount.coerceIn(1, 3)
+        val clampedBots = botCount.coerceIn(1, 4)
         val deck = CardCatalog.starterDeck().shuffled(random)
 
         val players = mutableListOf<PlayerState>()
@@ -21,9 +20,10 @@ class GameEngine(
             id = "human_0",
             displayName = humanName,
             survivalPoints = 0,
-            health = 3,
+            health = INITIAL_HEALTH,
             hand = deck.take(5),
             traits = emptyList(),
+            powers = emptyList(),
             isBot = false,
         )
 
@@ -33,9 +33,10 @@ class GameEngine(
                 id = "bot_$i",
                 displayName = "Bot ${i + 1}",
                 survivalPoints = 0,
-                health = 3,
+                health = INITIAL_HEALTH,
                 hand = deck.drop(start).take(5),
                 traits = emptyList(),
+                powers = emptyList(),
                 isBot = true,
             )
         }
@@ -54,139 +55,235 @@ class GameEngine(
         )
     }
 
-    fun drawForActivePlayer(state: GameState): GameState {
-        if (state.drawPile.isEmpty()) return state
+    fun canPlayCard(state: GameState, card: Card): Boolean {
         val active = state.players[state.activePlayerIndex]
-        val card = state.drawPile.first()
+        if (active.hand.none { it.id == card.id }) return false
+
+        // Mandatory Discard Cost check
+        if (card.discardCost > 0 && active.hand.size - 1 < card.discardCost) return false
+
+        return true
+    }
+
+    fun drawForActivePlayer(state: GameState): GameState {
+        var drawPile = state.drawPile.toMutableList()
+        var discardPile = state.discardPile.toMutableList()
+
+        if (drawPile.isEmpty()) {
+            if (discardPile.isEmpty()) return state
+            drawPile = discardPile.shuffled(random).toMutableList()
+            discardPile = mutableListOf()
+        }
+
+        val active = state.players[state.activePlayerIndex]
+        
+        // Trigger Check: PREVENT_OPPONENT_DRAW_1 or SKIP_NEXT_DRAW
+        if (active.triggers.any { it.kind == "SKIP_NEXT_DRAW" || it.kind == "PREVENT_OPPONENT_DRAW_1" }) {
+            val newTriggers = active.triggers.toMutableList()
+            val toRemove = newTriggers.find { it.kind == "SKIP_NEXT_DRAW" || it.kind == "PREVENT_OPPONENT_DRAW_1" }
+            newTriggers.remove(toRemove)
+            val updated = active.copy(triggers = newTriggers)
+            val players = state.players.toMutableList().also { it[state.activePlayerIndex] = updated }
+            return state.copy(players = players)
+        }
+
+        val card = drawPile.removeAt(0)
+
+        // TWIST and CATACLYSM are auto-played on draw in the full spec
+        if (card.type == CardType.TWIST || card.type == CardType.CATACLYSM) {
+            val postDraw = state.copy(drawPile = drawPile, discardPile = discardPile)
+            return playCard(postDraw, card)
+        }
+
         val updated = active.copy(hand = active.hand + card)
         val players = state.players.toMutableList().also { it[state.activePlayerIndex] = updated }
-        return state.copy(players = players, drawPile = state.drawPile.drop(1))
+        return state.copy(players = players, drawPile = drawPile, discardPile = discardPile)
     }
 
     fun advanceTurn(state: GameState): GameState {
-        val nextIndex = (state.activePlayerIndex + 1) % state.players.size
-        val wrapsRound = nextIndex == 0
+        val dir = state.turnDirection
+        var nextIndex = (state.activePlayerIndex + dir + state.players.size) % state.players.size
+
+        // SKIP_NEXT_TURN logic
+        val nextP = state.players[nextIndex]
+        if (nextP.triggers.any { it.kind == "SKIP_NEXT_TURN" }) {
+            val newTriggers = nextP.triggers.filterNot { it.kind == "SKIP_NEXT_TURN" }
+            val updatedNext = nextP.copy(triggers = newTriggers)
+            val tempPlayers = state.players.toMutableList().also { it[nextIndex] = updatedNext }
+            val tempState = state.copy(players = tempPlayers)
+            nextIndex = (nextIndex + dir + state.players.size) % state.players.size
+            return advanceTurn(tempState.copy(activePlayerIndex = nextIndex)) 
+        }
+
+        val wrapsRound = (dir == 1 && nextIndex == 0) || (dir == -1 && nextIndex == state.players.size - 1)
         val nextRound = if (wrapsRound) state.round + 1 else state.round
+        
+        // Process end-of-turn triggers for previous player
+        val prevP = state.players[state.activePlayerIndex]
+        var updatedPrev = prevP
+        prevP.triggers.forEach { t ->
+            updatedPrev = when (t.kind) {
+                "LOSE_1_PT_PER_TURN_3" -> updatedPrev.copy(survivalPoints = (updatedPrev.survivalPoints - 1).coerceAtLeast(0))
+                "LOSE_1_HEALTH_PER_TURN_2" -> updatedPrev.copy(health = (updatedPrev.health - 1).coerceAtLeast(0))
+                "POINTS_PER_TURN_1" -> updatedPrev.copy(survivalPoints = updatedPrev.survivalPoints + 1)
+                "HEAL_1_PER_TURN" -> updatedPrev.copy(health = (updatedPrev.health + 1).coerceAtMost(INITIAL_HEALTH))
+                else -> updatedPrev
+            }
+        }
+        // Duration cleanup
+        updatedPrev = updatedPrev.copy(triggers = updatedPrev.triggers.filter { it.duration == "permanent" || it.duration == "round" })
+        
+        val players = state.players.toMutableList()
+        players[state.activePlayerIndex] = updatedPrev
+
         return state.copy(
+            players = players,
             activePlayerIndex = nextIndex,
             round = nextRound,
             isGlobalDisasterPhase = nextRound % 3 == 0 && wrapsRound,
+            turnPile = emptyList()
         )
     }
 
     fun evaluateWinner(state: GameState): String? {
-        val byScore = state.players.firstOrNull { it.survivalPoints >= 50 }?.id
+        val byScore = state.players.firstOrNull { it.survivalPoints >= WINNING_POINTS }?.id
         if (byScore != null) return byScore
 
         val alive = state.players.filter { it.health > 0 }
         return if (alive.size == 1) alive.first().id else null
     }
 
-    /**
-     * Resolve a card played by the active player.
-     * - SURVIVAL  → adds pointsDelta to active player's survivalPoints; optionally draws extra cards.
-     * - DISASTER  → deals damage (pointsDelta, expected negative) to target(s); damage is blocked by
-     *               matching TRAIT/ADAPT in the target's trait list (ADAPT is consumed on block).
-     * - TRAIT     → adds card to active player's traits permanently.
-     * - ADAPT     → adds card to active player's traits as a one-use disaster blocker.
-     * - CHAOS     → active player gains pointsDelta survivalPoints; all other players lose 1 health.
-     */
     fun playCard(state: GameState, card: Card, targetPlayerId: String? = null): GameState {
-        val activeIndex = state.activePlayerIndex
-        val active = state.players[activeIndex]
-        val newHand = active.hand.filterNot { it.id == card.id }
-        val newDiscard = state.discardPile + card
+        if (!canPlayCard(state, card)) return state
 
-        return when (card.type) {
-            CardType.SURVIVAL -> {
-                val newPts = (active.survivalPoints + card.pointsDelta).coerceAtLeast(0)
-                val updated = active.copy(hand = newHand, survivalPoints = newPts)
-                val players = state.players.toMutableList().also { it[activeIndex] = updated }
-                var next = state.copy(players = players, discardPile = newDiscard)
-                repeat(card.drawCount) { next = drawForActivePlayer(next) }
-                next
-            }
+        var current = state
+        val activeIndex = current.activePlayerIndex
+        val active = current.players[activeIndex]
 
-            CardType.DISASTER -> {
-                val updated = active.copy(hand = newHand)
-                val players = state.players.toMutableList().also { it[activeIndex] = updated }
-                val postPlay = state.copy(players = players, discardPile = newDiscard)
-                val targets: List<PlayerState> = when {
-                    card.disasterKind == DisasterKind.GLOBAL ->
-                        postPlay.players.filterNot { it.id == active.id }
-                    targetPlayerId != null ->
-                        listOfNotNull(postPlay.players.firstOrNull { it.id == targetPlayerId })
-                    else -> emptyList()
-                }
-                applyDisasterToTargets(postPlay, targets, card)
-            }
-
-            CardType.TRAIT -> {
-                val updated = active.copy(hand = newHand, traits = active.traits + card)
-                val players = state.players.toMutableList().also { it[activeIndex] = updated }
-                state.copy(players = players, discardPile = newDiscard)
-            }
-
-            CardType.ADAPT -> {
-                val updated = active.copy(hand = newHand, traits = active.traits + card)
-                val players = state.players.toMutableList().also { it[activeIndex] = updated }
-                state.copy(players = players, discardPile = newDiscard)
-            }
-
-            CardType.CHAOS -> {
-                val newPts = (active.survivalPoints + card.pointsDelta).coerceAtLeast(0)
-                val updatedActive = active.copy(hand = newHand, survivalPoints = newPts)
-                val players = state.players.mapIndexed { i, p ->
-                    if (i == activeIndex) updatedActive
-                    else p.copy(health = (p.health - 1).coerceAtLeast(0))
-                }
-                state.copy(players = players, discardPile = newDiscard)
-            }
+        // 1. Mandatory Discard Cost
+        if (card.discardCost > 0) {
+            val toDiscard = active.hand.filter { it.id != card.id }.take(card.discardCost)
+            val newHand = active.hand.filterNot { h -> toDiscard.any { it.id == h.id } || h.id == card.id }
+            val updated = active.copy(hand = newHand)
+            current = current.copy(
+                players = current.players.toMutableList().also { it[activeIndex] = updated },
+                discardPile = current.discardPile + toDiscard
+            )
+        } else {
+            val newHand = active.hand.filterNot { it.id == card.id }
+            val updated = active.copy(hand = newHand)
+            current = current.copy(players = current.players.toMutableList().also { it[activeIndex] = updated })
         }
+
+        // 2. Add to turn pile
+        current = current.copy(turnPile = current.turnPile + card)
+
+        // 3. Pinned vs Discarded
+        val isPinned = card.type == CardType.POWER || card.type == CardType.ADAPT || card.type == CardType.ASCENDED
+        if (isPinned) {
+            val p = current.players[activeIndex]
+            val updated = p.copy(powers = p.powers + card)
+            current = current.copy(players = current.players.toMutableList().also { it[activeIndex] = updated })
+        } else {
+            current = current.copy(discardPile = current.discardPile + card)
+        }
+
+        // 4. Resolve Effects
+        return resolveEffect(current, card, targetPlayerId)
     }
 
-    /** Execute a full bot turn: draw, play up to 3 cards via strategy, then advance turn. */
-    fun executeBotTurn(state: GameState, strategy: BotStrategy): GameState {
-        val bot = state.players[state.activePlayerIndex]
-        check(bot.isBot) { "executeBotTurn called for non-bot player ${bot.id}" }
+    private fun resolveEffect(state: GameState, card: Card, targetId: String?): GameState {
+        val primitives = card.primitives ?: return state
+        var current = state
+
+        // Epicenter Scaling logic: If card is DISASTER/CATACLYSM and GLOBAL, penalized drawer more.
+        val drawerID = current.players[current.activePlayerIndex].id
+        
+        fun getTargetIndices(targetStr: String): List<Int> {
+            return when (targetStr) {
+                "self" -> listOf(current.activePlayerIndex)
+                "target_player", "target_opponent" -> {
+                    val idx = current.players.indexOfFirst { it.id == targetId }
+                    if (idx >= 0) listOf(idx) else emptyList()
+                }
+                "all" -> current.players.indices.toList()
+                "all_opponents" -> current.players.indices.filter { it != current.activePlayerIndex }
+                else -> emptyList()
+            }
+        }
+
+        fun executeAtomic(type: String, params: JsonObject, targetIdx: Int) {
+            val p = current.players[targetIdx]
+            
+            when (type) {
+                "MODIFY_POINTS" -> {
+                    var amt = params["amount"]?.jsonPrimitive?.int ?: 0
+                    // Apply Epicenter Scaling: +1 penalty (more negative) to drawer
+                    if (card.disasterKind == DisasterKind.GLOBAL && p.id == drawerID) {
+                        if (amt < 0) amt -= 1 // Deal more point loss if applicable
+                    }
+                    val newPts = (p.survivalPoints + amt).coerceAtLeast(0)
+                    val updated = p.copy(survivalPoints = newPts)
+                    current = current.copy(players = current.players.toMutableList().also { it[targetIdx] = updated })
+                }
+                "MODIFY_HEALTH" -> {
+                    var amt = params["amount"]?.jsonPrimitive?.int ?: 0
+                    // Apply Epicenter Scaling: +1 penalty (more negative) to drawer
+                    if (card.disasterKind == DisasterKind.GLOBAL && p.id == drawerID) {
+                        if (amt < 0) amt -= 1
+                    }
+                    val newH = (p.health + amt).coerceIn(0, INITIAL_HEALTH)
+                    val updated = p.copy(health = newH)
+                    current = current.copy(players = current.players.toMutableList().also { it[targetIdx] = updated })
+                }
+                "DRAW_CARDS" -> {
+                    val amt = params["amount"]?.jsonPrimitive?.int ?: 0
+                    repeat(amt) {
+                        // We must swap active player temporarily to use drawForActivePlayer
+                        val oldIdx = current.activePlayerIndex
+                        current = current.copy(activePlayerIndex = targetIdx)
+                        current = drawForActivePlayer(current)
+                        current = current.copy(activePlayerIndex = oldIdx)
+                    }
+                }
+                "ADD_TRIGGER" -> {
+                    val kind = params["triggerKind"]?.jsonPrimitive?.content ?: ""
+                    val duration = params["duration"]?.jsonPrimitive?.content ?: "next_event"
+                    val trigger = Trigger(
+                        id = "trig_${random.nextInt()}",
+                        kind = kind,
+                        duration = duration,
+                        sourceCardId = card.id
+                    )
+                    val updated = p.copy(triggers = p.triggers + trigger)
+                    current = current.copy(players = current.players.toMutableList().also { it[targetIdx] = updated })
+                }
+                // Add more primitives as needed...
+            }
+        }
+
+        primitives.forEach { element ->
+            val prim = element.jsonObject
+            val type = prim["type"]?.jsonPrimitive?.content ?: ""
+            val params = prim["params"]?.jsonObject ?: buildJsonObject { }
+            val targetStr = params["target"]?.jsonPrimitive?.content ?: "self"
+            
+            val targets = getTargetIndices(targetStr)
+            targets.forEach { executeAtomic(type, params, it) }
+        }
+
+        return current
+    }
+
+    fun executeBotTurn(state: GameState, strategy: com.fracturedearth.core.bot.BotStrategy): GameState {
         var current = drawForActivePlayer(state)
+        val botId = current.players[current.activePlayerIndex].id
         var cardsPlayed = 0
         while (cardsPlayed < 3 && current.winnerId == null) {
-            val botNow = current.players.firstOrNull { it.id == bot.id } ?: break
-            if (botNow.hand.isEmpty()) break
-            val action = strategy.chooseAction(current, bot.id) ?: break
-            if (!botNow.hand.any { it.id == action.card.id }) break
+            val action = strategy.chooseAction(current, botId) ?: break
             current = playCard(current, action.card, action.targetPlayerId)
             cardsPlayed++
         }
         return advanceTurn(current)
-    }
-
-    private fun applyDisasterToTargets(
-        state: GameState,
-        targets: List<PlayerState>,
-        disasterCard: Card,
-    ): GameState {
-        val kind = disasterCard.disasterKind ?: return state
-        var current = state
-        for (target in targets) {
-            val idx = current.players.indexOfFirst { it.id == target.id }
-            if (idx < 0) continue
-            val t = current.players[idx]
-            val blocker = t.traits.firstOrNull { it.blocksDisaster == kind }
-            val updated = if (blocker != null) {
-                // Consume ADAPT (one-use); TRAIT stays.
-                val newTraits = if (blocker.type == CardType.ADAPT)
-                    t.traits.filterNot { it.id == blocker.id }
-                else
-                    t.traits
-                t.copy(traits = newTraits)
-            } else {
-                t.copy(health = (t.health + disasterCard.pointsDelta).coerceAtLeast(0))
-            }
-            val players = current.players.toMutableList().also { it[idx] = updated }
-            current = current.copy(players = players)
-        }
-        return current
     }
 }
