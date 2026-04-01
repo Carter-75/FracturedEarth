@@ -43,7 +43,7 @@ android {
         applicationId = "com.fracturedearth"
         minSdk = 26
         targetSdk = 35
-        versionCode = 27
+        versionCode = 28
         versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -211,6 +211,7 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4:1.6.8")
     debugImplementation("androidx.compose.ui:ui-tooling:1.6.8")
 }
+
 
 
 

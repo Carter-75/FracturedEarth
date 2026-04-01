@@ -10,23 +10,24 @@ This is the single source of truth for shipping a production Android build (ads 
 
 ## 2) Required local files
 
-### local.properties
-Create `local.properties` from `local.properties.example` and fill all required values.
+### local.properties (The Absolute Master)
+`local.properties` is the **single source of truth** for both Android and Web configurations. The `npm run build` command automatically synchronizes this file to:
+- `src/.env.local` (for local web development)
+- **Vercel Cloud** (automated environment variable mapping via CLI)
 
-Required for production ads and subscriptions:
-- `ADMOB_APP_ID_RELEASE`
-- `ADMOB_BANNER_AD_UNIT_RELEASE`
-- `ADMOB_INTERSTITIAL_AD_UNIT_RELEASE`
+Required Keys for Android & Web:
+- `ADMOB_APP_ID` / `ADMOB_APP_ID_RELEASE`
+- `ADMOB_BANNER_AD_UNIT` / `ADMOB_BANNER_AD_UNIT_RELEASE`
+- `ADMOB_INTERSTITIAL_AD_UNIT` / `ADMOB_INTERSTITIAL_AD_UNIT_RELEASE`
 - `REVENUECAT_PUBLIC_KEY`
-- `REVENUECAT_ADFREE_ENTITLEMENT` (default: `ad_free`)
+- `REDIS_URL` (Direct sync to Web)
+- `GOOGLE_WEB_CLIENT_ID` (Mapped to `GOOGLE_CLIENT_ID`)
+- `GOOGLE_CLIENT_SECRET`
+- `NEXTAUTH_SECRET` / `NEXTAUTH_URL`
 
 Notes:
-- Debug/test IDs can remain in:
-  - `ADMOB_APP_ID`
-  - `ADMOB_BANNER_AD_UNIT`
-  - `ADMOB_INTERSTITIAL_AD_UNIT`
-- Release builds use the `_RELEASE` values.
-- If `_RELEASE` values are blank, ads are disabled in release builds.
+- The `sync-config.js` script handles all mappings automatically.
+- Running `npm run build` locally will attempt to push these values to Vercel so you don't have to use the web dashboard.
 
 ### keystore.properties
 Create `keystore.properties` from `keystore.properties.example`.
@@ -59,14 +60,8 @@ Without this file, release artifacts may be produced without signing config.
   - `ADMOB_INTERSTITIAL_AD_UNIT_RELEASE`
 - Keep debug IDs as Google test IDs only.
 
-## 5) Vercel environment requirements
-
-- `vercel.json` uses secret reference for Redis URL.
-- Ensure Vercel has `REDIS_URL` set in:
-  - development
-  - preview
-  - production
-- The PowerShell deploy script can sync `REDIS_URL` from local env if set.
+- All required environment variables (Redis, Google, AdMob) are automatically synced from `local.properties` when you run `npm run build` locally.
+- Ensure you have the Vercel CLI installed and are logged in for the cloud sync to succeed.
 
 ## 6) Build + artifact generation
 

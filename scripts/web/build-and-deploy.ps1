@@ -89,30 +89,20 @@ function Update-VersionCode {
 }
 
 function Invoke-WebBuild {
-  Show-Step "STEP 1: WEB FRONTEND BUILD"
-  $webDir = Join-Path $projectRoot "src"
-  Push-Location $webDir
+  Show-Step "STEP 1: MASTER SYNC & WEB BUILD"
+  # Run from project root to ensure sync-config triggers
+  Push-Location $projectRoot
   try {
-    Write-Status "Running npm run build in $webDir..." "INFO"
+    Write-Status "Syncing local.properties to Apps & Vercel..." "INFO"
     & npm run build
-    if ($LASTEXITCODE -ne 0) { throw "Web build failed" }
-    Write-Status "Web build completed." "SUCCESS"
+    if ($LASTEXITCODE -ne 0) { throw "Build and Sync failed" }
+    Write-Status "Web build and Cloud Sync completed." "SUCCESS"
   } finally {
     Pop-Location
   }
 }
 
-function Sync-VercelEnv {
-  Show-Step "STEP 1.5: VERCEL CONFIG SYNC"
-  $vercelFile = Join-Path $projectRoot "vercel.json"
-  if (Test-Path $vercelFile) {
-    $config = Get-Content $vercelFile | ConvertFrom-Json
-    if ($config.env.NEXT_PUBLIC_SITE_URL) {
-      $env:LAN_ROOM_SERVER_URL = $config.env.NEXT_PUBLIC_SITE_URL
-      Write-Status "Synced LAN_ROOM_SERVER_URL from vercel.json: $env:LAN_ROOM_SERVER_URL" "SUCCESS"
-    }
-  }
-}
+# VERCEL CONFIG SYNC handled automatically by sync-config.js in Step 1
 
 function Invoke-LoggedGradle {
   param([string]$Task, [string]$Label, [string]$LogFile, [string[]]$TaskArgs)
@@ -141,7 +131,7 @@ function Backup-AndCopyArtifact {
 # --- Execution ---
 Update-VersionCode
 Invoke-WebBuild
-Sync-VercelEnv
+# Sync-VercelEnv removed (merged into Step 1)
 
 $gradleArgs = @("--stacktrace", "--warning-mode", "summary", "--console", "plain")
 if ($DebugBuild) { $gradleArgs += "--debug" }
