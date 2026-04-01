@@ -43,7 +43,7 @@ android {
         applicationId = "com.fracturedearth"
         minSdk = 26
         targetSdk = 35
-        versionCode = 28
+        versionCode = 29
         versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -116,23 +116,30 @@ android {
             if (hasReleaseSigning) {
                 signingConfig = signingConfigs.getByName("release")
             }
-            // Production builds must use real ad unit IDs. Empty disables ad calls safely.
+            
+            // Safe fallbacks to Test IDs prevent startup crashes if Release IDs are missing
+            val defaultAppId = "ca-app-pub-3940256099942544~3347511713"
+            val defaultBannerId = "ca-app-pub-3940256099942544/6300978111"
+            val defaultInterstitialId = "ca-app-pub-3940256099942544/1033173712"
+
+            buildConfigField(
+                "String",
+                "ADMOB_APP_ID",
+                "\"${localValue("ADMOB_APP_ID_RELEASE", localValue("ADMOB_APP_ID", defaultAppId))}\""
+            )
+            manifestPlaceholders["ADMOB_APP_ID"] = localValue("ADMOB_APP_ID_RELEASE", localValue("ADMOB_APP_ID", defaultAppId))
+            
             buildConfigField(
                 "String",
                 "ADMOB_BANNER_AD_UNIT",
-                "\"${localValue("ADMOB_BANNER_AD_UNIT_RELEASE", "")}\""
+                "\"${localValue("ADMOB_BANNER_AD_UNIT_RELEASE", localValue("ADMOB_BANNER_AD_UNIT", defaultBannerId))}\""
             )
             buildConfigField(
                 "String",
                 "ADMOB_INTERSTITIAL_AD_UNIT",
-                "\"${localValue("ADMOB_INTERSTITIAL_AD_UNIT_RELEASE", "")}\""
+                "\"${localValue("ADMOB_INTERSTITIAL_AD_UNIT_RELEASE", localValue("ADMOB_INTERSTITIAL_AD_UNIT", defaultInterstitialId))}\""
             )
-            buildConfigField(
-                "String",
-                "ADMOB_APP_ID",
-                "\"${localValue("ADMOB_APP_ID_RELEASE", localValue("ADMOB_APP_ID", ""))}\""
-            )
-            manifestPlaceholders["ADMOB_APP_ID"] = localValue("ADMOB_APP_ID_RELEASE", localValue("ADMOB_APP_ID", ""))
+
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -211,6 +218,7 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4:1.6.8")
     debugImplementation("androidx.compose.ui:ui-tooling:1.6.8")
 }
+
 
 
 
