@@ -11,7 +11,9 @@ type ZRangeOptions = { REV?: boolean };
 interface RedisMultiLike {
   hIncrBy(key: string, field: string, increment: number): RedisMultiLike;
   zAdd(key: string, entry: { score: number; value: string }): RedisMultiLike;
+  zRem(key: string, value: string): RedisMultiLike;
   set(key: string, value: string): RedisMultiLike;
+  del(key: string): RedisMultiLike;
   exec(): Promise<unknown[]>;
 }
 
@@ -19,11 +21,13 @@ export interface RedisLike {
   isOpen: boolean;
   connect(): Promise<void>;
   exists(key: string): Promise<number>;
+  del(key: string): Promise<number>;
   hSet(key: string, values: Record<string, unknown>): Promise<number>;
   hGetAll(key: string): Promise<Record<string, string>>;
   set(key: string, value: string): Promise<string | null>;
   get(key: string): Promise<string | null>;
   zAdd(key: string, entry: { score: number; value: string }): Promise<number>;
+  zRem(key: string, value: string): Promise<number>;
   zRangeWithScores(key: string, start: number, stop: number, options?: ZRangeOptions): Promise<Array<{ value: string; score: number }>>;
   multi(): RedisMultiLike;
 }
@@ -88,6 +92,15 @@ class InMemoryRedisClient implements RedisLike {
     return this.kv.has(key) || this.hashes.has(key) || this.zsets.has(key) ? 1 : 0;
   }
 
+  async del(key: string): Promise<number> {
+    let deleted = 0;
+    if (this.kv.delete(key)) deleted = 1;
+    if (this.hashes.delete(key)) deleted = 1;
+    if (this.zsets.delete(key)) deleted = 1;
+    if (deleted) this.saveToFile();
+    return deleted;
+  }
+
   async hSet(key: string, values: Record<string, unknown>): Promise<number> {
     const hash = this.hashes.get(key) ?? new Map<string, string>();
     let created = 0;
@@ -125,6 +138,17 @@ class InMemoryRedisClient implements RedisLike {
     return existed ? 0 : 1;
   }
 
+  async zRem(key: string, value: string): Promise<number> {
+    const zset = this.zsets.get(key);
+    if (!zset) return 0;
+    const deleted = zset.delete(value) ? 1 : 0;
+    if (deleted) {
+      this.zsets.set(key, zset);
+      this.saveToFile();
+    }
+    return deleted;
+  }
+
   async zRangeWithScores(
     key: string,
     start: number,
@@ -156,8 +180,16 @@ class InMemoryRedisClient implements RedisLike {
         operations.push(async () => this.zAdd(key, entry));
         return this.multiProxy(operations);
       },
+      zRem: (key: string, value: string) => {
+        operations.push(async () => this.zRem(key, value));
+        return this.multiProxy(operations);
+      },
       set: (key: string, value: string) => {
         operations.push(async () => this.set(key, value));
+        return this.multiProxy(operations);
+      },
+      del: (key: string) => {
+        operations.push(async () => this.del(key));
         return this.multiProxy(operations);
       },
       exec: async () => {
@@ -185,8 +217,16 @@ class InMemoryRedisClient implements RedisLike {
         operations.push(async () => this.zAdd(key, entry));
         return this.multiProxy(operations);
       },
+      zRem: (key: string, value: string) => {
+        operations.push(async () => this.zRem(key, value));
+        return this.multiProxy(operations);
+      },
       set: (key: string, value: string) => {
         operations.push(async () => this.set(key, value));
+        return this.multiProxy(operations);
+      },
+      del: (key: string) => {
+        operations.push(async () => this.del(key));
         return this.multiProxy(operations);
       },
       exec: async () => {
@@ -215,6 +255,10 @@ class RedisAdapter implements RedisLike {
     return this.client.exists(key);
   }
 
+  async del(key: string): Promise<number> {
+    return this.client.del(key);
+  }
+
   async hSet(key: string, values: Record<string, unknown>): Promise<number> {
     return this.client.hSet(key, values as Record<string, string>);
   }
@@ -233,6 +277,10 @@ class RedisAdapter implements RedisLike {
 
   async zAdd(key: string, entry: { score: number; value: string }): Promise<number> {
     return this.client.zAdd(key, entry);
+  }
+
+  async zRem(key: string, value: string): Promise<number> {
+    return this.client.zRem(key, value);
   }
 
   async zRangeWithScores(

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserProfile, upsertUserProfile } from '@/lib/kv';
+import { getUserProfile, upsertUserProfile, deleteUserProfile } from '@/lib/kv';
 
 export async function GET(
   req: NextRequest,
@@ -26,4 +26,13 @@ export async function POST(req: NextRequest) {
   });
 
   return NextResponse.json({ success: true });
+}
+
+export async function DELETE(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const userId = searchParams.get('userId');
+  if (!userId) return NextResponse.json({ error: 'userId required' }, { status: 400 });
+
+  await deleteUserProfile(userId);
+  return NextResponse.json({ success: true, message: 'NeuralAtlas data purged' });
 }

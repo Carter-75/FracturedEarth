@@ -9,6 +9,7 @@
   },
   "scripts": {
     "postinstall": "cd src && npm install",
-    "build": "cd src && npm run build"
+    "sync-config": "node scripts/sync-config.js",
+    "build": "npm run sync-config && cd src && npm run build"
   }
 }

@@ -55,3 +55,11 @@ export async function getLeaderboard(limit = 10): Promise<LeaderboardEntry[]> {
   const raw = await redis.zRangeWithScores('leaderboard', 0, limit - 1, { REV: true });
   return raw.map((entry) => ({ member: entry.value, score: entry.score }));
 }
+
+export async function deleteUserProfile(userId: string): Promise<void> {
+  const redis = await getRedis();
+  const pipe = redis.multi();
+  pipe.del(`user:${userId}`);
+  pipe.zRem('leaderboard', userId);
+  await pipe.exec();
+}

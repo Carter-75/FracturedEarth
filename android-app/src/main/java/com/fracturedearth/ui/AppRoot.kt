@@ -37,10 +37,15 @@ private object Routes {
     const val SETTINGS = "settings"
     const val SUBSCRIPTION = "subscription"
     const val GAME_OVER = "game_over"
+    const val MULTIPLAYER_PLACEHOLDER = "multiplayer_placeholder"
 }
 
 @Composable
-fun AppRoot() {
+fun AppRoot(
+    currentUser: com.google.android.gms.auth.api.signin.GoogleSignInAccount?,
+    onSignIn: () -> Unit,
+    onSignOut: () -> Unit,
+) {
     val context = LocalContext.current
     val navController = rememberNavController()
     val coroutineScope = rememberCoroutineScope()
@@ -53,10 +58,19 @@ fun AppRoot() {
             .build()
     }
     val themeDao = remember(appDb) { appDb.themeDao() }
+    val settingsDao = remember(appDb) { appDb.settingsDao() }
     var theme by rememberSaveable { androidx.compose.runtime.mutableStateOf(ThemeOption.OBSIDIAN) }
     var triggerInterstitial by rememberSaveable { androidx.compose.runtime.mutableStateOf(false) }
     val adFree by BillingFacade.adFreeState().collectAsState()
 
+    LaunchedEffect(Unit) {
+        val firstStartKey = "has_shown_initial_auth"
+        val hasShown = settingsDao.getValue(firstStartKey) != null
+        if (!hasShown && currentUser == null) {
+            onSignIn()
+            settingsDao.upsert(com.fracturedearth.data.db.AppSettingEntity(firstStartKey, "true"))
+        }
+    }
     LaunchedEffect(themeDao) {
         val saved = themeDao.getTheme()?.themeName ?: return@LaunchedEffect
         val parsed = ThemeOption.entries.firstOrNull { it.name == saved } ?: ThemeOption.OBSIDIAN
@@ -70,6 +84,8 @@ fun AppRoot() {
         ) {
             composable(Routes.MAIN) {
                 MainMenuScreen(
+                    currentUser = currentUser,
+                    onSignIn = onSignIn,
                     onPlay = { config ->
                         viewModel.startMatch(
                             humanName = config.playerName,
@@ -78,6 +94,13 @@ fun AppRoot() {
                         )
                         navController.navigate(Routes.GAME) {
                             launchSingleTop = true
+                        }
+                    },
+                    onGlobalMultiplayer = {
+                        if (currentUser != null) {
+                            navController.navigate(Routes.MULTIPLAYER_PLACEHOLDER)
+                        } else {
+                            onSignIn()
                         }
                     },
                     onSettings = {
@@ -130,6 +153,7 @@ fun AppRoot() {
                             launchSingleTop = true
                         }
                     },
+                    onSignOut = onSignOut,
                     onBack = { navController.popBackStack() },
                 )
             }
@@ -166,6 +190,11 @@ fun AppRoot() {
                     onMainMenu = {
                         navController.popBackStack(Routes.MAIN, inclusive = false)
                     },
+                )
+            }
+            composable(Routes.MULTIPLAYER_PLACEHOLDER) {
+                com.fracturedearth.ui.screen.MultiplayerPlaceholderScreen(
+                    onBack = { navController.popBackStack() }
                 )
             }
         }

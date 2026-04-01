@@ -22,6 +22,7 @@ fun SettingsScreen(
     selectedTheme: ThemeOption,
     onThemeSelected: (ThemeOption) -> Unit,
     onSubscription: () -> Unit,
+    onSignOut: () -> Unit,
     onBack: () -> Unit,
 ) {
     val themes = ThemeOption.entries
@@ -47,6 +48,11 @@ fun SettingsScreen(
             }
         }
         FeButton(label = "Ad-Free Subscription", onClick = onSubscription, modifier = Modifier.fillMaxWidth())
+        FeButton(
+            label = "Logout NeuralAtlas", 
+            onClick = onSignOut, 
+            modifier = Modifier.fillMaxWidth()
+        )
         FeButton(label = "Back", onClick = onBack, modifier = Modifier.fillMaxWidth())
     }
 }
