@@ -10,7 +10,7 @@ import androidx.room.RoomDatabase
         SubscriptionCacheEntity::class,
     ],
     version = 2,
-    exportSchema = true,
+    exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun settingsDao(): SettingsDao

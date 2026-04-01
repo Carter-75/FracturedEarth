@@ -137,7 +137,6 @@ fun AppRoot() {
                 val activity = context as? Activity
                 SubscriptionScreen(
                     onBack = { navController.popBackStack() },
-                    onRestorePurchases = { billingFacade.restorePurchases() },
                     onShowPaywall = { if (activity != null) billingFacade.showPaywall(activity) },
                     onShowCustomerCenter = { if (activity != null) billingFacade.showCustomerCenter(activity) },
                     onSubscribe = { tier: SubscriptionTier ->

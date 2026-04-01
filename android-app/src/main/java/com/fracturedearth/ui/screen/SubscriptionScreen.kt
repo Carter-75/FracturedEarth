@@ -27,7 +27,6 @@ import com.fracturedearth.ui.theme.Spacing
 @Composable
 fun SubscriptionScreen(
     onBack: () -> Unit,
-    onRestorePurchases: () -> Unit,
     onShowPaywall: () -> Unit,
     onShowCustomerCenter: () -> Unit,
     onSubscribe: (SubscriptionTier) -> Unit,

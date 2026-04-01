@@ -102,7 +102,7 @@ class VercelKvClient(
         return emptyMap()
     }
 
-    suspend fun hincrby(key: String, field: String, amount: Long): Long? {
+    suspend fun hincrby(_key: String, _field: String, _amount: Long): Long? {
         // Handled via /api/user/result now
         return null
     }
@@ -112,6 +112,6 @@ class VercelKvClient(
         return false
     }
 
-    suspend fun set(key: String, value: String): Boolean = false
-    suspend fun get(key: String): String? = null
+    suspend fun set(_key: String, _value: String): Boolean = false
+    suspend fun get(_key: String): String? = null
 }

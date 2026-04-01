@@ -8,7 +8,6 @@ import androidx.compose.runtime.Composable
 @Composable
 fun FracturedEarthTheme(
     theme: ThemeOption = ThemeOption.OBSIDIAN,
-    useDarkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit,
 ) {
     val tokens = ThemePalette.all.getValue(theme)
