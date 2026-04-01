@@ -1,10 +1,18 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { loadMatchHistory, type LocalMatchOutcome } from '@/lib/localProfile';
 
 export default function HomePage() {
+  const [history, setHistory] = useState<LocalMatchOutcome[]>([]);
+
+  useEffect(() => {
+    setHistory(loadMatchHistory());
+  }, []);
+
   return (
-    <main className="fe-scene bg-black overflow-y-auto sm:overflow-hidden !justify-start md:!justify-center !items-start">
+    <main className="fe-scene bg-black overflow-y-auto !justify-start md:!justify-center !items-start pb-20">
       {/* Immersive Background */}
       <div className="absolute inset-0 z-0">
          <img src="/assets/type-bgs/chaos.png" className="w-full h-full object-cover opacity-40 scale-105 blur-sm" alt="" />
@@ -13,7 +21,7 @@ export default function HomePage() {
          <div className="fe-grid" />
       </div>
 
-      <section className="relative z-10 w-full max-w-4xl mx-auto px-6 pt-24 pb-12 md:py-32 flex flex-col items-center justify-center min-h-screen text-center">
+      <section className="relative z-10 w-full max-w-4xl mx-auto px-6 pt-24 pb-12 flex flex-col items-center justify-center min-h-screen text-center">
         <div className="fe-flicker mb-8 md:mb-12">
            <div className="fe-hologram text-[var(--accent)] opacity-60 mb-4 font-black text-[10px] md:text-xs">Local Area Network Active</div>
            <h1 className="text-[15vw] md:text-[8rem] font-black italic tracking-tighter text-[var(--fg)] leading-[0.9] md:leading-none">
@@ -37,8 +45,39 @@ export default function HomePage() {
              NeuralAtlas
            </Link>
         </div>
+
+        {/* Match History Section */}
+        {history.length > 0 && (
+          <div className="mt-24 w-full max-w-2xl px-4 text-left">
+            <h3 className="fe-hologram text-[var(--fg)] opacity-20 text-[10px] mb-6 flex items-center gap-4">
+              <span className="w-8 h-[1px] bg-white/10" />
+              Neural_Archive_Log
+              <span className="w-full h-[1px] bg-white/10" />
+            </h3>
+            <div className="space-y-3">
+              {history.slice(0, 5).map((outcome) => (
+                <div key={outcome.id} className="bg-white/5 border border-white/5 rounded-xl p-4 flex items-center justify-between group hover:bg-white/10 transition-all">
+                  <div className="flex items-center gap-4">
+                    <span className="text-2xl opacity-50 group-hover:opacity-100 transition-opacity">
+                      {outcome.didWin ? '🏆' : '💀'}
+                    </span>
+                    <div className="flex flex-col">
+                      <span className="text-[var(--fg)] font-bold text-sm uppercase tracking-wider">{outcome.roomCode}</span>
+                      <span className="text-[var(--fg)] opacity-30 text-[9px] uppercase tracking-widest">
+                        {new Date(outcome.playedAtEpochMs).toLocaleDateString()} • {outcome.winnerDisplayName}
+                      </span>
+                    </div>
+                  </div>
+                  <div className={`fe-hologram text-[10px] ${outcome.didWin ? 'text-[var(--accent)]' : 'text-rose-500'} font-black italic`}>
+                    {outcome.didWin ? 'ASCENDED' : 'FALLEN'}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         
-        <Link href="/settings" className="mt-8 text-[var(--fg)] opacity-20 hover:opacity-60 text-xs tracking-[0.5em] transition-all uppercase">
+        <Link href="/settings" className="mt-16 text-[var(--fg)] opacity-20 hover:opacity-60 text-xs tracking-[0.5em] transition-all uppercase mb-12">
           Access_Settings
         </Link>
       </section>

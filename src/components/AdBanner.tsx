@@ -34,10 +34,10 @@ export function AdBanner() {
         <div className="absolute inset-0 fe-grid opacity-20" />
         <div className="absolute inset-0 fe-scanline opacity-10" />
         
-        <div className="relative flex items-center space-x-3 px-4 py-1 rounded-full border border-sky-400/20 bg-sky-400/5">
-           <div className="w-2 h-2 rounded-full bg-sky-400 animate-pulse" />
-           <span className="fe-hologram text-sky-400 text-[9px] uppercase font-bold tracking-[0.2em]">
-              Sponsor Signal Active: Interstellar Transmission 0x4B
+        <div className="relative flex items-center space-x-2 md:space-x-3 px-3 md:px-4 py-1 rounded-full border border-sky-400/20 bg-sky-400/5 max-w-[90vw]">
+           <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-sky-400 animate-pulse shrink-0" />
+           <span className="fe-hologram text-sky-400 text-[7px] md:text-[9px] uppercase font-bold tracking-[0.1em] md:tracking-[0.2em] truncate">
+              Sponsor Signal Active <span className="hidden xs:inline">: Interstellar Transmission 0x4B</span>
            </span>
         </div>
 

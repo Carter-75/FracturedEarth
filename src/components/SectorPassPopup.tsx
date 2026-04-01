@@ -21,7 +21,7 @@ export function SectorPassPopup() {
        const timer = setTimeout(() => setVisible(true), 1500);
        return () => clearTimeout(timer);
     }
-  }, []);
+  }, [pathname]);
 
   function handleDismiss() {
     setVisible(false);

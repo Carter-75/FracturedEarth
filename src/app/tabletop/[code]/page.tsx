@@ -15,6 +15,7 @@ import {
 import { cardTheme, describeCardEffect, positionOpponents } from '@/lib/tabletopShared';
 import { InterstitialAd } from '@/components/InterstitialAd';
 import TacticalDataPanel from '@/components/TacticalDataPanel';
+import { GameEndOverlay } from '@/components/GameEndOverlay';
 
 // Types derived from engine
 type CardType = 'SURVIVAL' | 'DISASTER' | 'POWER' | 'ADAPT' | 'CHAOS' | 'ASCENDED' | 'TWIST' | 'CATACLYSM';
@@ -198,15 +199,16 @@ function PlayPile({ cards }: { cards: MatchCard[] }) {
 }
 
 function OpponentHand({ count, angle, player, isActive }: { count: number; angle: number; player: MatchPlayer; isActive: boolean }) {
-  // Convert angle to radians for orbit math
   const rad = angle * (Math.PI / 180);
   
-  // Responsive Orbit radius
   const [radius, setRadius] = useState(340);
   useEffect(() => {
     const updateRadius = () => {
-      if (window.innerWidth < 768) setRadius(200);
-      else if (window.innerWidth < 1024) setRadius(280);
+      const h = window.innerHeight;
+      const w = window.innerWidth;
+      if (h < 600) setRadius(w < 600 ? 180 : 240);
+      else if (w < 768) setRadius(220);
+      else if (w < 1024) setRadius(280);
       else setRadius(340);
     };
     updateRadius();
@@ -228,7 +230,7 @@ function OpponentHand({ count, angle, player, isActive }: { count: number; angle
       }}
     >
        {/* Opponent HUD */}
-       <div className="fe-hologram pointer-events-auto scale-[0.6] md:scale-100 origin-bottom">
+       <div className="fe-hologram pointer-events-auto scale-[0.5] md:scale-100 origin-bottom">
           <PlayerStatsHUD player={player} isActive={isActive} />
        </div>
 
@@ -322,6 +324,7 @@ export default function TabletopPage() {
   const [replayEvent, setReplayEvent] = useState<any | null>(null);
   const [viewingPile, setViewingPile] = useState<MatchCard[] | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const hasRecordedHistory = useRef(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -405,6 +408,22 @@ export default function TabletopPage() {
       return () => clearTimeout(timer);
     }
   }, [error]);
+
+  // Bug 6: Bot Turn Replay Processing
+  useEffect(() => {
+    if (winner && !hasRecordedHistory.current) {
+        hasRecordedHistory.current = true;
+        appendMatchOutcome({
+            id: `FE-${code}-${Date.now()}`,
+            roomCode: code,
+            playedAtEpochMs: Date.now(),
+            winnerUserId: winner.id,
+            winnerDisplayName: winner.displayName,
+            participants: payload?.players.map(p => ({ userId: p.id, displayName: p.displayName, emoji: p.emoji })) || [],
+            didWin: winner.id === userId
+        });
+    }
+  }, [winner, code, userId, payload?.players]);
 
   // Bug 6: Bot Turn Replay Processing
   useEffect(() => {
@@ -555,11 +574,11 @@ export default function TabletopPage() {
 
       {/* Iconic Cinematic Logo (Phase 9 Revert) */}
       {/* Sector Frequency Header */}
-      <div className="absolute top-4 left-4 md:top-8 md:left-8 z-[1200] flex flex-col gap-1 pointer-events-none">
+      <div className="absolute top-4 left-4 md:top-8 md:left-8 z-[1200] flex flex-col gap-1 pointer-events-none fe-mobile-hiding-h">
          <div className="fe-hologram text-[var(--accent-soft)] opacity-60 text-[8px] md:text-[10px]">Sector_Frequency</div>
          <div className="text-xl md:text-3xl font-black italic tracking-widest text-[var(--fg)] leading-none uppercase">{code}</div>
       </div>
-      <div className="absolute top-10 left-10 z-[1000] pointer-events-none">
+      <div className="absolute top-10 left-10 z-[1000] pointer-events-none fe-mobile-hiding-h">
          <div className="flex flex-col -gap-4">
             <h1 className="text-xl font-black italic tracking-[0.4em] text-[var(--fg)] opacity-30 fe-hologram uppercase fe-flicker">
                FRACTURED
@@ -659,11 +678,11 @@ export default function TabletopPage() {
       {myPlayer && (
         <>
             {/* HUD: Top-Right on mobile, next to Hand on desktop */}
-            <div className="fixed top-4 right-4 md:absolute md:bottom-12 md:left-4 md:right-auto lg:left-0 lg:right-0 lg:ml-[-500px] z-[1200] pointer-events-auto transform scale-[0.7] md:scale-100 origin-top-right md:origin-bottom">
+            <div className="fixed top-20 right-4 md:top-auto md:absolute md:bottom-12 md:left-4 md:right-auto z-[1200] pointer-events-auto transform scale-[0.6] md:scale-100 origin-top-right md:origin-bottom translate-y-[var(--hud-y-off,0px)]">
                <PlayerStatsHUD player={myPlayer} isActive={isMyTurn} />
             </div>
 
-            <div className="absolute bottom-4 md:bottom-12 left-0 right-0 z-[1100] flex flex-row items-end justify-center pointer-events-none px-4">
+            <div className="absolute bottom-2 md:bottom-12 left-0 right-0 z-[1100] flex flex-row items-end justify-center pointer-events-none px-4">
                {/* Hand */}
                <div className="relative h-[var(--card-h)] flex justify-center pointer-events-auto w-full max-w-[95vw] md:max-w-2xl shrink-0">
                   <AnimatePresence>
@@ -787,29 +806,16 @@ export default function TabletopPage() {
 
       {/* Win/Loss Hologram */}
       <AnimatePresence>
-        {winner && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 z-[3000] bg-black/95 backdrop-blur-3xl flex items-center justify-center">
-              <div className="text-center">
-                <p className="fe-hologram text-[var(--accent)] opacity-60 mb-8 uppercase tracking-[0.4em]">Simulation Ended</p>
-                <h2 className="text-9xl font-black italic tracking-tighter text-[var(--fg)] uppercase">{winner?.id === userId ? 'ASCENDED' : 'FALLEN'}</h2>
-                <div className="mt-4 fe-hologram text-[10px] text-[var(--fg)] opacity-40 uppercase tracking-widest">
-                   Commander {winner?.displayName} Claims the Sector
-                </div>
-                
-                 <div className="mt-20 flex gap-6">
-                    <button 
-                      onClick={() => setShowPostGameAd(true)} 
-                      className="fe-holo-btn !border-sky-400 !text-sky-400"
-                    >
-                       Evacuate Sector (Interstellar Protocol)
-                    </button>
-                 </div>
-
-                 {showPostGameAd && (
-                    <InterstitialAd force onComplete={() => router.push('/lan')} />
-                 )}
-             </div>
-          </motion.div>
+        {winner && myPlayer && (
+          <GameEndOverlay 
+            isWin={winner.id === userId} 
+            winnerName={winner.displayName} 
+            stats={{ 
+                energy: myPlayer.survivalPoints,
+                health: myPlayer.health,
+                round: payload?.round || 0
+            }} 
+          />
         )}
       </AnimatePresence>
 

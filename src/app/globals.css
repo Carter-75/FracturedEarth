@@ -20,28 +20,18 @@
   --glow-color: var(--accent);
   --neon-glow: 0 0 15px rgba(var(--accent-rgb), var(--glow-strength, 0.4));
   
-  /* Responsive Game Units */
-  --card-w: 5rem;
-  --card-h: 7rem;
-  --opp-offset: -120px;
-  --hand-spread: 35px;
+  /* Fluid Game Units - Scaled to the smallest dimension (vmin) */
+  --card-w: clamp(4rem, 15vmin, 12rem);
+  --card-h: calc(var(--card-w) * 1.4);
+  --opp-offset: clamp(-150px, -25vh, -400px);
+  --hand-spread: clamp(30px, 8vmin, 80px);
 }
 
-@media (min-width: 768px) {
+/* Media overrides are now mostly handled by vmin/clamp, but we can refine for large screens */
+@media (min-width: 1440px) {
   :root {
-    --card-w: 6.5rem;
-    --card-h: 9rem;
-    --opp-offset: -200px;
-    --hand-spread: 50px;
-  }
-}
-
-@media (min-width: 1024px) {
-  :root {
-    --card-w: 10rem;
-    --card-h: 14rem;
-    --opp-offset: -350px;
-    --hand-spread: 80px;
+    --card-w: 12rem;
+    --hand-spread: 100px;
   }
 }
 
@@ -87,6 +77,13 @@
     padding-top: var(--header-height, 60px);
   }
 
+  /* Utility for hiding on low-height mobile (Landscape) */
+  @media (max-height: 600px) {
+    .fe-mobile-hiding-h {
+      @apply hidden opacity-0 pointer-events-none;
+    }
+  }
+
   .fe-glow-text {
     text-shadow: 0 0 15px var(--glow-color);
   }
@@ -106,8 +103,8 @@
     background-color: var(--bg);
     border: 8px solid var(--border);
     border-radius: var(--radius);
-    @apply absolute left-1/2 top-1/2 w-[200vw] h-[150vh] md:w-[250vw] transition-all duration-700;
-    transform: translate(-50%, -50%) rotateX(65deg) scale(0.9);
+    @apply absolute left-1/2 top-1/2 w-[250vw] h-[250vh] md:w-[150vw] md:h-[120vh] transition-all duration-700;
+    transform: translate(-50%, -50%) rotateX(65deg) scale(0.85);
     box-shadow: 
       0 100px 300px rgba(0,0,0,0.9),
       inset 0 0 100px rgba(0,0,0,0.9),
@@ -117,10 +114,7 @@
 
   @media (min-width: 768px) {
     .fe-table {
-      width: 150vw;
-      height: 120vh;
-      border-width: 12px;
-      transform: translate(-50%, -50%) rotateX(60deg) scale(0.9);
+      transform: translate(-50%, -50%) rotateX(60deg) scale(1);
     }
   }
 
