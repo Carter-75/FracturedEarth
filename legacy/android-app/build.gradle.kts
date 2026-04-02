@@ -199,8 +199,8 @@ dependencies {
 
     implementation("com.google.android.gms:play-services-ads:23.3.0")
     implementation("com.android.billingclient:billing-ktx:7.0.0")
-    implementation("com.revenuecat.purchases:purchases:9.28.1")
-    implementation("com.revenuecat.purchases:purchases-ui:9.28.1")
+    implementation("com.revenuecat.purchases:purchases:9.29.0")
+    implementation("com.revenuecat.purchases:purchases-ui:9.29.0")
 
     implementation("com.badlogicgames.gdx:gdx:1.12.1")
     implementation("com.badlogicgames.gdx:gdx-backend-android:1.12.1")
