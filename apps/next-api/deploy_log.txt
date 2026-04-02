@@ -1,0 +1,10 @@
+Retrieving projectΓÇª
+Deploying carters-projects-7dd7e086/fractured-earth
+Uploading [--------------------] (0.0B/79B)
+Uploading [====================] (79.0B/79B)
+Inspect: https://vercel.com/carters-projects-7dd7e086/fractured-earth/B1oyApJiP7M3yGfNsdLF8GPtGRAb [3s]
+Production: https://fractured-earth-6wilphxi1-carters-projects-7dd7e086.vercel.app [3s]
+Building...
+Building...
+Error: Command "npm install" exited with 1
+https://fractured-earth-6wilphxi1-carters-projects-7dd7e086.vercel.app
