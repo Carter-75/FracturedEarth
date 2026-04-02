@@ -15,11 +15,11 @@ $ErrorActionPreference = "Stop"
 # --- SECURE SENSITIVE CONFIGS ---
 $MONGODB_URI = $env:MONGODB_URI
 if (-not $MONGODB_URI) {
-    $envFile = "$PSScriptRoot\apps\next-api\.env.local"
-    if (Test-Path $envFile) {
-        $msg = "Loading MONGODB_URI from local .env.local..."
+    $masterConfig = "$PSScriptRoot\local.properties"
+    if (Test-Path $masterConfig) {
+        $msg = "Loading MONGODB_URI from master local.properties..."
         Write-Host "[$msg]" -ForegroundColor Gray
-        $line = Get-Content $envFile | Select-String "MONGODB_URI=" | Select-Object -First 1
+        $line = Get-Content $masterConfig | Select-String "MONGODB_URI=" | Select-Object -First 1
         if ($line) {
             $MONGODB_URI = ($line -split "MONGODB_URI=")[1].Trim().Trim('"').Trim("'")
         }

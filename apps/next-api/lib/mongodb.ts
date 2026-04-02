@@ -1,5 +1,4 @@
-import dotenv from 'dotenv';
-dotenv.config({ path: '.env.local' });
+import '@/lib/envLoader';
 import mongoose from 'mongoose';
 import { MongoClient } from 'mongodb';
 import { attachDatabasePool } from '@vercel/functions';
