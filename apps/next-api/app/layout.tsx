@@ -1,4 +1,3 @@
-'use client';
 
 import type { Metadata } from 'next';
 import { Cinzel, Spectral } from 'next/font/google';
@@ -9,7 +8,7 @@ import { AdBanner } from '@/components/AdBanner';
 import { SectorPassPopup } from '@/components/SectorPassPopup';
 import { Analytics } from '@vercel/analytics/next';
 import { initializeNativeBridge } from '@/lib/nativeBridge';
-import React, { useEffect } from 'react';
+import React from 'react';
 
 const cinzel = Cinzel({ subsets: ['latin'], variable: '--font-display', weight: ['600', '700', '800'] });
 const spectral = Spectral({ subsets: ['latin'], variable: '--font-body', weight: ['400', '500', '600', '700'] });
@@ -29,9 +28,6 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  useEffect(() => {
-    initializeNativeBridge();
-  }, []);
 
   return (
     <html lang="en" className={`${cinzel.variable} ${spectral.variable}`}>

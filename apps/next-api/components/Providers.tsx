@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { SessionProvider } from 'next-auth/react';
 import { THEME_PRESETS } from '@/lib/gameConfig';
 import { loadLocalSettings, type LocalUserSettings } from '@/lib/localProfile';
+import { initializeNativeBridge } from '@/lib/nativeBridge';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   useEffect(() => {
@@ -48,6 +49,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
     window.addEventListener('fe:settings-changed', onSettingsChanged as EventListener);
     window.addEventListener('storage', onStorage);
+
+    // Initialize Native Bridge for Capacitor
+    initializeNativeBridge();
 
     return () => {
       window.removeEventListener('fe:settings-changed', onSettingsChanged as EventListener);
