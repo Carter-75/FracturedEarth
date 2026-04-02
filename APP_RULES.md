@@ -14,23 +14,25 @@ This is the only documentation file to maintain for architecture + build/deploy 
 ```
 ProjectName/
 ├── apps/
-│   ├── mobile-client/             # 📱 Frontend: Angular/Next-Mobile + Capacitor
-│   │   ├── src/app/               # UI Components & App Router
+│   ├── angular-mobile/            # 📱 Frontend: Angular + Capacitor
+│   │   ├── src/app/               # UI Components
 │   │   ├── android/               # Native Android wrapper (Capacitor)
-│   │   │   ├── app/build.gradle   # Target SDK 35 (Latest), com.yourcompany.myapp
-│   │   │   └── variables.gradle   # Centralized SDK version management
-│   │   ├── capacitor.config.ts    # Bridge configuration
 │   │   └── ...
-│   ├── api-backend/               # 🌐 Backend: Next.js API & Node
-│   │   ├── src/app/api/           # API Endpoints (Universal)
-│   │   ├── scripts/               # Migration and maintenance scripts
+│   ├── next-api/                  # 🌐 Backend + Web UI: Next.js API & Web UI
+│   │   ├── app/                   # Next.js App Router (Universal)
+│   │   ├── components/            # Shared UI components (AdBanner, etc.)
+│   │   ├── lib/                   # Shared Business Logic (Tabletop, Auth)
 │   │   └── ...
 ├── build/                         # 🎯 Centralized Artifacts (APK/AAB)
-│   └── backup/                    # Automatically archived old builds
 ├── build-and-deploy.ps1           # 👈 Unified build script template (Required)
+├── package.json                   # 👈 Root Hoisting (Vercel Compatibility)
+├── vercel.json                    # 👈 Root Build Config (Monorepo)
 ├── APP_RULES.md                   # 👈 Design guidelines & architecture rules
 └── PROJECT_TODO.md                # 👈 Active task tracking
 ```
+
+### Dependency Hoisting (Vercel Build Strategy)
+In a monorepo, Vercel's build process works best when all dependencies and devDependencies (like `tailwindcss`, `postcss`, and `typescript`) are **hoisted to the root `package.json`**. This ensures that the build environment has immediate access to all tools needed for sub-project compilation.
 
 **All game logic lives in the backend lib** (`apps/api-backend/src/lib/`) — shared business logic for:
 - Game rules & state machine
@@ -46,17 +48,22 @@ ProjectName/
 ## 2. Platform Architecture
 
 ### Web & API Platform (Next.js/Node on Vercel)
-1. **Built from**: `apps/api-backend`
-2. **Deployment**: GitHub push → Vercel auto-deploys API.
-3. **Database**: MongoDB/Mongoose (Standard Persistence Layer).
-4. **Logic**: API routes handle shared state and server-side resolution.
+1. **Built from**: `apps/next-api`
+2. **Deployment**: GitHub push → Vercel auto-deploys via root `vercel.json` orchestration.
+3. **Architecture**: Root `package.json` handles all shared dependencies (Hoisting).
+4. **Database**: MongoDB/Mongoose (Standard Persistence Layer).
 
 ### Mobile Platform (Frontend + Capacitor)
-1. **Built from**: `apps/mobile-client`
-2. **Framework**: Angular or Next.js (Static Export) + Capacitor.
-3. **Android Build**: Capacitor → Gradle → Target SDK 35 (Minimum Requirement).
-4. **Identifier**: `com.yourcompany.myapp` (Provisioned Package Name).
-5. **Flow**: Client UI → HTTPS Calls to `/api/*` → Backend Controller.
+1. **Built from**: `apps/angular-mobile` (Mobile UI)
+2. **Framework**: Angular + Capacitor.
+3. **Android Build**: Target SDK 35 (Minimum Requirement).
+4. **Identifier**: `com.fracturedearth` (Provisioned Package Name).
+5. **Logic**: Syncing with `apps/next-api` endpoints via `nativeBridge.ts`.
+
+### Monetization Layer (Sub/Ads)
+1. **Subscriptions**: **RevenueCat** (`@revenuecat/purchases-capacitor`) for Sector Pass.
+2. **Ads**: **AdMob** (`@capacitor-community/admob`) for real test ads on native platforms.
+3. **Rules**: All ads must check the `adFree` status from `LocalUserSettings` before rendering.
 
 ---
 
@@ -384,18 +391,20 @@ curl http://localhost:3000/api/rooms/create \
 6. **Use revision numbers for optimistic concurrency** — prevent race conditions.
 7. **Validate all input** — sanitize userId, roomCode, etc. in API routes.
 8. **Test game logic independently** — pure functions are testable.
-9. **Use environment variables for secrets** — MongoDB URIs, API keys, etc.
+9. **Track `adFree` status in `LocalUserSettings`** — Sync local state with RevenueCat/IAP entitlement.
+10. **Use Official Test Ad IDs for Dev** — Never use live IDs for testing to avoid account flags.
 
 ### ❌ DON'T
 
-1. **Don't put game logic in API routes** — logic should be in `src/lib/`
-2. **Don't duplicate game code** — one tutorialEngine.ts, not two
-3. **Don't hardcode API URLs** — use environment variables
-4. **Don't trust client input** — validate on server
-5. **Don't use Socket.IO for MVP** — polling is simpler, works on all platforms
-6. **Don't store game state on client** — only sync from server
-7. **Don't create separate Android backends** — both platforms use same API
-8. **Don't commit secrets** — .env.local in .gitignore
+1. **Don't show ads if `adFree` is true** — Guard all `AdBanner` and `InterstitialAd` calls.
+2. **Don't put game logic in API routes** — logic should be in `src/lib/`
+3. **Don't duplicate game code** — one tutorialEngine.ts, not two
+4. **Don't hardcode API URLs** — use environment variables
+5. **Don't trust client input** — validate on server
+6. **Don't use Socket.IO for MVP** — polling is simpler, works on all platforms
+7. **Don't store game state on client** — only sync from server
+8. **Don't create separate Android backends** — both platforms use same API
+9. **Don't commit secrets** — .env.local in .gitignore
 
 ---
 

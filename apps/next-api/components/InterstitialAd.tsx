@@ -1,6 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { AdMob, AdOptions } from '@capacitor-community/admob';
+import { Capacitor } from '@capacitor/core';
+import { NativeBridge } from '@/lib/nativeBridge';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -19,8 +22,26 @@ export function InterstitialAd({
     const lastAd = Number(localStorage.getItem('fe:last-interstitial') || 0);
     const now = Date.now();
 
-    // Show if not ad-free AND (forced OR 5 minutes since last ad)
-    if (!isAdFree && (force || now - lastAd > 300000)) {
+    if (isAdFree) {
+       onComplete();
+       return;
+    }
+
+    const adId = NativeBridge.getAdUnitId('interstitial');
+    if (adId) {
+       // Real AdMob Interstitial
+       AdMob.prepareInterstitial({ adId })
+         .then(() => AdMob.showInterstitial())
+         .then(() => onComplete())
+         .catch(e => {
+            console.error('Failed to show native interstitial', e);
+            onComplete();
+         });
+       return;
+    }
+
+    // Web Implementation (Simulated)
+    if (force || now - lastAd > 300000) {
       setVisible(true);
       localStorage.setItem('fe:last-interstitial', String(now));
     } else {

@@ -1,17 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { AdMob, BannerAdSize, BannerAdPosition } from '@capacitor-community/admob';
+import { Capacitor } from '@capacitor/core';
+import { NativeBridge } from '@/lib/nativeBridge';
 
-/**
- * AdBanner component reserves a 60px space at the top of the screen.
- * On Web: Shows a high-fidelity placeholder (AdSense simulation).
- * On App: Represents the space occupied by the native AdMob banner.
- */
 export function AdBanner() {
   const [adFree, setAdFree] = useState(false);
 
   useEffect(() => {
-    // Check local storage for ad-free entitlement
     const settings = localStorage.getItem('fe:user-settings:v1');
     let isAdFree = false;
     if (settings) {
@@ -22,8 +19,24 @@ export function AdBanner() {
     }
     setAdFree(isAdFree);
     
-    // Set global CSS variable for layout padding
     document.documentElement.style.setProperty('--header-height', isAdFree ? '0px' : '60px');
+
+    // Show real AdMob banner if on native app
+    const adId = NativeBridge.getAdUnitId('banner');
+    if (!isAdFree && adId) {
+      AdMob.showBanner({
+        adId, 
+        adSize: BannerAdSize.ADAPTIVE_BANNER,
+        position: BannerAdPosition.TOP_CENTER,
+        margin: 0,
+      }).catch(e => console.error('Failed to show native banner', e));
+    }
+
+    return () => {
+      if (Capacitor.isNativePlatform()) {
+         AdMob.removeBanner().catch(() => {});
+      }
+    };
   }, []);
 
   if (adFree) return null;
