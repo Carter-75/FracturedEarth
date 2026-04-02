@@ -16,4 +16,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "FracturedEarth"
 include(":android-app")
+project(":android-app").projectDir = file("legacy/android-app")
+
 include(":game-core")
+project(":game-core").projectDir = file("legacy/game-core")

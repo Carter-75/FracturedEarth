@@ -57,7 +57,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: src
+        working-directory: apps/next-api
 
     steps:
       - name: Checkout
@@ -68,7 +68,7 @@ jobs:
         with:
           node-version: "24"
           cache: npm
-          cache-dependency-path: src/package-lock.json
+          cache-dependency-path: apps/next-api/package-lock.json
 
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
