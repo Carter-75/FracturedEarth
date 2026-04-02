@@ -1,8 +1,8 @@
 # Mobile-First Monorepo Architecture & Rules
 
-**For: All future apps (e.g., GameX, AppY)**
+**Standard for: All future apps (e.g., GameX, AppY)**
 
-This document defines the architectural patterns, database setup, and deployment strategy for mobile-first applications that work identically on web (Vercel) and Android.
+This document defines the architectural patterns, database setup, and deployment strategy for mobile-first applications that work identically on web (Vercel) and Android (Capacitor).
 
 This is the only documentation file to maintain for architecture + build/deploy rules. Do not split these rules into a separate architecture document.
 
@@ -12,166 +12,81 @@ This is the only documentation file to maintain for architecture + build/deploy 
 
 ### Root Directory Layout
 ```
-MyApp/
-├── src/                           # ⭐ Unified Next.js application (web + Android UI)
-│   ├── app/                       # Next.js App Router
-│   │   ├── page.tsx              # Home page
-│   │   ├── api/                  # ⭐ BACKEND API (both platforms call this)
-│   │   │   ├── rooms/            # Room management
-│   │   │   ├── tutorial/         # Game tutorial
-│   │   │   ├── game/             # Game logic
-│   │   │   └── auth/             # Authentication
-│   │   ├── game/                 # Game page
-│   │   ├── settings/             # Settings page
-│   │   ├── layout.tsx            # Global layout
-│   │   └── ...other-routes
-│   ├── lib/                       # ⭐ SHARED GAME LOGIC (core rules/mechanics)
-│   │   ├── gameEngine.ts         # Main game state machine & rules
-│   │   ├── tutorialEngine.ts     # Tutorial/onboarding logic
-│   │   ├── rooms.ts              # Room/lobby state management
-│   │   ├── database.ts           # Database helpers (KV, users, etc)
-│   │   ├── types.ts              # Shared TypeScript interfaces
-│   │   ├── utils.ts              # Utility functions
-│   │   └── constants.ts          # Game constants
-│   ├── components/                # React UI components (web)
-│   ├── types/                     # Additional TypeScript types
-│   ├── public/                    # Static assets (images, icons)
-│   ├── package.json              # Next.js dependencies
-│   ├── tsconfig.json             # TypeScript config (paths: @/lib, etc)
-│   ├── next.config.js            # Next.js config
-│   ├── tailwind.config.ts        # Tailwind CSS config
-│   └── vercel.json               # Vercel deployment config
-├── android-app/                  # 📱 Android native wrapper (Kotlin/Compose)
-│   ├── app/                      # Android app module
-│   ├── build.gradle.kts          # Android build config
-│   ├── capacitor.json            # Capacitor bridge config
-│   └── src/main/kotlin/          # Kotlin source
-├── package.json                  # 🎯 Root orchestration config
-└── APP_RULES.md                  # 👈 Single source of truth for architecture + rules
+ProjectName/
+├── apps/
+│   ├── mobile-client/             # 📱 Frontend: Angular/Next-Mobile + Capacitor
+│   │   ├── src/app/               # UI Components & App Router
+│   │   ├── android/               # Native Android wrapper (Capacitor)
+│   │   │   ├── app/build.gradle   # Target SDK 35 (Latest), com.yourcompany.myapp
+│   │   │   └── variables.gradle   # Centralized SDK version management
+│   │   ├── capacitor.config.ts    # Bridge configuration
+│   │   └── ...
+│   ├── api-backend/               # 🌐 Backend: Next.js API & Node
+│   │   ├── src/app/api/           # API Endpoints (Universal)
+│   │   ├── scripts/               # Migration and maintenance scripts
+│   │   └── ...
+├── build/                         # 🎯 Centralized Artifacts (APK/AAB)
+│   └── backup/                    # Automatically archived old builds
+├── build-and-deploy.ps1           # 👈 Unified build script template (Required)
+├── APP_RULES.md                   # 👈 Design guidelines & architecture rules
+└── PROJECT_TODO.md                # 👈 Active task tracking
 ```
 
-### Key Principle
-**All game logic lives in `src/lib/`** — shared business logic for:
+**All game logic lives in the backend lib** (`apps/api-backend/src/lib/`) — shared business logic for:
 - Game rules & state machine
 - Tutorial workflow
 - Room management
 - Multiplayer synchronization
 - User profiles & data
 
-**API routes export this logic** (`src/app/api/`) — both web and Android call the same endpoints.
+**API routes export this logic** (`apps/api-backend/src/app/api/`) — both web and mobile call the same endpoints.
 
 ---
 
 ## 2. Platform Architecture
 
-### Web Platform (Next.js on Vercel)
-1. **Built from**: `src/` (Next.js)
-2. **Deployment**: GitHub push → Vercel auto-deploys
-3. **Client State**: React state + localStorage
-4. **Server State**: Vercel KV (Redis)
-5. **UI Rendering**: React components in browser
-6. **Flow**: Browser → `/api/*` routes → `src/lib/*` logic → KV store
+### Web & API Platform (Next.js/Node on Vercel)
+1. **Built from**: `apps/api-backend`
+2. **Deployment**: GitHub push → Vercel auto-deploys API.
+3. **Database**: MongoDB/Mongoose (Standard Persistence Layer).
+4. **Logic**: API routes handle shared state and server-side resolution.
 
-### Android Platform (Kotlin/Compose)
-1. **Built from**: `android-app/` (Gradle)
-2. **Deployment**: Manual build → Play Store (no auto-deploy)
-3. **Client State**: Android Room database / SharedPreferences
-4. **Server State**: Same Vercel KV (shared backend)
-5. **UI Rendering**: Kotlin Compose UI in WebView or native
-6. **Flow**: Kotlin UI → HTTP `http://vercel-app.vercel.app/api/*` → Vercel → `src/lib/*` → KV store
-
-**Important**: Both platforms hit the **same backend API** and **same database**. No separate backend for Android.
+### Mobile Platform (Frontend + Capacitor)
+1. **Built from**: `apps/mobile-client`
+2. **Framework**: Angular or Next.js (Static Export) + Capacitor.
+3. **Android Build**: Capacitor → Gradle → Target SDK 35 (Minimum Requirement).
+4. **Identifier**: `com.yourcompany.myapp` (Provisioned Package Name).
+5. **Flow**: Client UI → HTTPS Calls to `/api/*` → Backend Controller.
 
 ---
 
-## 3. Database Setup (Vercel KV / Redis)
+## 3. Database Setup (MongoDB Atlas)
 
-### Why Vercel KV?
-- Free tier sufficient for indie games
-- Auto-scales
-- Vercel integration (no extra config)
-- Works with both web and Android talking to same store
+### Why MongoDB?
+- Flexible document schema for complex card effects.
+- Unified storage for global card data, user profiles, and active match states.
+- High performance for real-time polling across web and mobile.
 
 ### Implementation
 
-#### A. Environment Variables
-**`.env.local`** (not in git):
+#### A. Multi-Regional Scalability
+Data is hosted on **MongoDB Atlas** (Global Cluster) and accessed via **Mongoose** in `apps/api-backend`.
+
+#### B. Data Migration Service
+All apps should include a JSON-to-Db migration script in `apps/api-backend/scripts/migrate-data.ts`.
+
+To refresh the database from local JSON data:
 ```bash
-KV_URL=redis://default:...@....upstash.io:...
-KV_REST_API_URL=https://....upstash.io
-KV_REST_API_TOKEN=...
+cd apps/api-backend
+npx tsx scripts/migrate-data.ts
 ```
 
-Go to [Vercel Dashboard](https://vercel.com) → Project → Settings → Environment Variables → Add from Upstash Redis.
-
-#### B. Database Helper (`src/lib/database.ts`)
-
-```typescript
-import { kv } from '@vercel/kv';
-
-// User Profiles
-export async function getUserProfile(userId: string) {
-  return kv.hgetall(`user:${userId}`);
-}
-
-export async function setUserProfile(userId: string, data: any) {
-  await kv.hset(`user:${userId}`, data);
-  await kv.expire(`user:${userId}`, 31536000); // 1 year
-}
-
-// Game Rooms
-export async function getRoom(roomCode: string) {
-  return kv.hgetall(`room:${roomCode}`);
-}
-
-export async function setRoom(roomCode: string, data: any) {
-  await kv.hset(`room:${roomCode}`, data);
-  await kv.expire(`room:${roomCode}`, 86400); // 24 hours
-}
-
-// Game State (with revision for optimistic concurrency)
-export async function getGameState(roomCode: string) {
-  return kv.get(`game:${roomCode}`);
-}
-
-export async function setGameState(roomCode: string, state: any, expectedRevision: number) {
-  const current = await kv.get(`game:${roomCode}`);
-  if (current && current.revision !== expectedRevision) {
-    throw new Error('Stale state (revision mismatch)');
-  }
-  await kv.set(`game:${roomCode}`, { ...state, revision: expectedRevision + 1 });
-}
-```
-
-#### C. Usage in API Routes
-
-**`src/app/api/rooms/create/route.ts`**:
-```typescript
-import { NextRequest, NextResponse } from 'next/server';
-import { setRoom, setUserProfile } from '@/lib/database';
-
-export async function POST(req: NextRequest) {
-  const { userId, roomCode, displayName } = await req.json();
-
-  // Store room in KV
-  await setRoom(roomCode, {
-    hostUserId: userId,
-    hostName: displayName,
-    createdAt: Date.now(),
-    members: [userId],
-    status: 'OPEN',
-  });
-
-  // Update user profile
-  await setUserProfile(userId, { lastRoomCode: roomCode });
-
-  return NextResponse.json({ success: true, roomCode });
-}
-```
+#### C. Concurrency Control
+Revision numbers are mandatory for optimistic concurrency to prevent race conditions during simultaneous client updates.
 
 ---
 
-## 4. Game Logic Structure (`src/lib/`)
+## 4. Game Logic Structure (`apps/api-backend/src/lib/`)
 
 ### Core Patterns
 
@@ -308,18 +223,14 @@ useEffect(() => {
 }, [roomCode]);
 ```
 
-**Android Client** (Kotlin):
-```kotlin
-scope.launch(Dispatchers.IO) {
-  while (isActive) {
-    val response = httpClient.get("https://app.vercel.app/api/rooms/$roomCode/state")
-    val state = Json.decodeFromString<GameState>(response.bodyAsText())
-    withContext(Dispatchers.Main) {
-      viewModel.setGameState(state)
-    }
-    delay(1000) // Poll every 1 second
-  }
-}
+**Mobile Client** (`apps/mobile-client/src/app/services/game.service.ts`):
+```typescript
+// Heartbeat / State Polling
+setInterval(async () => {
+  const res = await fetch(`${API_BASE_URL}/rooms/${roomCode}/state`);
+  const data = await res.json();
+  this.gameState$.next(data.state);
+}, 1000); // Poll every 1 second
 ```
 
 ### Heartbeat Pattern (Connection Management)
@@ -352,152 +263,98 @@ setInterval(() => {
 
 ---
 
-## 6. Build & Deployment
+## 6. Build & Deployment (Unified Automation)
 
-### Web Deployment (Vercel)
+### Build Script (`build-and-deploy.ps1`)
+The root directory contains a unified PowerShell script that orchestrates the entire build pipeline for both Next-API and Angular-Mobile.
 
-**Step 1**: Connect GitHub to Vercel
-- Go to [vercel.com](https://vercel.com)
-- Import your repo
-- Set Environment Variables (KV_URL, KV_REST_API_TOKEN, etc.)
-- Auto-deploy on push to `main`
+#### Key Features:
+1. **Environment Sync**: Automatically updates Vercel environment variables (e.g., `MONGODB_URI`).
+2. **Database Migration**: Optional switch (`-SkipMigration`) to run or skip card data migrations.
+3. **Artifact Management**:
+   - Moves generated APK and AAB files to the root `build/` directory.
+   - **Backup System**: Automatically moves existing artifacts in `build/` to `build/backup/` with a timestamp before replacing them.
+4. **Build Control**:
+   - `-SkipBuild`: Allows running only the artifact movement and environment sync logic (useful if the build was already completed manually).
+   - `-SkipVercel`: Skips Vercel configuration steps.
 
-**Step 2**: Build script
-```bash
-cd src && npm install && npm run build
-```
+### Deployment Workflow
+1. **Web (API)**: Automatic deployment via GitHub → Vercel integration.
+2. **Android**:
+   - Run `./build-and-deploy.ps1`.
+   - Retrieve the production-ready `.aab` from the `build/` folder.
+   - Manually upload to Google Play Console.
 
-**Step 3**: Serve
-```bash
-npm --prefix src run start
-```
-
-**Root Commands**:
-```bash
-npm run build       # Build Next.js
-npm run dev         # Dev server (http://localhost:3000)
-npm run lint        # Lint code
-npm run type-check  # Type check
-npm run android:artifacts         # Build debug APK + release APK + release AAB, then push (default)
-npm run android:artifacts:no-push # Build debug APK + release APK + release AAB, skip push
-npm run android:artifacts:push    # Build debug APK + release APK + release AAB, then push
-```
-
-### Required Android Artifact Script Pattern
-
-Every app must include the PowerShell artifact script in `scripts/web/build-and-deploy.ps1` that:
-
-1. Runs clean + build tasks with summary logging by default (`--stacktrace --warning-mode summary --console plain`)
-2. Supports opt-in `--info` (`-VerboseBuild`) and opt-in `--debug` (`-DebugBuild`) modes only when needed
-2. Builds all release artifacts in one pass:
-  - `:android-app:assembleDebug` (debug APK)
-  - `:android-app:assembleRelease` (release APK)
-  - `:android-app:bundleRelease` (release AAB)
-3. Writes logs to `scripts/build-scripts/logs/`
-4. Stages and commits changes
-5. Supports explicit push control in a reusable workflow style:
-  - **Default flow**: push to `origin/main`
-  - **Optional local-safe flow**: skip push
-  - PowerShell flags include `-Force` and `-SkipGit` (plus `-Push`)
-
-Mandatory no-push switch:
-- PowerShell: `-SkipGit` (preferred) or `-NoPush`
-- Bash: `--skip-git` (preferred) or `--no-push`
-
-Mandatory push switch:
-- PowerShell: `-Push`
-- Bash: `--push`
-- Push policy: always use `git push -u origin main`; do not use force-push unless explicitly required for emergency recovery.
-
-### Android Deployment
-
-**Step 1**: Build web app first
-```bash
-npm run build
-```
-
-**Step 2**: Build Android
-```bash
-npm run android:artifacts         # Recommended default (push)
-npm run android:artifacts:no-push # Use when you explicitly want local-only changes
-```
-
-**Step 3**: Sign and upload to Play Store (manual)
-
-### Continuous Deployment
-
-- **Web**: Automatic (GitHub → Vercel)
-- **Android**: Requires manual Play Store upload (no auto-deploy)
+### Release Requirements (Android)
+- **Package Name**: Must be `com.fracturedearth`.
+- **Target SDK**: Level 35 (Android 15).
+- **Optimization**: `minifyEnabled true` and `ndk { debugSymbolLevel "FULL" }` are mandatory for production releases to ensure deobfuscation and crash analysis.
 
 ---
 
 ## 7. Android Configuration
 
-### `android-app/build.gradle.kts`
+### `apps/mobile-client/android/variables.gradle`
+This file centralizes all SDK and library versions for the native Android wrapper:
+```gradle
+ext {
+    minSdkVersion = 24
+    compileSdkVersion = 35
+    targetSdkVersion = 35
+    // ...
+}
+```
 
+### `apps/mobile-client/android/app/build.gradle`
+Standard production settings:
 ```gradle
 android {
-  compileSdk = 35
-  defaultConfig {
-    applicationId = "com.myapp.game"
-    minSdk = 28
-    targetSdk = 35
-    versionCode = 1
-    versionName = "1.0"
-  }
-}
-
-dependencies {
-  implementation("androidx.compose.ui:ui:1.5.0")
-  implementation("com.squareup.okhttp3:okhttp:4.10.0")
-  implementation("com.google.code.gson:gson:2.8.9")
+    namespace "com.yourcompany.myapp"
+    defaultConfig {
+        applicationId "com.yourcompany.myapp"
+        versionCode 1
+        versionName "1.0"
+    }
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            ndk {
+                debugSymbolLevel "FULL"
+            }
+        }
+    }
 }
 ```
 
 ### API Base URL
-
-**Kotlin**:
-```kotlin
-const val API_BASE_URL = "https://myapp.vercel.app/api"
-
-object ApiClient {
-  val httpClient = OkHttpClient()
-  
-  suspend fun fetchGameState(roomCode: String): GameState {
-    val url = "$API_BASE_URL/rooms/$roomCode/state"
-    val response = httpClient.newCall(Request.Builder().url(url).build()).execute()
-    return Json.decodeFromString(response.body!!.string())
-  }
-}
-```
+**Production**: `https://fractured-earth.vercel.app/api`
+**Local**: `http://localhost:3000/api`
 
 ---
 
-## 8. Local Development Setup
-
-### Prerequisites
-- Node.js 18+ (for web)
-- Android Studio (for Android)
-- Git
-
-### Web Development
-
+### Apps Setup (Web & Mobile)
 ```bash
-cd src
+# Backend/API (Next.js)
+cd apps/next-api
 npm install
-npm run dev
-# Open http://localhost:3000
+npm run dev # http://localhost:3000
+
+# Frontend (Angular/Capacitor)
+cd apps/angular-mobile
+npm install
+npm run start # http://localhost:4200
 ```
 
 ### Android Development
-
 ```bash
-# Option 1: Emulator
-./gradlew :android-app:assembleDebug
-adb install android-app/build/outputs/apk/debug/app-debug.apk
+# Sync web changes to Android
+cd apps/angular-mobile
+npx cap sync android
 
-# Option 2: Physical device (USB connected)
-./gradlew :android-app:installDebug
+# Run via Android Studio or command line
+cd android
+./gradlew :app:assembleDebug
 ```
 
 ### Testing API Endpoints Locally
@@ -521,13 +378,13 @@ curl http://localhost:3000/api/rooms/create \
 
 1. **Keep game logic in `src/lib/`** — pure functions, no side effects
 2. **Export logic via API routes** — both platforms call HTTP endpoints
-3. **Use shared types from `src/lib/types.ts`** — TypeScript contracts
-4. **Store all multiplayer state in KV** — single source of truth
-5. **Implement heartbeats for connection tracking** — detect disconnects
-6. **Use revision numbers for optimistic concurrency** — prevent race conditions
-7. **Validate all input** — sanitize userId, roomCode, etc. in API routes
-8. **Test game logic independently** — pure functions are testable
-9. **Use environment variables for secrets** — KV URLs, API keys, etc.
+3. **Use shared types from backend lib** — TypeScript contracts.
+4. **Store all multiplayer state in the Database** — single source of truth.
+5. **Implement heartbeats for connection tracking** — detect disconnects.
+6. **Use revision numbers for optimistic concurrency** — prevent race conditions.
+7. **Validate all input** — sanitize userId, roomCode, etc. in API routes.
+8. **Test game logic independently** — pure functions are testable.
+9. **Use environment variables for secrets** — MongoDB URIs, API keys, etc.
 
 ### ❌ DON'T
 
@@ -546,7 +403,7 @@ curl http://localhost:3000/api/rooms/create \
 
 ### Scenario: Add "Power-Up" card
 
-#### Step 1: Define types (`src/lib/types.ts`)
+#### Step 1: Define types (`apps/api-backend/src/lib/types.ts`)
 ```typescript
 export type CardType = 'BASIC' | 'POWER_UP' | 'DISASTER';
 
@@ -558,7 +415,7 @@ export interface Card {
 }
 ```
 
-#### Step 2: Add to game logic (`src/lib/gameEngine.ts`)
+#### Step 2: Add to game logic (`apps/api-backend/src/lib/gameEngine.ts`)
 ```typescript
 export function applyGameAction(state: GameState, action: Action): GameState {
   if (action.type === 'PLAY_CARD') {
@@ -593,17 +450,18 @@ export function Card({ card }: { card: Card }) {
 }
 ```
 
-**Android** (Kotlin):
-```kotlin
-@Composable
-fun CardView(card: Card) {
-  val bgColor = when(card.type) {
-    CardType.POWER_UP -> Color.Yellow
-    else -> Color.Gray
-  }
-  Box(modifier = Modifier.background(bgColor)) {
-    Text(card.name)
-  }
+**Mobile/Web UI** (`apps/mobile-client/src/app/components/card.component.ts`):
+```typescript
+@Component({
+  selector: 'app-card',
+  template: `
+    <div [class.bg-gold]="card.type === 'POWER_UP'">
+      {{card.name}}
+    </div>
+  `
+})
+export class CardComponent {
+  @Input() card!: Card;
 }
 ```
 
@@ -615,29 +473,22 @@ fun CardView(card: Card) {
 
 | Issue | Cause | Solution |
 |-------|-------|----------|
-| Android can't reach API | API URL wrong or Vercel not deployed | Check `API_BASE_URL` in Kotlin, ensure Vercel deployment is live |
-| Game state out of sync | Polling too slow or revision mismatch | Increase polling frequency, check revision logic in `setGameState` |
-| Room not persisting | KV not configured | Set KV_URL and KV_REST_API_TOKEN in Vercel env vars |
-| Duplicate game logic | Code was copied | Delete Android-specific logic, use HTTP calls instead |
-| Type errors on Android | TypeScript not synced | Ensure Kotlin types match `src/lib/types.ts` |
+| Client can't reach API | API URL wrong or Vercel not deployed | Check `API_BASE_URL` in environment, ensure Vercel deployment is live |
+| Game state out of sync | Polling too slow or revision mismatch | Increase polling frequency, check revision logic in Match controller |
+| Database not persisting | MongoDB Atlas not configured | Set `MONGODB_URI` in Vercel env vars |
+| Type errors on mobile | TypeScript not synced | Ensure frontend types match `apps/api-backend/src/lib/types.ts` |
 
 ---
 
-## 12. Checklist for New App
+## 12. Checklist for Project Maintenance
 
-- [ ] Create `src/` with Next.js structure
-- [ ] Create `src/lib/gameEngine.ts` with core logic
-- [ ] Create `src/app/api/game/action/route.ts` to expose logic
-- [ ] Create `android-app/` with Gradle setup
-- [ ] Add `src/lib/database.ts` with KV helpers
-- [ ] Set KV_URL and KV_REST_API_TOKEN in Vercel env
-- [ ] Implement heartbeat in both platforms
-- [ ] Implement polling in both platforms
-- [ ] Test web locally (`npm run dev`)
-- [ ] Test Android locally (emulator or USB)
-- [ ] Deploy web to Vercel
-- [ ] Build Android APK
-- [ ] Verify both platforms hit same endpoints
+- [ ] Execute `./build-and-deploy.ps1` for production-ready AAB.
+- [ ] Verify `build/` contains the latest APK/AAB and `build/backup/` has the previous iteration.
+- [ ] Ensure `applicationId` matches your registry in `build.gradle` and `capacitor.config.ts`.
+- [ ] Ensure `targetSdkVersion` is set to the current Play Store minimum (35+).
+- [ ] Confirm R8 minification is enabled (`minifyEnabled true`).
+- [ ] Verify `NDK` debug symbols are generated (`FULL`).
+- [ ] Upload the AAB and ensure all privacy permissions (e.g., `AD_ID`) are declared in manifest.
 
 ---
 
@@ -659,37 +510,29 @@ export async function POST(req: NextRequest) {
 }
 ```
 
-### Template: Kotlin API Call
-```kotlin
-class GameRepository(val context: Context) {
-  private val httpClient = OkHttpClient()
+### Template: TypeScript API Service
+```typescript
+@Injectable({ providedIn: 'root' })
+export class GameService {
+  private http = inject(HttpClient);
   
-  suspend fun callGameAction(action: GameAction): GameState = withContext(Dispatchers.IO) {
-    val url = "${API_BASE_URL}/game/action"
-    val body = RequestBody.create(
-      "application/json".toMediaType(),
-      Json.encodeToString(action)
-    )
-    val request = Request.Builder().url(url).post(body).build()
-    val response = httpClient.newCall(request).execute()
-    Json.decodeFromString(response.body!!.string())
+  async callGameAction(action: GameAction): Promise<GameState> {
+    const url = `${API_BASE_URL}/game/action`;
+    return firstValueFrom(this.http.post<GameState>(url, action));
   }
 }
 ```
 
 ---
 
-## Summary
-
 **For every new app:**
 
-1. **Single `src/` monorepo** → both web and Android
-2. **Game logic in `src/lib/`** → pure functions, shared
-3. **API routes export logic** → `/api/*` endpoints
-4. **Both platforms call same API** → no duplication
-5. **KV for persistence** → single database
-6. **Vercel for web auto-deploy** → GitHub push goes live
-7. **Android manual build** → local testing, then Play Store
+1. **Single Monorepo** → Both platforms share a unified backend service.
+2. **Game logic in Backend Lib** → Pure functions, shared via API.
+3. **Universal API Routes** → `/api/*` endpoints serve all clients.
+4. **Shared Database (MongoDB)** → Single source of truth.
+5. **Vercel for API Deployment** → GitHub push goes live automatically.
+6. **Mobile Artifact Pipeline** → Automatic backup and localized build folder.
 
-**Result**: One codebase, two platforms, zero duplication, easy maintenance.
+**Result**: One logic source, multi-platform execution, zero duplication.
 

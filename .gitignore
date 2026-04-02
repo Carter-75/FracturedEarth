@@ -1,17 +1,46 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Android / Gradle
 .gradle/
+**/.gradle/
+**/build/
+android/build/
 # Secrets and Signing
 .env
 .env.local
+**/.env.local
 local.properties
 keystore.properties
 *.jks
 *.keystore
 *.p12
+*.apk
+*.aab
 
-# Next.js
+# Next.js / Angular Build Outputs
 .next/
+dist/
+**/dist/
 **/build/
+.angular/
+.vercel/
+**/.vercel/
+
+# IDE / Editor
 .idea/
 *.iml
+.vscode/
+
+# System Files
 .DS_Store
 /captures/
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
