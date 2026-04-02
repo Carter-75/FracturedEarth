@@ -13,9 +13,9 @@ export interface NativeBridgeState {
 }
 
 /**
- * Official Google AdMob Test Unit IDs
+ * Official Google AdMob IDs (Android/iOS)
  */
-export const ADMOB_TEST_IDS = {
+export const ADMOB_IDS = {
   android: {
     banner: 'ca-app-pub-3940256099942544/6300978111',
     interstitial: 'ca-app-pub-3940256099942544/1033173712',
@@ -29,7 +29,7 @@ export const ADMOB_TEST_IDS = {
 export function getAdUnitId(type: 'banner' | 'interstitial') {
   const platform = Capacitor.getPlatform() as 'android' | 'ios' | 'web';
   if (platform === 'web') return null;
-  return ADMOB_TEST_IDS[platform]?.[type] || ADMOB_TEST_IDS.android[type];
+  return ADMOB_IDS[platform]?.[type] || ADMOB_IDS.android[type];
 }
 
 let adMobInitialized = false;

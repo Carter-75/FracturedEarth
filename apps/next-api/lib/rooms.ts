@@ -1,4 +1,5 @@
-import { getRedis } from '@/lib/redis';
+import dbConnect from '@/lib/mongodb';
+import { Room, RoomGameState } from '@/models/Room';
 import { EMOJI_OPTIONS } from '@/lib/gameConfig';
 
 export type RoomStatus = 'OPEN' | 'IN_GAME' | 'CLOSED';
@@ -27,7 +28,7 @@ export interface RoomSnapshot {
   updatedAtEpochMs: number;
 }
 
-export interface RoomGameState {
+export interface RoomGameStateSnapshot {
   roomCode: string;
   revision: number;
   updatedAtEpochMs: number;
@@ -41,37 +42,13 @@ function normalizeCode(code: string): string {
 
 function normalizeEmoji(emoji?: string): string {
   const next = String(emoji ?? '').trim();
-  if (EMOJI_OPTIONS.includes(next as (typeof EMOJI_OPTIONS)[number])) return next;
-  return EMOJI_OPTIONS[0];
+  const optionsArray = EMOJI_OPTIONS as any as string[];
+  if (optionsArray.includes(next)) return next;
+  return optionsArray[0];
 }
 
-function isActiveMember(member: RoomMember): boolean {
+function isActiveMember(member: any): boolean {
   return !member.disconnectedAtEpochMs;
-}
-
-function usedEmojiSet(members: RoomMember[], excludeUserId?: string): Set<string> {
-  return new Set(
-    members
-      .filter((member) => isActiveMember(member) && member.userId !== excludeUserId)
-      .map((member) => member.emoji),
-  );
-}
-
-function isEmojiAvailable(members: RoomMember[], emoji: string, excludeUserId?: string): boolean {
-  return !usedEmojiSet(members, excludeUserId).has(emoji);
-}
-
-function pickAvailableEmoji(members: RoomMember[], preferred?: string, excludeUserId?: string): string {
-  const normalizedPreferred = normalizeEmoji(preferred);
-  if (isEmojiAvailable(members, normalizedPreferred, excludeUserId)) {
-    return normalizedPreferred;
-  }
-
-  return EMOJI_OPTIONS.find((candidate) => isEmojiAvailable(members, candidate, excludeUserId)) ?? normalizedPreferred;
-}
-
-function countActiveMembers(members: RoomMember[]): number {
-  return members.filter(isActiveMember).length;
 }
 
 function generateCode(): string {
@@ -83,43 +60,30 @@ function generateCode(): string {
   return out;
 }
 
-function lobbyMetaKey(code: string): string {
-  return `lobby:${code}:meta`;
+function pickAvailableEmoji(members: any[], preferred?: string, excludeUserId?: string): string {
+  const normalizedPreferred = normalizeEmoji(preferred);
+  const used = new Set(
+    members
+      .filter((m) => isActiveMember(m) && m.userId !== excludeUserId)
+      .map((m) => m.emoji)
+  );
+
+  if (!used.has(normalizedPreferred)) return normalizedPreferred;
+  const optionsArray = EMOJI_OPTIONS as any as string[];
+  return optionsArray.find((candidate) => !used.has(candidate)) ?? normalizedPreferred;
 }
 
-function lobbyMembersKey(code: string): string {
-  return `lobby:${code}:members`;
-}
-
-function lobbyStateKey(code: string): string {
-  return `lobby:${code}:state`;
-}
-
-function pickNextHost(hostUserId: string, members: RoomMember[]): string {
-  if (members.some((m) => m.userId === hostUserId)) return hostUserId;
+function pickNextHost(hostUserId: string, members: any[]): string {
+  if (members.some((m) => m.userId === hostUserId && !m.disconnectedAtEpochMs)) return hostUserId;
   return members.find((m) => !m.disconnectedAtEpochMs)?.userId ?? members[0]?.userId ?? '';
 }
 
-function normalizeMember(raw: Partial<RoomMember>): RoomMember {
-  return {
-    userId: raw.userId ?? '',
-    displayName: raw.displayName ?? 'Player',
-    emoji: raw.emoji ?? '🌍',
-    joinedAtEpochMs: Number(raw.joinedAtEpochMs ?? 0),
-    lastHeartbeatEpochMs: Number(raw.lastHeartbeatEpochMs ?? raw.joinedAtEpochMs ?? 0),
-    disconnectedAtEpochMs:
-      typeof raw.disconnectedAtEpochMs === 'number' ? Number(raw.disconnectedAtEpochMs) : undefined,
-    isBot: Boolean(raw.isBot),
-  };
-}
-
-function pruneMembers(input: RoomMember[], status?: RoomStatus, now = Date.now()): RoomMember[] {
-  if (status === 'IN_GAME') return input; // BUG 6 FIX: Do not drop connected players mid-match
-  const pruned = input
+function pruneMembers(input: any[], status?: string, now = Date.now()): any[] {
+  if (status === 'IN_GAME') return input; 
+  return input
     .map((member) => {
       if (member.isBot) return member;
-      const disconnectedAt = member.disconnectedAtEpochMs;
-      if (disconnectedAt) return member;
+      if (member.disconnectedAtEpochMs) return member;
       if (now - member.lastHeartbeatEpochMs > RECONNECT_GRACE_MS) {
         return { ...member, disconnectedAtEpochMs: now };
       }
@@ -129,18 +93,6 @@ function pruneMembers(input: RoomMember[], status?: RoomStatus, now = Date.now()
       if (!member.disconnectedAtEpochMs) return true;
       return now - member.disconnectedAtEpochMs <= RECONNECT_GRACE_MS;
     });
-
-  return pruned;
-}
-
-async function generateUniqueCode(maxAttempts = 12): Promise<string> {
-  const redis = await getRedis();
-  for (let i = 0; i < maxAttempts; i++) {
-    const code = generateCode();
-    const exists = await redis.exists(lobbyMetaKey(code));
-    if (!exists) return code;
-  }
-  throw new Error('Unable to allocate unique room code');
 }
 
 export async function createRoom(input: {
@@ -149,82 +101,68 @@ export async function createRoom(input: {
   hostEmoji?: string;
   maxPlayers: number;
 }): Promise<RoomSnapshot> {
+  await dbConnect();
   const now = Date.now();
-  const code = await generateUniqueCode();
+  let code = '';
+  let unique = false;
+  
+  for (let i = 0; i < 10; i++) {
+    code = generateCode();
+    const existing = await Room.findOne({ code });
+    if (!existing) {
+       unique = true;
+       break;
+    }
+  }
+  if (!unique) throw new Error('Unable to generate unique room code');
+
   const maxPlayers = Math.min(4, Math.max(2, Number(input.maxPlayers || 4)));
   const hostDisplayName = input.hostDisplayName || 'Host';
 
-  const members: RoomMember[] = [
-    {
-      userId: input.hostUserId,
-      displayName: hostDisplayName,
-      emoji: normalizeEmoji(input.hostEmoji),
-      joinedAtEpochMs: now,
-      lastHeartbeatEpochMs: now,
-    },
-  ];
-
-  const redis = await getRedis();
-  await redis.hSet(lobbyMetaKey(code), {
-    hostUserId: input.hostUserId,
-    hostDisplayName,
-    mode: 'LOCAL_WIFI',
-    status: 'OPEN',
-    maxPlayers: String(maxPlayers),
-    createdAtEpochMs: String(now),
-    updatedAtEpochMs: String(now),
-  });
-  await redis.set(lobbyMembersKey(code), JSON.stringify(members));
-
-  return {
+  const room = await Room.create({
     code,
     hostUserId: input.hostUserId,
     hostDisplayName,
     mode: 'LOCAL_WIFI',
     status: 'OPEN',
     maxPlayers,
-    members,
+    members: [{
+      userId: input.hostUserId,
+      displayName: hostDisplayName,
+      emoji: normalizeEmoji(input.hostEmoji),
+      joinedAtEpochMs: now,
+      lastHeartbeatEpochMs: now,
+    }],
     createdAtEpochMs: now,
     updatedAtEpochMs: now,
-  };
+  });
+
+  return room.toObject();
 }
 
 export async function getRoom(codeRaw: string): Promise<RoomSnapshot | null> {
+  await dbConnect();
   const code = normalizeCode(codeRaw);
-  const redis = await getRedis();
-  const meta = await redis.hGetAll(lobbyMetaKey(code));
-  if (!meta || Object.keys(meta).length === 0) return null;
+  const room = await Room.findOne({ code });
+  if (!room) return null;
 
-  const membersRaw = (await redis.get(lobbyMembersKey(code))) ?? '[]';
-  const parsedMembers = (JSON.parse(membersRaw) as Array<Partial<RoomMember>>).map(normalizeMember);
-  const members = pruneMembers(parsedMembers, (meta.status as RoomStatus) ?? 'OPEN');
-  const hostUserId = pickNextHost(meta.hostUserId ?? '', members);
-  const updatedAtEpochMs = Date.now();
+  const now = Date.now();
+  const originalMembers = room.members.toObject();
+  const prunedMembers = pruneMembers(originalMembers, room.status, now);
+  const nextHostUserId = pickNextHost(room.hostUserId, prunedMembers);
 
   if (
-    hostUserId !== (meta.hostUserId ?? '') ||
-    members.length !== parsedMembers.length ||
-    JSON.stringify(members) !== JSON.stringify(parsedMembers)
+    nextHostUserId !== room.hostUserId || 
+    prunedMembers.length !== originalMembers.length
   ) {
-    await redis.set(lobbyMembersKey(code), JSON.stringify(members));
-    await redis.hSet(lobbyMetaKey(code), {
-      hostUserId,
-      updatedAtEpochMs: String(updatedAtEpochMs),
-      status: members.length === 0 ? 'CLOSED' : (meta.status ?? 'OPEN'),
-    });
+    room.members = prunedMembers;
+    room.hostUserId = nextHostUserId;
+    room.updatedAtEpochMs = now;
+    if (prunedMembers.length === 0) room.status = 'CLOSED';
+    await room.save();
   }
 
-  return {
-    code,
-    hostUserId,
-    hostDisplayName: meta.hostDisplayName ?? 'Host',
-    mode: 'LOCAL_WIFI',
-    status: members.length === 0 ? 'CLOSED' : ((meta.status as RoomStatus) ?? 'OPEN'),
-    maxPlayers: Number(meta.maxPlayers ?? 4),
-    members,
-    createdAtEpochMs: Number(meta.createdAtEpochMs ?? 0),
-    updatedAtEpochMs: Number(meta.updatedAtEpochMs ?? 0) || updatedAtEpochMs,
-  };
+  return room.toObject();
 }
 
 export async function joinRoom(input: {
@@ -233,184 +171,133 @@ export async function joinRoom(input: {
   displayName: string;
   emoji?: string;
 }): Promise<RoomSnapshot | null> {
-  const current = await getRoom(input.code);
-  if (!current || current.status !== 'OPEN') return null;
+  await dbConnect();
+  const code = normalizeCode(input.code);
+  const room = await Room.findOne({ code });
+  if (!room || room.status !== 'OPEN') return null;
 
-  const exists = current.members.some((m) => m.userId === input.userId);
-  if (!exists && countActiveMembers(current.members) >= current.maxPlayers) return null;
+  const exists = room.members.find((m: any) => m.userId === input.userId);
+  const activeCount = room.members.filter(isActiveMember).length;
+  if (!exists && activeCount >= room.maxPlayers) return null;
 
-  const requestedEmoji = normalizeEmoji(input.emoji);
-  if (!isEmojiAvailable(current.members, requestedEmoji, exists ? input.userId : undefined)) {
-    throw new Error('Emoji already taken');
+  const emoji = pickAvailableEmoji(room.members, input.emoji, input.userId);
+  const now = Date.now();
+
+  if (exists) {
+    exists.displayName = input.displayName || exists.displayName;
+    exists.emoji = emoji;
+    exists.disconnectedAtEpochMs = undefined;
+    exists.lastHeartbeatEpochMs = now;
+  } else {
+    room.members.push({
+      userId: input.userId,
+      displayName: input.displayName || 'Player',
+      emoji,
+      joinedAtEpochMs: now,
+      lastHeartbeatEpochMs: now,
+    });
   }
 
-  const nextMembers = exists
-    ? current.members.map((m) =>
-        m.userId === input.userId
-          ? {
-              ...m,
-              displayName: input.displayName || m.displayName,
-              emoji: requestedEmoji,
-              disconnectedAtEpochMs: undefined,
-              lastHeartbeatEpochMs: Date.now(),
-            }
-          : m,
-      )
-    : [
-        ...current.members,
-        {
-          userId: input.userId,
-          displayName: input.displayName || 'Player',
-          emoji: requestedEmoji,
-          joinedAtEpochMs: Date.now(),
-          lastHeartbeatEpochMs: Date.now(),
-        },
-      ];
-
-  const code = normalizeCode(input.code);
-  const updatedAtEpochMs = Date.now();
-  const redis = await getRedis();
-  await redis.set(lobbyMembersKey(code), JSON.stringify(nextMembers));
-  await redis.hSet(lobbyMetaKey(code), { updatedAtEpochMs: String(updatedAtEpochMs) });
-
-  return { ...current, members: nextMembers, updatedAtEpochMs };
+  room.updatedAtEpochMs = now;
+  await room.save();
+  return room.toObject();
 }
 
 export async function leaveRoom(input: {
   code: string;
   userId: string;
 }): Promise<RoomSnapshot | null> {
-  const current = await getRoom(input.code);
-  if (!current) return null;
+  const room = await getRoom(input.code);
+  if (!room) return null;
 
-  const code = normalizeCode(input.code);
-  const nextMembers = current.members.map((m) =>
-    m.userId === input.userId
-      ? {
-          ...m,
-          disconnectedAtEpochMs: Date.now(),
-        }
-      : m,
-  );
-  const prunedMembers = pruneMembers(nextMembers, current.status);
-  const nextHostUserId = pickNextHost(current.hostUserId, prunedMembers);
-  const updatedAtEpochMs = Date.now();
+  await dbConnect();
+  const doc = await Room.findOne({ code: room.code });
+  if (!doc) return null;
 
-  const redis = await getRedis();
-  await redis.set(lobbyMembersKey(code), JSON.stringify(prunedMembers));
-  await redis.hSet(lobbyMetaKey(code), {
-    updatedAtEpochMs: String(updatedAtEpochMs),
-    hostUserId: nextHostUserId,
-    status: prunedMembers.length === 0 ? 'CLOSED' : current.status,
-  });
+  const member = doc.members.find((m: any) => m.userId === input.userId);
+  if (member) {
+    member.disconnectedAtEpochMs = Date.now();
+    doc.updatedAtEpochMs = Date.now();
+    await doc.save();
+  }
 
-  return {
-    ...current,
-    hostUserId: nextHostUserId,
-    status: prunedMembers.length === 0 ? 'CLOSED' : current.status,
-    members: prunedMembers,
-    updatedAtEpochMs,
-  };
+  return getRoom(room.code);
 }
 
 export async function startRoomMatch(input: {
   code: string;
   hostUserId: string;
 }): Promise<RoomSnapshot | null> {
-  const current = await getRoom(input.code);
-  if (!current) return null;
-  if (current.hostUserId !== input.hostUserId) return null;
-  const activeMembers = current.members.filter(isActiveMember);
-  if (activeMembers.length < 2 || activeMembers.length > 4) return null;
-
+  await dbConnect();
   const code = normalizeCode(input.code);
-  const updatedAtEpochMs = Date.now();
-  const redis = await getRedis();
-  await redis.hSet(lobbyMetaKey(code), {
-    status: 'IN_GAME',
-    updatedAtEpochMs: String(updatedAtEpochMs),
-  });
+  const room = await Room.findOne({ code });
+  if (!room || room.hostUserId !== input.hostUserId) return null;
 
-  return {
-    ...current,
-    status: 'IN_GAME',
-    updatedAtEpochMs,
-  };
+  const activeCount = room.members.filter(isActiveMember).length;
+  if (activeCount < 2) return null;
+
+  room.status = 'IN_GAME';
+  room.updatedAtEpochMs = Date.now();
+  await room.save();
+
+  return room.toObject();
 }
 
 export async function addBotToRoom(input: {
   code: string;
   hostUserId: string;
 }): Promise<RoomSnapshot | null> {
-  const current = await getRoom(input.code);
-  if (!current || current.status !== 'OPEN') return null;
-  if (current.hostUserId !== input.hostUserId) return null;
+  await dbConnect();
+  const code = normalizeCode(input.code);
+  const room = await Room.findOne({ code });
+  if (!room || room.status !== 'OPEN' || room.hostUserId !== input.hostUserId) return null;
 
-  const activeMembers = current.members.filter(isActiveMember);
-  if (activeMembers.length >= current.maxPlayers) return null;
+  const activeCount = room.members.filter(isActiveMember).length;
+  if (activeCount >= room.maxPlayers) return null;
 
-  const botIndex = current.members.filter((member) => member.isBot).length + 1;
+  const botIndex = room.members.filter((m: any) => m.isBot).length + 1;
   const now = Date.now();
-  const nextMembers = [
-    ...current.members,
-    {
-      userId: `bot_${botIndex}_${now}`,
-      displayName: `Bot ${botIndex}`,
-      emoji: pickAvailableEmoji(current.members),
-      joinedAtEpochMs: now,
-      lastHeartbeatEpochMs: now,
-      isBot: true,
-    },
-  ];
-
-  const code = normalizeCode(input.code);
-  const updatedAtEpochMs = Date.now();
-  const redis = await getRedis();
-  await redis.set(lobbyMembersKey(code), JSON.stringify(nextMembers));
-  await redis.hSet(lobbyMetaKey(code), { updatedAtEpochMs: String(updatedAtEpochMs) });
-
-  return { ...current, members: nextMembers, updatedAtEpochMs };
-}
-
-export async function removeRoomMember(input: {
-  code: string;
-  hostUserId: string;
-  targetUserId: string;
-}): Promise<RoomSnapshot | null> {
-  const current = await getRoom(input.code);
-  if (!current || current.status !== 'OPEN') return null;
-  if (current.hostUserId !== input.hostUserId) return null;
-  if (input.targetUserId === current.hostUserId) return null;
-  if (!current.members.some((member) => member.userId === input.targetUserId)) return null;
-
-  const nextMembers = current.members.filter((member) => member.userId !== input.targetUserId);
-  const nextHostUserId = pickNextHost(current.hostUserId, nextMembers);
-  const updatedAtEpochMs = Date.now();
-  const code = normalizeCode(input.code);
-  const redis = await getRedis();
-  await redis.set(lobbyMembersKey(code), JSON.stringify(nextMembers));
-  await redis.hSet(lobbyMetaKey(code), {
-    updatedAtEpochMs: String(updatedAtEpochMs),
-    hostUserId: nextHostUserId,
-    status: nextMembers.length === 0 ? 'CLOSED' : current.status,
+  
+  room.members.push({
+    userId: `bot_${botIndex}_${now}`,
+    displayName: `Bot ${botIndex}`,
+    emoji: pickAvailableEmoji(room.members),
+    joinedAtEpochMs: now,
+    lastHeartbeatEpochMs: now,
+    isBot: true,
   });
 
-  return {
-    ...current,
-    hostUserId: nextHostUserId,
-    status: nextMembers.length === 0 ? 'CLOSED' : current.status,
-    members: nextMembers,
-    updatedAtEpochMs,
-  };
+  room.updatedAtEpochMs = now;
+  await room.save();
+  return room.toObject();
 }
 
-export async function getRoomGameState(codeRaw: string): Promise<RoomGameState | null> {
-  const code = normalizeCode(codeRaw);
-  const redis = await getRedis();
-  const raw = await redis.get(lobbyStateKey(code));
-  if (!raw) return null;
+export async function heartbeatRoom(input: {
+  code: string;
+  userId: string;
+}): Promise<RoomSnapshot | null> {
+  await dbConnect();
+  const code = normalizeCode(input.code);
+  const room = await Room.findOne({ code });
+  if (!room) return null;
 
-  return JSON.parse(raw) as RoomGameState;
+  const member = room.members.find((m: any) => m.userId === input.userId);
+  if (!member) return null;
+
+  const now = Date.now();
+  member.lastHeartbeatEpochMs = now;
+  member.disconnectedAtEpochMs = undefined;
+  room.updatedAtEpochMs = now;
+  
+  await room.save();
+  return room.toObject();
+}
+
+export async function getRoomGameState(codeRaw: string): Promise<RoomGameStateSnapshot | null> {
+  await dbConnect();
+  const roomCode = normalizeCode(codeRaw);
+  const state = await RoomGameState.findOne({ roomCode });
+  return state ? state.toObject() : null;
 }
 
 export async function putRoomGameState(input: {
@@ -418,61 +305,31 @@ export async function putRoomGameState(input: {
   userId: string;
   payload: unknown;
   expectedRevision?: number;
-}): Promise<RoomGameState | null> {
-  const room = await getRoom(input.code);
-  if (!room) return null;
-  if (!room.members.some((m) => m.userId === input.userId)) return null;
-  if (room.status !== 'IN_GAME') return null;
-
-  const code = normalizeCode(input.code);
-  const currentState = await getRoomGameState(code);
-  const currentRevision = currentState?.revision ?? 0;
+}): Promise<RoomGameStateSnapshot | null> {
+  await dbConnect();
+  const roomCode = normalizeCode(input.code);
+  
+  // Optimistic concurrency check
+  const existing = await RoomGameState.findOne({ roomCode });
+  const currentRevision = existing?.revision ?? 0;
 
   if (typeof input.expectedRevision === 'number' && input.expectedRevision !== currentRevision) {
-    return currentState;
+    return existing ? existing.toObject() : null;
   }
 
-  const nextState: RoomGameState = {
-    roomCode: code,
-    revision: currentRevision + 1,
-    updatedAtEpochMs: Date.now(),
-    updatedByUserId: input.userId,
-    payload: input.payload,
-  };
-
-  const redis = await getRedis();
-  await redis.set(lobbyStateKey(code), JSON.stringify(nextState));
-  await redis.hSet(lobbyMetaKey(code), { updatedAtEpochMs: String(nextState.updatedAtEpochMs) });
-  return nextState;
-}
-
-export async function heartbeatRoom(input: {
-  code: string;
-  userId: string;
-}): Promise<RoomSnapshot | null> {
-  const room = await getRoom(input.code);
-  if (!room) return null;
-  const updatedAtEpochMs = Date.now();
-
-  const nextMembers = room.members.map((m) =>
-    m.userId === input.userId
-      ? {
-          ...m,
-          disconnectedAtEpochMs: undefined,
-          lastHeartbeatEpochMs: updatedAtEpochMs,
-        }
-      : m,
+  const now = Date.now();
+  const result = await RoomGameState.findOneAndUpdate(
+    { roomCode },
+    {
+      $inc: { revision: 1 },
+      $set: {
+        updatedAtEpochMs: now,
+        updatedByUserId: input.userId,
+        payload: input.payload,
+      }
+    },
+    { upsert: true, new: true }
   );
-  if (!nextMembers.some((m) => m.userId === input.userId)) return null;
 
-  const code = normalizeCode(input.code);
-  const redis = await getRedis();
-  await redis.set(lobbyMembersKey(code), JSON.stringify(nextMembers));
-  await redis.hSet(lobbyMetaKey(code), { updatedAtEpochMs: String(updatedAtEpochMs) });
-
-  return {
-    ...room,
-    members: nextMembers,
-    updatedAtEpochMs,
-  };
+  return result.toObject();
 }
