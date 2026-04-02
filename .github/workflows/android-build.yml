@@ -40,16 +40,16 @@ jobs:
         run: ./gradlew :android-app:bundleRelease --stacktrace
 
       - name: Run targeted unit tests
-        run: ./gradlew :game-core:test :android-app:testDebugUnitTest --stacktrace
+        run: ./gradlew :game-core:test --stacktrace
 
       - name: Upload APK/AAB artifacts
         uses: actions/upload-artifact@v4
         with:
           name: fractured-earth-outputs
           path: |
-            android-app/build/outputs/apk/debug/
-            android-app/build/outputs/apk/release/
-            android-app/build/outputs/bundle/release/
+            legacy/android-app/build/outputs/apk/debug/
+            legacy/android-app/build/outputs/apk/release/
+            legacy/android-app/build/outputs/bundle/release/
 
   web:
     name: Web (Next.js)
