@@ -6,6 +6,7 @@ export interface LocalUserSettings {
   emoji: string;
   theme: ThemeName;
   soundEnabled: boolean;
+  adFree?: boolean;
 }
 
 export interface LocalMatchOutcome {
@@ -55,6 +56,7 @@ export function loadLocalSettings(): LocalUserSettings {
         ? String(parsed.theme).trim() as ThemeName
         : defaultSettings.theme,
       soundEnabled: parsed.soundEnabled ?? defaultSettings.soundEnabled,
+      adFree: parsed.adFree ?? false,
     };
   } catch {
     return defaultSettings;

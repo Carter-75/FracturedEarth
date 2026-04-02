@@ -146,6 +146,20 @@ export default function SettingsPage() {
         </div>
       </section>
 
+      <section className="fe-panel fe-seat-plinth rounded-[2rem] md:rounded-3xl p-6 space-y-4 border-sky-500/20 bg-sky-400/[0.02]">
+        <div className="flex items-center justify-between">
+           <h2 className="text-lg font-semibold text-white">Sector Status</h2>
+           <div className="fe-hologram text-sky-400 text-[10px] uppercase font-black px-2 py-1 border border-sky-400/30 rounded-md">Priority_Signal</div>
+        </div>
+        <p className="text-sm text-white/50">Current Authentication: {loadLocalSettings().adFree ? <span className="text-sky-400 font-bold uppercase tracking-widest">SECTOR_PASS_ACTIVE</span> : <span className="text-white/30 uppercase tracking-widest">STANDARD_RECRUIT</span>}</p>
+
+        <div className="mt-4">
+           <Link href="/store" className="fe-holo-btn !py-4 w-full sm:w-auto text-center !text-sky-400 !border-sky-500/50">
+             {loadLocalSettings().adFree ? 'Manage Subscription' : 'Upgrade to Sector Pass'}
+           </Link>
+        </div>
+      </section>
+
       <section className="fe-panel fe-seat-plinth rounded-[2rem] md:rounded-3xl p-6 space-y-4">
         <h2 className="text-lg font-semibold text-white">Tactical Training</h2>
         <p className="text-sm text-white/50">Neural Status: {tutorialDone ? <span className="text-sky-400 font-bold uppercase tracking-widest">CERTIFIED</span> : <span className="text-amber-500 font-bold uppercase tracking-widest">UNCERTIFIED</span>}</p>

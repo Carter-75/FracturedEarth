@@ -29,22 +29,29 @@ export function AdBanner() {
   if (adFree) return null;
 
   return (
-    <div className="fixed top-0 left-0 right-0 h-[60px] z-[1000] bg-black border-b border-white/5 flex items-center justify-center overflow-hidden">
+    <div className="fixed top-0 left-0 right-0 h-[60px] z-[1000] bg-black border-b border-white/5 flex items-center justify-between px-4 overflow-hidden group">
         {/* Cinematic Grid + Scanline for the banner area */}
         <div className="absolute inset-0 fe-grid opacity-20" />
         <div className="absolute inset-0 fe-scanline opacity-10" />
         
-        <div className="relative flex items-center space-x-2 md:space-x-3 px-3 md:px-4 py-1 rounded-full border border-sky-400/20 bg-sky-400/5 max-w-[90vw]">
-           <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-sky-400 animate-pulse shrink-0" />
-           <span className="fe-hologram text-sky-400 text-[7px] md:text-[9px] uppercase font-bold tracking-[0.1em] md:tracking-[0.2em] truncate">
-              Sponsor Signal Active <span className="hidden xs:inline">: Interstellar Transmission 0x4B</span>
-           </span>
+        {/* Simulated "Real" Ad Content */}
+        <div className="relative flex items-center space-x-4">
+           <div className="w-10 h-10 rounded-lg bg-sky-500/20 border border-sky-400/30 flex items-center justify-center shrink-0">
+              <span className="text-xl">🏔️</span>
+           </div>
+           <div className="flex flex-col">
+              <span className="text-[10px] font-black text-sky-400 uppercase tracking-widest leading-none">Mount_Titan_Outpost</span>
+              <span className="text-[8px] text-white/40 uppercase tracking-tighter mt-1 italic">Equipment for the serious candidate. Limited Stock.</span>
+           </div>
         </div>
 
-        {/* This is where AdSense or a native bridge would inject the actual ad */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-black/80 cursor-pointer">
-           <span className="fe-hologram text-white text-[10px] uppercase font-black tracking-widest">Remove Ads with Sector Pass</span>
-        </div>
+        {/* Persistent Sector Pass Link */}
+        <a 
+          href="/store"
+          className="relative z-10 fe-holo-btn !py-1 !px-3 !text-[8px] md:!text-[10px] !border-sky-500/50 !text-sky-400 hover:!bg-sky-400/10 transition-all uppercase tracking-widest"
+        >
+           Sector Pass
+        </a>
     </div>
   );
 }
