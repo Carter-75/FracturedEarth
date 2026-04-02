@@ -58,11 +58,11 @@ class BotStrategiesTest {
                     isBot = true,
                     hand = listOf(disaster, card("fallback", CardType.SURVIVAL)),
                 ),
-                player("p1", isBot = false, traits = listOf(card("t1", CardType.TRAIT))),
+                player("p1", isBot = false, traits = listOf(card("t1", CardType.ADAPT))),
                 player(
                     "p2",
                     isBot = false,
-                    traits = listOf(card("t2", CardType.TRAIT), card("t3", CardType.TRAIT)),
+                    traits = listOf(card("t2", CardType.ADAPT), card("t3", CardType.ADAPT)),
                 ),
             ),
             activeIndex = 0,
@@ -120,6 +120,7 @@ class BotStrategiesTest {
         health = 3,
         hand = hand,
         traits = traits,
+        powers = emptyList(),
         isBot = isBot,
     )
 
