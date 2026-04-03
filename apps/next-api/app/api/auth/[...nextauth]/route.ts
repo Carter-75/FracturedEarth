@@ -21,9 +21,9 @@ const handler = NextAuth({
       if (!dbUser && session.user?.email) {
           dbUser = await User.create({
               email: session.user.email,
-              name: session.user.name,
-              image: session.user.image,
-              displayName: session.user.name,
+              name: session.user.name ?? '',
+              image: session.user.image ?? '',
+              displayName: session.user.name ?? 'Player',
           });
       }
       
