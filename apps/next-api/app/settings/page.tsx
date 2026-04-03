@@ -3,11 +3,13 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { EMOJI_OPTIONS, THEME_OPTIONS, THEME_PRESETS } from '@/lib/gameConfig';
 import { isTutorialDone, loadLocalSettings, resetTutorialDone, saveLocalSettings, setTutorialDone } from '@/lib/localProfile';
 
 export default function SettingsPage() {
   const router = useRouter();
+  const { data: session } = useSession();
   const [tutorialDone, setTutorialState] = useState(false);
   const [userId, setUserId] = useState('web_player');
   const [displayName, setDisplayName] = useState('Web Player');
@@ -16,6 +18,7 @@ export default function SettingsPage() {
   const [soundEnabled, setSoundEnabled] = useState(true);
 
   useEffect(() => {
+    // 1. Load Local Settings immediately
     const settings = loadLocalSettings();
     setUserId(settings.userId);
     setDisplayName(settings.displayName);
@@ -23,16 +26,61 @@ export default function SettingsPage() {
     setTheme(settings.theme);
     setSoundEnabled(settings.soundEnabled);
     setTutorialState(isTutorialDone());
-  }, []);
 
-  function saveProfile() {
-    saveLocalSettings({
+    // 2. Auto-Pull from Account if authenticated
+    if (session?.user?.email) {
+      console.log('[Settings] Authenticated session detected. Pulling cloud profile...');
+      fetch('/api/user/profile')
+        .then(res => res.json())
+        .then(data => {
+          if (data.profile) {
+            const p = data.profile;
+            setDisplayName(p.displayName || 'Web Player');
+            setEmoji(p.emoji || '🌍');
+            
+            // Re-save to local storage to ensure consistency
+            saveLocalSettings({
+              userId: settings.userId, 
+              displayName: p.displayName || 'Web Player',
+              emoji: p.emoji || '🌍',
+              theme: settings.theme,
+              soundEnabled: settings.soundEnabled
+            });
+          }
+        })
+        .catch(err => console.error('[Settings] Cloud pull failed:', err));
+    }
+  }, [session]);
+
+  async function saveProfile() {
+    const updates = {
       userId: userId.trim() || 'web_player',
       displayName: displayName.trim() || 'Web Player',
       emoji,
       theme,
       soundEnabled,
-    });
+    };
+
+    // 1. Local Persistence
+    saveLocalSettings(updates);
+
+    // 2. Cloud Persistence (if authenticated)
+    if (session?.user?.email) {
+      try {
+        console.log('[Settings] Syncing update to cloud account...');
+        await fetch('/api/user/profile', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            displayName: updates.displayName,
+            emoji: updates.emoji,
+            // Keep the rest in the background
+          })
+        });
+      } catch (err) {
+        console.error('[Settings] Cloud sync failed:', err);
+      }
+    }
   }
 
   return (

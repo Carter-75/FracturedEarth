@@ -91,14 +91,11 @@ export class AppComponent implements OnInit {
           console.log('[Auth] Detected guest data, triggering auto-sync...');
           await this.syncGuestStats();
         }
-      } else {
-        // If logged out, reset RevenueCat to a guest
-        if (Capacitor.isNativePlatform()) {
-          console.log('[RevenueCat] Logging out...');
-          await this.paymentService.logout();
-        }
       }
     });
+
+    // Auto-pull latest profile from cloud on startup
+    this.authService.fetchLatestProfile();
   }
 
   toggleAuthDropdown() {

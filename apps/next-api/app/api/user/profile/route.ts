@@ -42,37 +42,40 @@ export async function PATCH(req: NextRequest) {
     const updates = await req.json();
     await dbConnect();
 
-    const user = await User.findOne({ email: session.user.email });
-    if (!user) {
+    // 1. Prepare Atomic Update Object
+    const setQuery: any = { lastActive: new Date() };
+
+    if (updates.displayName !== undefined) setQuery.displayName = updates.displayName;
+    if (updates.emoji !== undefined) setQuery.emoji = updates.emoji;
+    if (updates.totalWins !== undefined) setQuery.totalWins = updates.totalWins;
+    
+    // Atomic merge for metadata fields (if provided)
+    if (updates.metadata) {
+      Object.entries(updates.metadata).forEach(([key, value]) => {
+        setQuery[`metadata.${key}`] = value;
+      });
+    }
+
+    // 2. Perform Atomic Update
+    const updatedUser = await User.findOneAndUpdate(
+      { email: session.user.email },
+      { $set: setQuery },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedUser) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
-
-    // Generic Update Logic
-    if (updates.displayName !== undefined) user.displayName = updates.displayName;
-    if (updates.emoji !== undefined) user.emoji = updates.emoji;
-    if (updates.totalWins !== undefined) user.totalWins = updates.totalWins;
-    
-    // Sync Metadata (merge)
-    if (updates.metadata) {
-      const currentMetadata = user.metadata || new Map();
-      Object.entries(updates.metadata).forEach(([key, value]) => {
-        currentMetadata.set(key, value);
-      });
-      user.metadata = currentMetadata;
-    }
-
-    user.lastActive = new Date();
-    await user.save();
 
     return NextResponse.json({
       message: 'Profile updated successfully',
       profile: {
-        email: user.email,
-        displayName: user.displayName,
-        emoji: user.emoji,
-        totalWins: user.totalWins,
-        isPro: user.isPro,
-        metadata: user.metadata
+        email: updatedUser.email,
+        displayName: updatedUser.displayName,
+        emoji: updatedUser.emoji,
+        totalWins: updatedUser.totalWins,
+        isPro: updatedUser.isPro,
+        metadata: updatedUser.metadata
       }
     });
   } catch (error) {

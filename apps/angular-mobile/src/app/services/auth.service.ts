@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Preferences } from '@capacitor/preferences';
-import { BehaviorSubject, firstValueFrom } from 'rxjs';
+import { BehaviorSubject, firstValueFrom, Subject } from 'rxjs';
+import { debounceTime, switchMap } from 'rxjs/operators';
 
 export interface UserProfile {
   id: string; // MongoDB _id
@@ -24,8 +25,29 @@ export class AuthService {
   private readonly SETTINGS_KEY = 'fe:user-settings:v1';
   private readonly LEGACY_KEY = 'user_profile';
 
+  private syncSubject = new Subject<Partial<UserProfile>>();
+  private lastLocalUpdateAt = 0;
+
   constructor(private http: HttpClient) {
     this.loadLocalProfile();
+    this.setupSyncPipeline();
+  }
+
+  private setupSyncPipeline() {
+    this.syncSubject.pipe(
+      debounceTime(500),
+      switchMap(updates => {
+        const currentProfile = this.userProfileSubject.value;
+        if (currentProfile && currentProfile.id !== 'guest') {
+          console.log('[Auth] Debounced Sync: Pushing to cloud...');
+          return this.http.patch(`${this.API_BASE}/user/profile`, updates);
+        }
+        return [];
+      })
+    ).subscribe({
+      next: () => console.log('[Auth] Profile synced with server.'),
+      error: (err) => console.error('[Auth] Failed to sync profile:', err)
+    });
   }
 
   async loadLocalProfile() {
@@ -62,10 +84,20 @@ export class AuthService {
 
   async fetchLatestProfile(): Promise<UserProfile | null> {
     try {
+      // PRECEDENCE: If a local update just happened, don't pull from cloud yet
+      const now = Date.now();
+      if (now - this.lastLocalUpdateAt < 2000) {
+        console.log('[Auth] Skipping auto-pull: Local update is very recent.');
+        return null;
+      }
+
       const response = await firstValueFrom(
         this.http.get<{ profile: UserProfile }>(`${this.API_BASE}/user/profile`)
       );
       if (response && response.profile) {
+        // Double check precedence again after request completes
+        if (Date.now() - this.lastLocalUpdateAt < 2000) return null;
+        
         await this.saveProfile(response.profile);
         return response.profile;
       }
@@ -98,6 +130,7 @@ export class AuthService {
 
   async updateProfile(updates: Partial<UserProfile>) {
     const currentProfile = this.userProfileSubject.value;
+    this.lastLocalUpdateAt = Date.now();
     
     // 1. Immediately update Local Storage for "Warp Speed" UX
     const newProfile = currentProfile 
@@ -106,7 +139,7 @@ export class AuthService {
           id: 'guest', 
           email: '', 
           displayName: 'Guest', 
-          emoji: '👤', 
+          emoji: '🌍', 
           totalWins: 0, 
           isPro: false, 
           ...updates 
@@ -114,16 +147,9 @@ export class AuthService {
 
     await this.saveProfile(newProfile);
 
-    // 2. If signed in, sync to server in background
+    // 2. Queue for debounced cloud sync
     if (currentProfile && currentProfile.id !== 'guest') {
-      try {
-        await firstValueFrom(
-          this.http.patch(`${this.API_BASE}/user/profile`, updates)
-        );
-        console.log('[Auth] Profile synced with server.');
-      } catch (error) {
-        console.error('[Auth] Failed to sync profile with server:', error);
-      }
+      this.syncSubject.next(updates);
     }
   }
 
