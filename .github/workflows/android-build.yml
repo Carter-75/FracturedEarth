@@ -111,9 +111,8 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          # Use dummy values so Next.js build succeeds without real KV/OAuth secrets
-          KV_REST_API_URL: https://dummy.kv.vercel.app
-          KV_REST_API_TOKEN: dummy
+          MONGODB_URI: mongodb://localhost:27017/ci_dummy
+          # Use dummy values so Next.js build succeeds without real OAuth secrets
           GOOGLE_CLIENT_ID: dummy
           GOOGLE_CLIENT_SECRET: dummy
           NEXTAUTH_SECRET: dummy_secret_for_ci_only
