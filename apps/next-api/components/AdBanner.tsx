@@ -5,8 +5,11 @@ import { AdMob, BannerAdSize, BannerAdPosition } from '@capacitor-community/admo
 import { Capacitor } from '@capacitor/core';
 import { NativeBridge } from '@/lib/nativeBridge';
 
+import { useSession, signIn, signOut } from 'next-auth/react';
+
 export function AdBanner() {
   const [adFree, setAdFree] = useState(false);
+  const { data: session, status } = useSession();
 
   useEffect(() => {
     const settings = localStorage.getItem('fe:user-settings:v1');
@@ -39,7 +42,7 @@ export function AdBanner() {
     };
   }, []);
 
-  if (adFree) return null;
+  if (adFree && status !== 'unauthenticated') return null;
 
   return (
     <div className="fixed top-0 left-0 right-0 h-[60px] z-[1000] bg-black border-b border-white/5 flex items-center justify-between px-4 overflow-hidden group">
@@ -58,13 +61,34 @@ export function AdBanner() {
            </div>
         </div>
 
-        {/* Persistent Sector Pass Link */}
-        <a 
-          href="/store"
-          className="relative z-10 fe-holo-btn !py-1 !px-3 !text-[8px] md:!text-[10px] !border-sky-500/50 !text-sky-400 hover:!bg-sky-400/10 transition-all uppercase tracking-widest"
-        >
-           Sector Pass
-        </a>
+        {/* Persistent Link Actions */}
+        <div className="relative z-10 flex items-center gap-3">
+          {status === 'authenticated' ? (
+            <div className="flex items-center gap-4">
+              <span className="hidden md:inline fe-hologram text-[9px] text-white/40 uppercase tracking-widest italic">{session.user?.name || 'Active_Subject'}</span>
+              <button 
+                onClick={() => signOut()}
+                className="fe-holo-btn !py-1 !px-3 !text-[8px] md:!text-[10px] !border-rose-500/30 !text-rose-400 hover:!bg-rose-400/10 transition-all uppercase tracking-widest"
+              >
+                 Exit_Link
+              </button>
+            </div>
+          ) : (
+            <button 
+              onClick={() => signIn('google')}
+              className="fe-holo-btn !py-1 !px-3 !text-[8px] md:!text-[10px] !border-[var(--accent)]/50 !text-[var(--accent)] hover:!bg-[var(--accent)]/10 transition-all uppercase tracking-widest"
+            >
+               Sign_In
+            </button>
+          )}
+
+          <a 
+            href="/store"
+            className="fe-holo-btn !py-1 !px-3 !text-[8px] md:!text-[10px] !border-sky-500/50 !text-sky-400 hover:!bg-sky-400/10 transition-all uppercase tracking-widest"
+          >
+             Sector Pass
+          </a>
+        </div>
     </div>
   );
 }
