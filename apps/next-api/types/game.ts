@@ -88,6 +88,8 @@ export interface MatchPayload {
   cardsPlayedThisTurn: number;
   hasDrawnThisTurn: boolean;
   botTurnReplay?: BotTurnEvent[];
+  isPaused?: boolean;
+  disconnectedUserId?: string;
 }
 
 export interface BotTurnEvent {
