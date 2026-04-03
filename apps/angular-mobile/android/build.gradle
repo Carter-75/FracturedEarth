@@ -22,6 +22,10 @@ allprojects {
         google()
         mavenCentral()
     }
+
+    configurations.all {
+        exclude group: 'com.amazon.device', module: 'amazon-appstore-sdk'
+    }
 }
 
 task clean(type: Delete) {
