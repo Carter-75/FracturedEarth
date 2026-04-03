@@ -11,8 +11,13 @@ export async function POST(req: NextRequest) {
     const authHeader = req.headers.get('authorization');
     const secret = process.env.REVENUECAT_WEBHOOK_AUTH;
 
+    // DEBUG: Log the received header for troubleshooting
+    console.log('[RevenueCat Debug] Auth Header:', authHeader);
+    console.log('[RevenueCat Debug] Secret Configured:', secret ? `${secret.substring(0, 3)}...` : 'MISSING');
+
     // Optional SECURITY: Validate webhook secret if configured
     if (secret && authHeader !== `Bearer ${secret}`) {
+      console.warn('[RevenueCat Debug] Authorization Failed!');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
