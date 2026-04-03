@@ -38,6 +38,13 @@ if (-not $MONGODB_URI) {
         $ADMOB_INTERSTITIAL_ID = Get-Prop "ADMOB_INTERSTITIAL_ID"
         $ADSENSE_BANNER_ID = Get-Prop "ADSENSE_BANNER_ID"
         $ADSENSE_INTERSTITIAL_ID = Get-Prop "ADSENSE_INTERSTITIAL_ID"
+
+        # Authentication & Webhooks
+        $GOOGLE_CLIENT_ID = Get-Prop "GOOGLE_CLIENT_ID"
+        $GOOGLE_CLIENT_SECRET = Get-Prop "GOOGLE_CLIENT_SECRET"
+        $NEXTAUTH_SECRET = Get-Prop "NEXTAUTH_SECRET"
+        $NEXTAUTH_URL = Get-Prop "NEXTAUTH_URL"
+        $REVENUECAT_WEBHOOK_AUTH = Get-Prop "REVENUECAT_WEBHOOK_AUTH"
     }
 }
 
@@ -65,11 +72,26 @@ Set-Location $projectRoot
 # --- STEP 0: VERCEL ENV CONFIG ---
 if (-not $SkipVercel) {
   Show-Step "STEP 0: VERCEL ENVIRONMENT CONFIG"
-  Write-Status "Setting MONGODB_URI on Vercel..." "INFO"
+  Write-Status "Syncing Sensitive Keys to Vercel..." "INFO"
   Set-Location "apps/next-api"
-  & vercel env add MONGODB_URI production --value "$MONGODB_URI" --force
+  
+  # Helper to set Vercel env
+  function Set-VercelEnv($key, $val) {
+      if ($val) {
+          Write-Status "Setting $key on Vercel..." "INFO"
+          & vercel env add $key production --value "$val" --force
+      }
+  }
+
+  Set-VercelEnv "MONGODB_URI" $MONGODB_URI
+  Set-VercelEnv "GOOGLE_CLIENT_ID" $GOOGLE_CLIENT_ID
+  Set-VercelEnv "GOOGLE_CLIENT_SECRET" $GOOGLE_CLIENT_SECRET
+  Set-VercelEnv "NEXTAUTH_SECRET" $NEXTAUTH_SECRET
+  Set-VercelEnv "NEXTAUTH_URL" $NEXTAUTH_URL
+  Set-VercelEnv "REVENUECAT_WEBHOOK_AUTH" $REVENUECAT_WEBHOOK_AUTH
+
   Set-Location $projectRoot
-  Write-Status "Vercel environment updated." "SUCCESS"
+  Write-Status "Vercel environment synchronized." "SUCCESS"
 }
 
 # --- STEP 1: MONGODB MIGRATION ---
