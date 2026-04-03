@@ -67,9 +67,9 @@ export class ProfileSettingsComponent {
   @Output() close = new EventEmitter<void>();
 
   displayName = '';
-  selectedEmoji = '👤';
+  selectedEmoji = '🌍';
 
-  emojis = ['👤', '🤖', '💀', '👽', '👾', '🦊', '🐲', '⚡', '🔥', '💧', '🌿', '💎'];
+  emojis = ['🌍', '🔥', '⚡', '🌊', '🪨', '🌪️', '🌙', '☀️', '🛰️', '🦾'];
 
   ngOnInit() {
     if (this.profile) {

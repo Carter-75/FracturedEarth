@@ -49,32 +49,27 @@ export default function SettingsPage() {
         <h2 className="text-lg font-semibold text-white">Profile And Theme</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1">
-            <label className="text-[10px] uppercase font-black text-white/20 ml-1">Player Identifier</label>
-            <input
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/40 focus:border-amber-500 outline-none transition-all"
-              value={userId}
-              onChange={(event) => setUserId(event.target.value)}
-              placeholder="Player id"
-            />
-          </div>
-          <div className="space-y-1">
-            <label className="text-[10px] uppercase font-black text-white/20 ml-1">Display Name</label>
+            <label className="text-[10px] uppercase font-black text-white/20 ml-1">Your Name</label>
             <input
               className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/40 focus:border-amber-500 outline-none transition-all"
               value={displayName}
               onChange={(event) => setDisplayName(event.target.value)}
-              placeholder="Display name"
+              placeholder="Enter name..."
             />
           </div>
           <div className="space-y-1">
             <label className="text-[10px] uppercase font-black text-white/20 ml-1">Avatar Signal</label>
-            <select className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-amber-500 outline-none transition-all" value={emoji} onChange={(event) => setEmoji(event.target.value)}>
+            <select 
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-amber-500 outline-none transition-all" 
+              value={emoji} 
+              onChange={(event) => setEmoji(event.target.value)}
+            >
               {EMOJI_OPTIONS.map((candidate) => (
                 <option key={candidate} value={candidate} className="bg-slate-900">{candidate}</option>
               ))}
             </select>
           </div>
-          <div className="sm:col-span-2 space-y-3">
+          <div className="sm:col-span-2 space-y-3 pt-4 border-t border-white/5">
             <label className="text-[10px] uppercase font-black text-white/20 ml-1">Interface Theme</label>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
               {THEME_OPTIONS.map((candidate) => {

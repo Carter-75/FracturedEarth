@@ -21,15 +21,41 @@ export class AuthService {
   userProfile$ = this.userProfileSubject.asObservable();
 
   private readonly API_BASE = 'https://fractured-earth.vercel.app/api'; 
+  private readonly SETTINGS_KEY = 'fe:user-settings:v1';
+  private readonly LEGACY_KEY = 'user_profile';
 
   constructor(private http: HttpClient) {
     this.loadLocalProfile();
   }
 
   async loadLocalProfile() {
-    const { value } = await Preferences.get({ key: 'user_profile' });
-    if (value) {
-      const profile = JSON.parse(value);
+    let raw = (await Preferences.get({ key: this.SETTINGS_KEY })).value;
+    
+    // Migration: Check for legacy key if new key doesn't exist
+    if (!raw) {
+      const legacyRaw = (await Preferences.get({ key: this.LEGACY_KEY })).value;
+      if (legacyRaw) {
+        console.log('[Auth] Migrating legacy profile to shared storage...');
+        raw = legacyRaw;
+        // Save to new key immediately
+        await Preferences.set({ key: this.SETTINGS_KEY, value: raw });
+        // Optional: Remove legacy key
+        await Preferences.remove({ key: this.LEGACY_KEY });
+      }
+    }
+
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      // Map shared LocalUserSettings to UserProfile interface
+      const profile: UserProfile = {
+        id: parsed.userId || 'guest',
+        email: parsed.email || '',
+        displayName: parsed.displayName || 'Guest',
+        emoji: parsed.emoji || '🌍',
+        totalWins: parsed.totalWins || 0,
+        isPro: parsed.isPro || false,
+        metadata: parsed.metadata || {}
+      };
       this.userProfileSubject.next(profile);
     }
   }
@@ -102,11 +128,28 @@ export class AuthService {
   }
 
   async saveProfile(profile: UserProfile) {
+    // Map UserProfile back to the shared storage format (LocalUserSettings)
+    const sharedData = {
+      userId: profile.id,
+      displayName: profile.displayName,
+      emoji: profile.emoji,
+      email: profile.email,
+      totalWins: profile.totalWins,
+      isPro: profile.isPro,
+      metadata: profile.metadata || {},
+      // Preserve other web-specific settings if they exist
+      theme: (profile as any).theme || 'Obsidian',
+      soundEnabled: (profile as any).soundEnabled !== undefined ? (profile as any).soundEnabled : true,
+    };
+
     await Preferences.set({
-      key: 'user_profile',
-      value: JSON.stringify(profile)
+      key: this.SETTINGS_KEY,
+      value: JSON.stringify(sharedData)
     });
     this.userProfileSubject.next(profile);
+    
+    // Dispatch event for cross-app synchronization (if under the same origin)
+    window.dispatchEvent(new CustomEvent('fe:settings-changed', { detail: sharedData }));
   }
 
   async logout() {
