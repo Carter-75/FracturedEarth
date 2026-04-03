@@ -22,6 +22,27 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
+      - name: Inject Mock Config (CI Only)
+        shell: bash
+        run: |
+          mkdir -p apps/angular-mobile/src/app
+          cat <<EOF > apps/angular-mobile/src/app/config.ts
+          export const CONFIG = {
+            revenueCat: {
+              publicKey: 'goog_dummy_key',
+              entitlementId: 'pro'
+            },
+            adMob: {
+              bannerId: 'ca-app-pub-3940256099942544/6300978111',
+              interstitialId: 'ca-app-pub-3940256099942544/1033173712'
+            },
+            adSense: {
+              bannerId: 'ca-pub-0000000000000000',
+              interstitialId: 'ca-pub-0000000000000000'
+            }
+          };
+          EOF
+
       - name: Set up Node 24
         uses: actions/setup-node@v5
         with:
