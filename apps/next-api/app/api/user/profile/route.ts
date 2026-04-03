@@ -44,17 +44,24 @@ export async function PATCH(req: NextRequest) {
 
     // 1. Prepare Atomic Update Object
     const setQuery: any = { lastActive: new Date() };
+    const coreFields = ['displayName', 'emoji', 'totalWins', 'isPro'];
 
-    if (updates.displayName !== undefined) setQuery.displayName = updates.displayName;
-    if (updates.emoji !== undefined) setQuery.emoji = updates.emoji;
-    if (updates.totalWins !== undefined) setQuery.totalWins = updates.totalWins;
-    
-    // Atomic merge for metadata fields (if provided)
-    if (updates.metadata) {
-      Object.entries(updates.metadata).forEach(([key, value]) => {
-        setQuery[`metadata.${key}`] = value;
-      });
-    }
+    // Universal Mapping: Automatically move ANY non-core field to metadata
+    Object.entries(updates).forEach(([key, value]) => {
+      if (coreFields.includes(key)) {
+        setQuery[key] = value;
+      } else if (key !== 'id' && key !== 'email') {
+        // Map to metadata sub-field atomically
+        if (key === 'metadata' && typeof value === 'object') {
+          // Flatten nested metadata if provided explicitly
+          Object.entries(value as object).forEach(([mKey, mVal]) => {
+            setQuery[`metadata.${mKey}`] = mVal;
+          });
+        } else {
+          setQuery[`metadata.${key}`] = value;
+        }
+      }
+    });
 
     // 2. Perform Atomic Update
     const updatedUser = await User.findOneAndUpdate(

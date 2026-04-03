@@ -91,6 +91,15 @@ export class AppComponent implements OnInit {
           console.log('[Auth] Detected guest data, triggering auto-sync...');
           await this.syncGuestStats();
         }
+
+        // AUTO_THEME: Apply theme from cloud metadata if it exists
+        if (profile.metadata && profile.metadata['theme']) {
+          const cloudTheme = profile.metadata['theme'];
+          if (this.themes.includes(cloudTheme) && this.currentTheme !== cloudTheme) {
+            console.log(`[Auth] Applying cloud theme: ${cloudTheme}`);
+            this.setTheme(cloudTheme, false); // Don't sync back to cloud to avoid loop
+          }
+        }
       }
     });
 
@@ -133,10 +142,14 @@ export class AppComponent implements OnInit {
     }
   }
 
-  async setTheme(theme: string) {
+  async setTheme(theme: string, syncToCloud = true) {
     this.currentTheme = theme;
     document.documentElement.setAttribute('data-theme', theme);
     await Preferences.set({ key: 'user-theme', value: theme });
+    
+    if (syncToCloud && this.isLoggedIn) {
+      this.authService.updateProfile({ metadata: { theme } });
+    }
   }
 
   async ngOnInit() {

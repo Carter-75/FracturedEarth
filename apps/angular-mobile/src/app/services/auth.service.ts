@@ -68,7 +68,7 @@ export class AuthService {
 
     if (raw) {
       const parsed = JSON.parse(raw);
-      // Map shared LocalUserSettings to UserProfile interface
+      // Universal Mapping: Map core fields and merge EVERYTHING else into metadata
       const profile: UserProfile = {
         id: parsed.userId || 'guest',
         email: parsed.email || '',
@@ -76,8 +76,19 @@ export class AuthService {
         emoji: parsed.emoji || '🌍',
         totalWins: parsed.totalWins || 0,
         isPro: parsed.isPro || false,
-        metadata: parsed.metadata || {}
+        metadata: {
+          ...(parsed.metadata || {}),
+          ...parsed // Spread everything else into metadata too (future-proof)
+        }
       };
+      // Clean up metadata to avoid recursion/redundancy
+      delete (profile.metadata as any).userId;
+      delete (profile.metadata as any).displayName;
+      delete (profile.metadata as any).emoji;
+      delete (profile.metadata as any).email;
+      delete (profile.metadata as any).totalWins;
+      delete (profile.metadata as any).isPro;
+
       this.userProfileSubject.next(profile);
     }
   }
@@ -145,16 +156,29 @@ export class AuthService {
           ...updates 
         } as UserProfile;
 
-    await this.saveProfile(newProfile);
-
-    // 2. Queue for debounced cloud sync
+    // 2. Differential Cloud Sync: Only send what changed
     if (currentProfile && currentProfile.id !== 'guest') {
-      this.syncSubject.next(updates);
+      const delta: any = {};
+      Object.keys(updates).forEach(key => {
+        const k = key as keyof UserProfile;
+        if (JSON.stringify(updates[k]) !== JSON.stringify((currentProfile as any)[k])) {
+          delta[k] = updates[k];
+        }
+      });
+
+      if (Object.keys(delta).length > 0) {
+        console.log('[Auth] Differential Sync: Queueing delta...', delta);
+        this.syncSubject.next(delta);
+      } else {
+        console.log('[Auth] No changes detected. Skipping cloud sync.');
+      }
     }
+
+    await this.saveProfile(newProfile);
   }
 
   async saveProfile(profile: UserProfile) {
-    // Map UserProfile back to the shared storage format (LocalUserSettings)
+    // Universal Mapping: Map UserProfile back to the shared storage format (FULL JSON)
     const sharedData = {
       userId: profile.id,
       displayName: profile.displayName,
@@ -162,10 +186,7 @@ export class AuthService {
       email: profile.email,
       totalWins: profile.totalWins,
       isPro: profile.isPro,
-      metadata: profile.metadata || {},
-      // Preserve other web-specific settings if they exist
-      theme: (profile as any).theme || 'Obsidian',
-      soundEnabled: (profile as any).soundEnabled !== undefined ? (profile as any).soundEnabled : true,
+      ...profile.metadata // Spread EVERYTHING from metadata to top-level for shared storage
     };
 
     await Preferences.set({

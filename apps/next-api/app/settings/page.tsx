@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { EMOJI_OPTIONS, THEME_OPTIONS, THEME_PRESETS } from '@/lib/gameConfig';
 import { isTutorialDone, loadLocalSettings, resetTutorialDone, saveLocalSettings, setTutorialDone } from '@/lib/localProfile';
+import { getDelta } from '@/lib/diff';
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -35,17 +36,27 @@ export default function SettingsPage() {
         .then(data => {
           if (data.profile) {
             const p = data.profile;
+            // Universal Pull: Merge ALL metadata back into state
             setDisplayName(p.displayName || 'Web Player');
             setEmoji(p.emoji || '🌍');
             
-            // Re-save to local storage to ensure consistency
-            saveLocalSettings({
+            if (p.metadata) {
+              if (p.metadata.theme) setTheme(p.metadata.theme);
+              if (p.metadata.soundEnabled !== undefined) setSoundEnabled(p.metadata.soundEnabled);
+              // Handle other generic fields if they grow
+            }
+            
+            // Re-save FULL object to local storage
+            const nextSettings = {
               userId: settings.userId, 
               displayName: p.displayName || 'Web Player',
               emoji: p.emoji || '🌍',
-              theme: settings.theme,
-              soundEnabled: settings.soundEnabled
-            });
+              theme: p.metadata?.theme || settings.theme,
+              soundEnabled: p.metadata?.soundEnabled ?? settings.soundEnabled,
+              ...p.metadata // Merge EVERYTHING else
+            };
+            saveLocalSettings(nextSettings);
+            window.dispatchEvent(new CustomEvent('fe:settings-changed', { detail: nextSettings }));
           }
         })
         .catch(err => console.error('[Settings] Cloud pull failed:', err));
@@ -53,7 +64,8 @@ export default function SettingsPage() {
   }, [session]);
 
   async function saveProfile() {
-    const updates = {
+    const current = loadLocalSettings();
+    const next = {
       userId: userId.trim() || 'web_player',
       displayName: displayName.trim() || 'Web Player',
       emoji,
@@ -61,21 +73,25 @@ export default function SettingsPage() {
       soundEnabled,
     };
 
-    // 1. Local Persistence
-    saveLocalSettings(updates);
+    // 1. Local Persistence (Always update local for UX)
+    saveLocalSettings(next);
 
-    // 2. Cloud Persistence (if authenticated)
+    // 2. Cloud Persistence (Differential Push)
     if (session?.user?.email) {
+      const delta = getDelta(current, next);
+      
+      // If nothing actually changed, don't waste an API call
+      if (Object.keys(delta).length === 0) {
+        console.log('[Settings] No changes detected. Skipping cloud sync.');
+        return;
+      }
+
       try {
-        console.log('[Settings] Syncing update to cloud account...');
+        console.log('[Settings] Differential Sync: Pushing delta to cloud...', delta);
         await fetch('/api/user/profile', {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            displayName: updates.displayName,
-            emoji: updates.emoji,
-            // Keep the rest in the background
-          })
+          body: JSON.stringify(delta) // Send ONLY THE DELTA
         });
       } catch (err) {
         console.error('[Settings] Cloud sync failed:', err);
