@@ -4,6 +4,9 @@ import dbConnect from '../lib/mongodb.js';
 import Card from '../models/Card.js';
 import rawCards from '../data/cards.json';
 
+// Fallback to process.env.MONGODB_URI if .env.local doesn't exist
+const mongodbUri = process.env.MONGODB_URI;
+
 async function migrate() {
   console.log('Connecting to MongoDB...');
   await dbConnect();

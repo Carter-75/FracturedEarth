@@ -77,6 +77,7 @@ if (-not $SkipMigration) {
   Show-Step "STEP 1: DATABASE MIGRATION"
   Write-Status "Running Card Migration (JSON -> Atlas)..." "INFO"
   Set-Location "apps/next-api"
+  $env:MONGODB_URI = $MONGODB_URI
   & npx tsx scripts/migrate-cards.ts
   if ($LASTEXITCODE -ne 0) { throw "Migration failed" }
   Set-Location $projectRoot
