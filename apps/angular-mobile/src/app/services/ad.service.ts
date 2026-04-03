@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
-import { AdMob, BannerAdOptions, BannerAdPosition, BannerAdSize } from '@capacitor-community/admob';
+import { AdMob, BannerAdOptions, BannerAdPosition, BannerAdSize, AdOptions } from '@capacitor-community/admob';
 import { Capacitor } from '@capacitor/core';
 import { PaymentService } from './payment.service';
 import { take } from 'rxjs/operators';
+import { CONFIG } from '../config';
 
 @Injectable({
   providedIn: 'root'
@@ -36,17 +37,44 @@ export class AdService {
   }
 
   async showBanner() {
-    const isPro = await this.paymentService.isPro$.pipe(take(1)).toPromise();
-    if (isPro) return;
+    if (!Capacitor.isNativePlatform()) {
+      console.log('[AdService] Web Banner ID:', CONFIG.adSense.bannerId);
+      return;
+    }
 
+    const adId = CONFIG.adMob.bannerId;
     const options: BannerAdOptions = {
-        adId: 'ca-app-pub-3940256099942544/6300978111', 
+        adId: adId,
         adSize: BannerAdSize.BANNER,
         position: BannerAdPosition.BOTTOM_CENTER,
         margin: 0,
-        isTesting: true,
+        isTesting: adId.includes('3940256099942544'),
     };
     await AdMob.showBanner(options);
+  }
+
+  /**
+   * Show Interstitial ("Intertweller") Ad
+   */
+  async showInterstitial() {
+    const isPro = await this.paymentService.isPro$.pipe(take(1)).toPromise();
+    if (isPro) return;
+
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const adId = CONFIG.adMob.interstitialId;
+        const options: AdOptions = {
+          adId: adId,
+          isTesting: adId.includes('3940256099942544'),
+        };
+        await AdMob.prepareInterstitial(options);
+        await AdMob.showInterstitial();
+      } catch (e) {
+        console.error('Interstitial failed', e);
+      }
+    } else {
+      console.log('[AdService] Web Interstitial ID:', CONFIG.adSense.interstitialId);
+    }
   }
 
   async hideAllAds() {

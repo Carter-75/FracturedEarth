@@ -17,6 +17,7 @@ import { ScorePanelComponent } from './components/score-panel/score-panel.compon
 import { MatchCard } from '@match-engine';
 import { HistoryService } from './services/history.service';
 import { AuthService, UserProfile } from './services/auth.service';
+import { CONFIG } from './config';
 
 @Component({
   selector: 'app-root',
@@ -216,9 +217,8 @@ export class AppComponent implements OnInit {
     });
 
     // RevenueCat SDK Initialization
-    if (Capacitor.isNativePlatform()) {
-      await this.paymentService.initialize("goog_zRPQbhNeOBuLYUaBamnzkuRZEEF");
-    }
+    // Initialize RevenueCat with the injected key
+    this.paymentService.initialize(CONFIG.revenueCat.publicKey);
   }
 
   async goPro() {

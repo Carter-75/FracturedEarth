@@ -17,13 +17,27 @@ $MONGODB_URI = $env:MONGODB_URI
 if (-not $MONGODB_URI) {
     $masterConfig = "$PSScriptRoot\local.properties"
     if (Test-Path $masterConfig) {
-        $msg = "Loading MONGODB_URI and ADMOB from master local.properties..."
+        $msg = "Loading sensitive configs from master local.properties..."
         Write-Host "[$msg]" -ForegroundColor Gray
         $cfg = Get-Content $masterConfig
-        $mongoLine = $cfg | Select-String "MONGODB_URI=" | Select-Object -First 1
-        if ($mongoLine) { $MONGODB_URI = ($mongoLine -split "MONGODB_URI=")[1].Trim().Trim('"').Trim("'") }
-        $admobLine = $cfg | Select-String "ADMOB_APP_ID=" | Select-Object -First 1
-        if ($admobLine) { $ADMOB_APP_ID = ($admobLine -split "ADMOB_APP_ID=")[1].Trim().Trim('"').Trim("'") }
+        
+        # Helper to extract value from properties
+        function Get-Prop($key) {
+            $line = $cfg | Select-String "$key=" | Select-Object -First 1
+            if ($line) { return ($line -split "$key=")[1].Trim().Trim('"').Trim("'") }
+            return $null
+        }
+
+        $MONGODB_URI = Get-Prop "MONGODB_URI"
+        $ADMOB_APP_ID = Get-Prop "ADMOB_APP_ID"
+        $REVENUECAT_PUBLIC_KEY = Get-Prop "REVENUECAT_PUBLIC_KEY"
+        $REVENUECAT_ENTITLEMENT_ID = Get-Prop "REVENUECAT_ENTITLEMENT_ID"
+        
+        # New Ad IDs
+        $ADMOB_BANNER_ID = Get-Prop "ADMOB_BANNER_ID"
+        $ADMOB_INTERSTITIAL_ID = Get-Prop "ADMOB_INTERSTITIAL_ID"
+        $ADSENSE_BANNER_ID = Get-Prop "ADSENSE_BANNER_ID"
+        $ADSENSE_INTERSTITIAL_ID = Get-Prop "ADSENSE_INTERSTITIAL_ID"
     }
 }
 
@@ -43,7 +57,6 @@ function Show-Step {
   param([string]$Title)
   Write-Host "`n================================================" -ForegroundColor Cyan
   Write-Host "  $Title" -ForegroundColor Cyan
-  Write-Host "================================================" -ForegroundColor Cyan
 }
 
 $projectRoot = $PSScriptRoot
@@ -91,12 +104,33 @@ if (-not $SkipBuild) {
       if ($found) {
           $newContent | Set-Content $gradleFile
           Write-Status "versionCode successfully updated in build.gradle." "SUCCESS"
-      } else {
-          Write-Status "versionCode not found in build.gradle." "WARNING"
       }
-  } else {
-      Write-Status "build.gradle not found at $gradleFile" "WARNING"
   }
+}
+
+# --- STEP 1.6: GENERATE ANGULAR CONFIG ---
+if (-not $SkipBuild) {
+  Show-Step "STEP 1.6: GENERATE ANGULAR CONFIG"
+  Write-Status "Injecting sensitive keys into Angular..." "INFO"
+  $configPath = "$projectRoot\apps\angular-mobile\src\app\config.ts"
+  $configContent = @"
+export const CONFIG = {
+  revenueCat: {
+    publicKey: '$REVENUECAT_PUBLIC_KEY',
+    entitlementId: '$REVENUECAT_ENTITLEMENT_ID'
+  },
+  adMob: {
+    bannerId: '$ADMOB_BANNER_ID',
+    interstitialId: '$ADMOB_INTERSTITIAL_ID'
+  },
+  adSense: {
+    bannerId: '$ADSENSE_BANNER_ID',
+    interstitialId: '$ADSENSE_INTERSTITIAL_ID'
+  }
+};
+"@
+  $configContent | Set-Content $configPath
+  Write-Status "config.ts updated at $configPath" "SUCCESS"
 }
 
 # --- STEP 2: ANGULAR WEB BUILD ---
@@ -129,17 +163,7 @@ if (-not $SkipBuild) {
 
 Show-Step "FINAL: VERIFICATION"
 $artifactsDir = Join-Path $projectRoot "build"
-$backupDir = Join-Path $artifactsDir "backup"
 if (-not (Test-Path $artifactsDir)) { New-Item -ItemType Directory -Path $artifactsDir }
-if (-not (Test-Path $backupDir)) { New-Item -ItemType Directory -Path $backupDir }
-
-# Backup existing files in the build folder
-Get-ChildItem $artifactsDir -Include "*.apk", "*.aab" -File | ForEach-Object {
-    $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
-    $newName = "$($_.BaseName)_$timestamp$($_.Extension)"
-    Move-Item $_.FullName -Destination (Join-Path $backupDir $newName) -Force
-    Write-Status "Archived existing artifact: $($_.Name) -> backup\$newName" "INFO"
-}
 
 # Find and move APK
 $releaseApk = Get-ChildItem "apps/angular-mobile/android/app/build/outputs/apk/release/*.apk" | Select-Object -First 1
@@ -158,21 +182,9 @@ if ($releaseAab) {
 # --- STEP 4: GIT SYNCHRONIZATION ---
 if (-not $SkipGit) {
     Show-Step "STEP 4: GIT SYNCHRONIZATION"
-    Write-Status "Staging changes..." "INFO"
     & git add .
-    if ($LASTEXITCODE -ne 0) { Write-Status "Git add failed" "WARNING" }
-
-    Write-Status "Creating commit..." "INFO"
-    $fullMessage = "$CommitMessage [Artifact VersionCode Sync]"
-    & git commit -m "$fullMessage"
-    if ($LASTEXITCODE -ne 0) { 
-        Write-Status "Nothing to commit or commit failed." "WARNING" 
-    } else {
-        Write-Status "Pushing to origin $Branch..." "INFO"
-        & git push origin $Branch
-        if ($LASTEXITCODE -ne 0) { throw "Git push failed. Please check your credentials and connection." }
-        Write-Status "Push successful." "SUCCESS"
-    }
+    & git commit -m "$CommitMessage [Artifact Sync]"
+    & git push origin $Branch
 }
 
 Write-Status "MEAN STACK UNIFIED DEPLOYMENT COMPLETE" "SUCCESS"

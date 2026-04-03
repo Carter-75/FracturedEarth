@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Purchases, PurchasesOffering, PurchasesPackage, LOG_LEVEL } from '@revenuecat/purchases-capacitor';
 import { BehaviorSubject } from 'rxjs';
+import { CONFIG } from '../config';
 
 @Injectable({
   providedIn: 'root'
@@ -12,8 +13,8 @@ export class PaymentService {
   private _offerings = new BehaviorSubject<PurchasesOffering | null>(null);
   public offerings$ = this._offerings.asObservable();
 
-  // IMPORTANT: Update this once you create your "Pro" entitlement in RevenueCat
-  private ENTITLEMENT_ID = "pro"; 
+  // Use the injected entitlement ID
+  private ENTITLEMENT_ID = CONFIG.revenueCat.entitlementId; 
 
   constructor() {}
 
