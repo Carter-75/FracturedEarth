@@ -172,6 +172,7 @@ export async function joinRoom(input: {
   emoji?: string;
 }): Promise<RoomSnapshot | null> {
   await dbConnect();
+  const code = normalizeCode(input.code);
   const room = await Room.findOne({ code });
   if (!room) return null;
 
