@@ -36,24 +36,42 @@ export default function SettingsPage() {
         .then(data => {
           if (data.profile) {
             const p = data.profile;
-            // Universal Pull: Merge ALL metadata back into state
-            setDisplayName(p.displayName || 'Web Player');
-            setEmoji(p.emoji || '🌍');
-            
-            if (p.metadata) {
-              if (p.metadata.theme) setTheme(p.metadata.theme);
-              if (p.metadata.soundEnabled !== undefined) setSoundEnabled(p.metadata.soundEnabled);
-              // Handle other generic fields if they grow
-            }
-            
-            // Re-save FULL object to local storage
-            const nextSettings = {
-              userId: settings.userId, 
+            const current = loadLocalSettings();
+
+            // 1. Calculate Delta: What actually changed in the cloud?
+            // (Exclude userId as it is local-only in this context)
+            const cloudSimplified = {
               displayName: p.displayName || 'Web Player',
               emoji: p.emoji || '🌍',
-              theme: p.metadata?.theme || settings.theme,
-              soundEnabled: p.metadata?.soundEnabled ?? settings.soundEnabled,
-              ...p.metadata // Merge EVERYTHING else
+              theme: p.metadata?.theme || current.theme,
+              soundEnabled: p.metadata?.soundEnabled ?? current.soundEnabled,
+            };
+
+            const delta = getDelta({
+              displayName: current.displayName,
+              emoji: current.emoji,
+              theme: current.theme,
+              soundEnabled: current.soundEnabled,
+            }, cloudSimplified);
+
+            if (Object.keys(delta).length === 0) {
+              console.log('[Settings] Cloud profile is identical to local. Skipping update.');
+              return;
+            }
+
+            console.log('[Settings] Differential Pull: Applying cloud changes...', delta);
+            
+            // 2. Selective UI Update: Only update the state vars that changed
+            if (delta.displayName) setDisplayName(delta.displayName);
+            if (delta.emoji) setEmoji(delta.emoji);
+            if (delta.theme) setTheme(delta.theme);
+            if (delta.soundEnabled !== undefined) setSoundEnabled(delta.soundEnabled);
+            
+            // 3. Re-save FULL merged object to local storage
+            const nextSettings = {
+              ...current,
+              ...cloudSimplified,
+              ...p.metadata // Merge ALL generic metadata
             };
             saveLocalSettings(nextSettings);
             window.dispatchEvent(new CustomEvent('fe:settings-changed', { detail: nextSettings }));

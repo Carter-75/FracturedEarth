@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Preferences } from '@capacitor/preferences';
 import { BehaviorSubject, firstValueFrom, Subject } from 'rxjs';
 import { debounceTime, switchMap } from 'rxjs/operators';
+import { getDelta } from '../utils/diff';
 
 export interface UserProfile {
   id: string; // MongoDB _id
@@ -106,9 +107,24 @@ export class AuthService {
         this.http.get<{ profile: UserProfile }>(`${this.API_BASE}/user/profile`)
       );
       if (response && response.profile) {
-        // Double check precedence again after request completes
+        // Double check precedence: if we just updated locally, don't let 
+        // a stale cloud pull overwrite our (un-synced) local changes.
         if (Date.now() - this.lastLocalUpdateAt < 2000) return null;
-        
+
+        const currentProfile = this.userProfileSubject.value;
+        if (currentProfile) {
+          const delta = getDelta(currentProfile, response.profile);
+          
+          if (Object.keys(delta).length === 0) {
+            console.log('[Auth] Differential Pull: Cloud profile is identical to local. Skipping update.');
+            return response.profile;
+          }
+          
+          console.log('[Auth] Differential Pull: Found changes, updating local state.', delta);
+        } else {
+          console.log('[Auth] No local profile found. First-time cloud pull sync.');
+        }
+
         await this.saveProfile(response.profile);
         return response.profile;
       }

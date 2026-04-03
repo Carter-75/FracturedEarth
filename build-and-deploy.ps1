@@ -11,6 +11,7 @@ param(
 
 Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
 $ErrorActionPreference = "Stop"
+$env:JAVA_HOME = "C:\Program Files\Eclipse Adoptium\jdk-21.0.10.7-hotspot"
 
 # --- SECURE SENSITIVE CONFIGS ---
 $MONGODB_URI = $env:MONGODB_URI
@@ -179,6 +180,7 @@ if (-not $SkipBuild) {
 
   Write-Status "Building Android Binaries (Gradle)..." "INFO"
   Set-Location "android"
+  & ./gradlew --stop
   $gradleArgs = @("assembleRelease", "bundleRelease", "--stacktrace")
   & ./gradlew @gradleArgs
   if ($LASTEXITCODE -ne 0) { throw "Android build failed" }
