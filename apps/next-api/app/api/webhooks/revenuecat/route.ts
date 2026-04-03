@@ -8,6 +8,13 @@ import User from '@/models/User';
  */
 export async function POST(req: NextRequest) {
   try {
+    const authHeader = req.headers.get('authorization')?.trim();
+    const secret = process.env.REVENUECAT_WEBHOOK_AUTH?.trim();
+
+    // PRODUCTION SECURITY: Validate webhook secret
+    if (secret && authHeader !== `Bearer ${secret}`) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
     const body = await req.json();
     const { event } = body;
