@@ -17,6 +17,9 @@ export interface IUser extends Document {
   isPro: boolean;
   theme?: 'dark' | 'light';
   
+  // Dynamic settings
+  metadata: Map<string, any>;
+  
   lastActive: Date;
   createdAt: Date;
 }
@@ -34,6 +37,8 @@ const UserSchema: Schema = new Schema({
   
   isPro: { type: Boolean, default: false },
   theme: { type: String, default: 'dark' },
+  
+  metadata: { type: Map, of: Schema.Types.Mixed, default: {} },
   
   lastActive: { type: Date, default: Date.now },
   createdAt: { type: Date, default: Date.now },

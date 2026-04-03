@@ -17,7 +17,7 @@
         (click)="toggleAuthDropdown()"
         class="text-xs font-bold text-[var(--fg)] hover:text-[var(--accent)] transition-colors flex items-center gap-3 fe-hologram p-2 px-4 border border-white/10 rounded-lg bg-black/60 backdrop-blur-xl"
       >
-        <span class="text-lg">{{ emoji }}</span>
+        <span class="text-lg">{{ userProfile?.emoji || '👤' }}</span>
         <span>{{ userProfile?.email }}</span>
         <span class="text-[8px] opacity-30 transform transition-transform" [class.rotate-180]="authDropdownOpen">▼</span>
       </button>
@@ -38,7 +38,7 @@
         <div *ngIf="isLoggedIn" class="space-y-1">
           <div class="p-3 border-b border-white/5 mb-1">
             <div class="text-[8px] font-black tracking-widest text-[var(--accent)] uppercase opacity-60">Session_Active</div>
-            <div class="text-xs font-bold truncate opacity-80">{{ playerName }}</div>
+            <div class="text-xs font-bold truncate opacity-80">{{ userProfile?.displayName || 'Guest' }}</div>
           </div>
           
           <button (click)="logout()" class="w-full p-3 text-left text-xs font-bold text-white/60 hover:text-white hover:bg-white/5 rounded-lg transition-colors flex items-center justify-between">
@@ -126,7 +126,16 @@
                    <button *ngIf="isPro$ | async" (click)="manageSubscription()" class="fe-holo-btn !bg-blue-500/10 !border-blue-500 !text-blue-400 !px-8">MANAGE_SUB</button>
                    <button (click)="startTestGame()" class="fe-holo-btn !px-12 !py-6 !text-xl font-black tracking-widest">START_SYNC</button>
                    <button *ngIf="currentRoomCode || showContinueButton" (click)="resumeMatch()" class="fe-holo-btn !bg-emerald-500/10 !border-emerald-500 !text-emerald-400 !px-8">CONTINUE GAME</button>
-                   <button class="fe-holo-btn !bg-white/5 !border-white/10 !text-white/40 !px-8">SETTINGS</button>
+                   <button (click)="showProfileSettings = true" class="fe-holo-btn !bg-white/5 !border-white/10 !text-white/40 !px-8">SETTINGS</button>
+                </div>
+                
+                <!-- Player Identity Display (Floating next to settings) -->
+                <div class="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/10 w-fit">
+                   <span class="text-2xl">{{ userProfile?.emoji || '👤' }}</span>
+                   <div>
+                     <div class="text-[8px] font-black uppercase opacity-40">Frequency_ID</div>
+                     <div class="text-sm font-bold">{{ userProfile?.displayName || 'Guest' }}</div>
+                   </div>
                 </div>
                 
                 <!-- Nearby Discovery Hub -->
@@ -219,6 +228,13 @@
       </button>
     </div>
   </div>
+
+  <!-- Profile Settings Modal -->
+  <app-profile-settings
+    *ngIf="showProfileSettings"
+    [profile]="userProfile"
+    (close)="showProfileSettings = false"
+  ></app-profile-settings>
 </main>
 
 <style>

@@ -21,14 +21,29 @@ export async function POST(req: NextRequest) {
 
     // Merge Guest stats into the primary account
     if (guestStats) {
-      if (guestStats.totalWins) {
+      if (guestStats.totalWins !== undefined) {
+        // We only add wins from guest if they are higher (or just add them depending on preference)
+        // For now, let's just add them to the account total
         user.totalWins += guestStats.totalWins;
       }
+      
       if (guestStats.emoji && user.emoji === '👤') {
         user.emoji = guestStats.emoji;
       }
-      if (guestStats.displayName && !user.displayName) {
+      
+      if (guestStats.displayName && (!user.displayName || user.displayName === 'Player')) {
         user.displayName = guestStats.displayName;
+      }
+      
+      if (guestStats.metadata) {
+        const currentMetadata = user.metadata || new Map();
+        Object.entries(guestStats.metadata).forEach(([key, value]) => {
+          // Merge metadata from guest if it doesn't exist on account
+          if (!currentMetadata.has(key)) {
+            currentMetadata.set(key, value);
+          }
+        });
+        user.metadata = currentMetadata;
       }
       
       user.lastActive = new Date();
@@ -42,7 +57,8 @@ export async function POST(req: NextRequest) {
         displayName: user.displayName,
         emoji: user.emoji,
         totalWins: user.totalWins,
-        isPro: user.isPro
+        isPro: user.isPro,
+        metadata: user.metadata || {}
       }
     });
   } catch (error: any) {

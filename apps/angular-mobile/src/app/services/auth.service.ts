@@ -10,6 +10,7 @@ export interface UserProfile {
   emoji: string;
   totalWins: number;
   isPro: boolean;
+  metadata?: Record<string, any>;
 }
 
 @Injectable({
@@ -19,7 +20,7 @@ export class AuthService {
   private userProfileSubject = new BehaviorSubject<UserProfile | null>(null);
   userProfile$ = this.userProfileSubject.asObservable();
 
-  private readonly API_BASE = 'https://fractured-earth.vercel.app/api'; // Update with your actual domain
+  private readonly API_BASE = 'https://fractured-earth.vercel.app/api'; 
 
   constructor(private http: HttpClient) {
     this.loadLocalProfile();
@@ -28,18 +29,32 @@ export class AuthService {
   async loadLocalProfile() {
     const { value } = await Preferences.get({ key: 'user_profile' });
     if (value) {
-      this.userProfileSubject.next(JSON.parse(value));
+      const profile = JSON.parse(value);
+      this.userProfileSubject.next(profile);
+    }
+  }
+
+  async fetchLatestProfile(): Promise<UserProfile | null> {
+    try {
+      const response = await firstValueFrom(
+        this.http.get<{ profile: UserProfile }>(`${this.API_BASE}/user/profile`)
+      );
+      if (response && response.profile) {
+        await this.saveProfile(response.profile);
+        return response.profile;
+      }
+      return null;
+    } catch (error) {
+      console.error('Failed to fetch profile from server:', error);
+      return null;
     }
   }
 
   async loginWithGoogle() {
-    // Note: For Capacitor, we usually use the Google Auth Plugin
-    // or redirect to a web-based login flow.
-    // Here we'll simulate the redirect to the Next-Auth endpoint.
     window.location.href = `${this.API_BASE}/auth/signin/google`;
   }
 
-  async syncWithGuest(guestData: { totalWins: number, emoji: string, displayName: string }) {
+  async syncWithGuest(guestData: any) {
     try {
       const response = await firstValueFrom(
         this.http.post<any>(`${this.API_BASE}/user/sync`, { guestStats: guestData })
@@ -52,6 +67,37 @@ export class AuthService {
     } catch (error) {
       console.error('Failed to sync profile:', error);
       return null;
+    }
+  }
+
+  async updateProfile(updates: Partial<UserProfile>) {
+    const currentProfile = this.userProfileSubject.value;
+    
+    // 1. Immediately update Local Storage for "Warp Speed" UX
+    const newProfile = currentProfile 
+      ? { ...currentProfile, ...updates }
+      : { 
+          id: 'guest', 
+          email: '', 
+          displayName: 'Guest', 
+          emoji: '👤', 
+          totalWins: 0, 
+          isPro: false, 
+          ...updates 
+        } as UserProfile;
+
+    await this.saveProfile(newProfile);
+
+    // 2. If signed in, sync to server in background
+    if (currentProfile && currentProfile.id !== 'guest') {
+      try {
+        await firstValueFrom(
+          this.http.patch(`${this.API_BASE}/user/profile`, updates)
+        );
+        console.log('[Auth] Profile synced with server.');
+      } catch (error) {
+        console.error('[Auth] Failed to sync profile with server:', error);
+      }
     }
   }
 

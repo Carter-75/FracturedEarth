@@ -14,6 +14,7 @@ import { GameCardComponent } from './components/game-card/game-card.component';
 import { PaywallComponent } from './components/paywall/paywall.component';
 import { PlayerHandComponent } from './components/player-hand/player-hand.component';
 import { ScorePanelComponent } from './components/score-panel/score-panel.component';
+import { ProfileSettingsComponent } from './components/profile-settings/profile-settings.component';
 import { MatchCard } from '@match-engine';
 import { HistoryService } from './services/history.service';
 import { AuthService, UserProfile } from './services/auth.service';
@@ -29,7 +30,8 @@ import { CONFIG } from './config';
     GameCardComponent,
     PlayerHandComponent, 
     ScorePanelComponent,
-    PaywallComponent
+    PaywallComponent,
+    ProfileSettingsComponent
   ],
   templateUrl: './app.html',
   styleUrl: './app.scss'
@@ -43,9 +45,8 @@ export class AppComponent implements OnInit {
   
   isLoggedIn = false;
   userProfile: UserProfile | null = null;
-  playerName = 'Guest';
-  emoji = '👤';
   authDropdownOpen = false;
+  showProfileSettings = false;
 
   themes = [
     'obsidian', 'deep-teal', 'electric-indigo', 'crimson-night', 
@@ -78,9 +79,6 @@ export class AppComponent implements OnInit {
       this.isLoggedIn = !!profile;
       
       if (profile) {
-        this.playerName = profile.displayName;
-        this.emoji = profile.emoji;
-        
         // SYNC: Tell RevenueCat who this user is (Google UID)
         if (Capacitor.isNativePlatform()) {
           console.log(`[RevenueCat] Syncing User ID: ${profile.id}`);
@@ -129,7 +127,7 @@ export class AppComponent implements OnInit {
     const result = await this.authService.syncWithGuest({
       totalWins: guestWins,
       emoji: guestEmoji,
-      displayName: this.playerName
+      displayName: 'Guest'
     });
 
     if (result) {
