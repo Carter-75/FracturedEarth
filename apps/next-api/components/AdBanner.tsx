@@ -35,6 +35,16 @@ export function AdBanner() {
       }).catch(e => console.error('Failed to show native banner', e));
     }
 
+    // Initialize Web AdSense if not native
+    if (!isAdFree && !Capacitor.isNativePlatform()) {
+      try {
+        (window as any).adsbygoogle = (window as any).adsbygoogle || [];
+        (window as any).adsbygoogle.push({});
+      } catch (e) {
+        console.error('AdSense error', e);
+      }
+    }
+
     return () => {
       if (Capacitor.isNativePlatform()) {
          AdMob.removeBanner().catch(() => {});
@@ -44,25 +54,33 @@ export function AdBanner() {
 
   if (adFree && status !== 'unauthenticated') return null;
 
+  const isNative = Capacitor.isNativePlatform();
+
   return (
     <div className="fixed top-0 left-0 right-0 h-[60px] z-[1000] bg-black border-b border-white/5 flex items-center justify-between px-4 overflow-hidden group">
         {/* Cinematic Grid + Scanline for the banner area */}
         <div className="absolute inset-0 fe-grid opacity-20" />
         <div className="absolute inset-0 fe-scanline opacity-10" />
         
-        {/* Simulated "Real" Ad Content */}
-        <div className="relative flex items-center space-x-4">
-           <div className="w-10 h-10 rounded-lg bg-sky-500/20 border border-sky-400/30 flex items-center justify-center shrink-0">
-              <span className="text-xl">🏔️</span>
-           </div>
-           <div className="flex flex-col">
-              <span className="text-[10px] font-black text-sky-400 uppercase tracking-widest leading-none">Mount_Titan_Outpost</span>
-              <span className="text-[8px] text-white/40 uppercase tracking-tighter mt-1 italic">Equipment for the serious candidate. Limited Stock.</span>
-           </div>
+        {/* Real Ad Content Group */}
+        <div className="relative flex-1 flex items-center h-full">
+           {!isNative && !adFree && process.env.NEXT_PUBLIC_ADSENSE_BANNER_ID && (
+             <ins className="adsbygoogle"
+                  style={{ display: 'block', width: '100%', height: '50px' }}
+                  data-ad-client={process.env.NEXT_PUBLIC_ADSENSE_BANNER_ID}
+                  data-ad-slot="auto"
+                  data-ad-format="horizontal"
+                  data-full-width-responsive="true"></ins>
+           )}
+           {isNative && !adFree && (
+             <div className="flex items-center space-x-2 text-[var(--fg)] opacity-20 text-[8px] uppercase tracking-tighter">
+                <span className="animate-pulse">📡</span> Connection: Secure Sector Ad Link
+             </div>
+           )}
         </div>
 
         {/* Persistent Link Actions */}
-        <div className="relative z-10 flex items-center gap-3">
+        <div className="relative z-10 flex items-center gap-2 pl-4">
           {status === 'authenticated' ? (
             <div className="flex items-center gap-4">
               <span className="hidden md:inline fe-hologram text-[9px] text-white/40 uppercase tracking-widest italic">{session.user?.name || 'Active_Subject'}</span>

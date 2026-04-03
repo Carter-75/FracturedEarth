@@ -31,6 +31,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <html lang="en" className={`${cinzel.variable} ${spectral.variable}`}>
+      <head>
+        {process.env.NEXT_PUBLIC_ADSENSE_BANNER_ID && (
+          <script 
+            async 
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_BANNER_ID}`}
+            crossOrigin="anonymous"
+          />
+        )}
+      </head>
       <body>
         <Providers>
           <AdBanner />
