@@ -1,1 +1,180 @@
 /* You can add global styles to this file, and also import other style files */
+
+/* Design System Foundation: 4px Spacing Scale */
+:root {
+  --space-0: 0px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* Global Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Shared Glassmorphism Effect */
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-blur: blur(12px);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+/* --- THEME DEFINITIONS --- */
+
+/* 1) Obsidian (Default) */
+[data-theme='obsidian'], :root:not([data-theme]) {
+  --primary: #8b5cf6;
+  --background: #09090b;
+  --surface: #18181b;
+  --text: #fafafa;
+  --text-muted: #a1a1aa;
+  --accent: #d946ef;
+  --danger: #ef4444;
+  --success: #22c55e;
+}
+
+/* 2) Deep Teal */
+[data-theme='deep-teal'] {
+  --primary: #0d9488;
+  --background: #042f2e;
+  --surface: #134e4a;
+  --text: #f0fdfa;
+  --text-muted: #99f6e4;
+  --accent: #2dd4bf;
+  --danger: #f87171;
+  --success: #4ade80;
+}
+
+/* 3) Electric Indigo */
+[data-theme='electric-indigo'] {
+  --primary: #4f46e5;
+  --background: #1e1b4b;
+  --surface: #312e81;
+  --text: #eef2ff;
+  --text-muted: #c7d2fe;
+  --accent: #818cf8;
+  --danger: #fb7185;
+  --success: #34d399;
+}
+
+/* 4) Crimson Night */
+[data-theme='crimson-night'] {
+  --primary: #dc2626;
+  --background: #450a0a;
+  --surface: #7f1d1d;
+  --text: #fef2f2;
+  --text-muted: #fecaca;
+  --accent: #f87171;
+  --danger: #ef4444;
+  --success: #10b981;
+}
+
+/* 5) Forest Signal */
+[data-theme='forest-signal'] {
+  --primary: #16a34a;
+  --background: #064e3b;
+  --surface: #065f46;
+  --text: #ecfdf5;
+  --text-muted: #a7f3d0;
+  --accent: #34d399;
+  --danger: #fca5a5;
+  --success: #22c55e;
+}
+
+/* 6) Carbon Gold */
+[data-theme='carbon-gold'] {
+  --primary: #d97706;
+  --background: #1c1917;
+  --surface: #292524;
+  --text: #fafaf9;
+  --text-muted: #d6d3d1;
+  --accent: #fbbf24;
+  --danger: #f87171;
+  --success: #10b981;
+}
+
+/* 7) Arctic Terminal */
+[data-theme='arctic-terminal'] {
+  --primary: #0284c7;
+  --background: #f8fafc;
+  --surface: #f1f5f9;
+  --text: #0f172a;
+  --text-muted: #475569;
+  --accent: #38bdf8;
+  --danger: #dc2626;
+  --success: #16a34a;
+}
+
+/* 8) Solar Flare */
+[data-theme='solar-flare'] {
+  --primary: #ea580c;
+  --background: #431407;
+  --surface: #7c2d12;
+  --text: #fff7ed;
+  --text-muted: #fdba74;
+  --accent: #fb923c;
+  --danger: #ef4444;
+  --success: #22c55e;
+}
+
+/* 9) Void Purple */
+[data-theme='void-purple'] {
+  --primary: #9333ea;
+  --background: #000000;
+  --surface: #1e1b4b;
+  --text: #faf5ff;
+  --text-muted: #e9d5ff;
+  --accent: #a855f7;
+  --danger: #ef4444;
+  --success: #4ade80;
+}
+
+/* 10) Titanium Slate */
+[data-theme='titanium-slate'] {
+  --primary: #475569;
+  --background: #0f172a;
+  --surface: #1e293b;
+  --text: #f8fafc;
+  --text-muted: #94a3b8;
+  --accent: #64748b;
+  --danger: #ef4444;
+  --success: #22c55e;
+}
+
+/* Global Typography & Layout */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--background);
+  color: var(--text);
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* Utility Classes */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.spaced-container {
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.card-surface {
+  background-color: var(--surface);
+  border-radius: var(--space-2);
+  padding: var(--space-4);
+}

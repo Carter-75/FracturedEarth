@@ -1,0 +1,71 @@
+.hand-scroller {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  overflow-y: visible;
+  padding: 20px 12px 32px;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+  
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.card-wrapper {
+  flex: 0 0 auto;
+  position: relative;
+  transition: transform 0.2s ease;
+  
+  &:hover {
+    z-index: 50;
+  }
+}
+
+.hand-controls {
+  position: absolute;
+  top: -40px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  
+  .hand-label {
+    font-family: 'Outfit', sans-serif;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.3em;
+    color: var(--accent-soft);
+    text-transform: uppercase;
+  }
+  
+  .count-pill {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 2px 10px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--fg);
+    opacity: 0.6;
+  }
+}
+
+// Hand entrance animations
+@keyframes card-in {
+  from { transform: translateY(100px) rotate(10deg); opacity: 0; }
+  to { transform: translateY(0) rotate(0); opacity: 1; }
+}
+
+.card-wrapper {
+  animation: card-in 0.4s cubic-bezier(0.25, 1, 0.5, 1) backwards;
+  
+  @for $i from 1 through 15 {
+    &:nth-child(#{$i}) {
+      animation-delay: #{$i * 0.05}s;
+    }
+  }
+}

@@ -1,0 +1,30 @@
+<div 
+  class="relative w-full h-[180px] md:h-[240px] flex flex-col justify-end transition-all duration-300"
+  [class.grayscale-50]="!active"
+  [class.opacity-60]="!active"
+  [class.pointer-events-none]="!active || selectionDisabled"
+>
+  <!-- Hand Controls / Metadata -->
+  <div class="hand-controls">
+    <div class="hand-label fe-flicker">PLAYER_TERMINAL</div>
+    <div class="count-pill">{{ hand.length }} CARDS</div>
+  </div>
+
+  <!-- Scrolling Hand Area -->
+  <div class="hand-scroller">
+    <div 
+      *ngFor="let card of hand" 
+      class="card-wrapper"
+      (click)="onCardClicked(card)"
+    >
+      <app-game-card 
+        [card]="card" 
+        [size]="'md'"
+        [disabled]="!active || selectionDisabled"
+      ></app-game-card>
+    </div>
+  </div>
+
+  <!-- Bottom glass blur -->
+  <div class="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-t from-black to-transparent pointer-events-none"></div>
+</div>

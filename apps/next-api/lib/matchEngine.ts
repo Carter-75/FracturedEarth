@@ -1,4 +1,15 @@
-import { generateNamedBaseCards } from "./cardCatalog";
+export * from "../types/game";
+import { 
+  MatchCard, 
+  MatchPayload, 
+  MatchAction, 
+  Trigger, 
+  TriggerKind, 
+  MatchPlayer, 
+  BotTurnEvent,
+  CardType,
+  DisasterKind
+} from "../types/game";
 import { 
   MAX_HAND_SIZE, 
   WINNING_POINTS, 
@@ -7,126 +18,17 @@ import {
   STARTING_HAND_SIZE 
 } from "./gameConfig";
 
-export type CardType =
-  | "SURVIVAL"
-  | "DISASTER"
-  | "POWER"
-  | "ADAPT"
-  | "CHAOS"
-  | "ASCENDED"
-  | "TWIST"
-  | "CATACLYSM";
-export type DisasterKind =
-  | "EARTHQUAKE"
-  | "PLAGUE"
-  | "FLOOD"
-  | "WILDFIRE"
-  | "GLOBAL";
-
-export interface MatchCard {
-  id: string;
-  name: string;
-  type: CardType;
-  tier?: number;
-  effect?: string;
-  description?: string;
-  disasterKind?: DisasterKind;
-  blocksDisaster?: DisasterKind;
-  primitives?: any[];
-  discardCost?: number;
-}
-
-export type TriggerKind = 
-  | 'NEGATE_NEXT_DISASTER' 
-  | 'NEGATE_NEXT_CATAC_EFFECT'
-  | 'NEGATE_NEXT_NEGATIVE_EFFECT'
-  | 'DOUBLE_NEXT_POINTS'
-  | 'PREVENT_NEXT_POINT_LOSS'
-  | 'SKIP_NEXT_DRAW'
-  | 'REDUCE_INCOMING_DISASTER_1'
-  | 'PREVENT_OPPONENT_DRAW_1'
-  | 'HAND_LIMIT_TEMP_1'
-  | 'TEMP_DOUBLE_POWER_EFFECT'
-  | 'REDIRECT_NEXT_DISASTER'
-  | 'REDIRECT_NEXT_NEGATIVE'
-  | 'RESET_HAND_5'
-  | 'PREVENT_HEALTH_REGAIN'
-  | 'LOSE_1_PT_PER_TURN_3'
-  | 'LOSE_1_HEALTH_PER_TURN_2'
-  | 'DISABLE_SURVIVAL_NEXT_TURN'
-  | 'SKIP_NEXT_DRAW'
-  | 'NEGATE_ALL_SURVIVAL_THIS_TURN'
-  | 'POINTS_PER_TURN_1'
-  | 'HEAL_1_PER_TURN'
-  | 'SKIP_NEXT_TURN';
-
-export interface Trigger {
-  id: string;
-  kind: TriggerKind;
-  value?: any;
-  duration: 'next_event' | 'turn' | 'round' | 'permanent';
-  sourceCardId?: string;
-}
-
-export interface MatchPlayer {
-  id: string;
-  displayName: string;
-  emoji: string;
-  isBot: boolean;
-  survivalPoints: number;
-  health: number;
-  hand: MatchCard[];
-  powers: MatchCard[];
-  triggers: Trigger[];
-  twistEffect?: string;
-  maxHandModifier?: number;
-}
-
-export interface MatchPayload {
-  round: number;
-  activePlayerIndex: number;
-  players: MatchPlayer[];
-  drawPile: MatchCard[];
-  discardPile: MatchCard[];
-  turnPile: MatchCard[];
-  topCard?: MatchCard;
-  turnDirection: 1 | -1;
-  isGlobalDisasterPhase: boolean;
-  winnerId?: string;
-  cardsPlayedThisTurn: number;
-  hasDrawnThisTurn: boolean;
-  botTurnReplay?: BotTurnEvent[];
-}
-
 export function canPlayCard(state: MatchPayload, card: MatchCard): boolean {
   const active = state.players[state.activePlayerIndex];
   
-  // Handle mandatory discard costs
   if (card.discardCost && card.discardCost > 0) {
     if (active.hand.length - 1 < card.discardCost) return false;
   }
 
-  return true; // Core rule: Play up to 3 of any cards per turn
+  return true;
 }
 
-export interface BotTurnEvent {
-  actorId: string;
-  actorName: string;
-  action: "THINKING" | "DRAW" | "PLAY" | "END_TURN";
-  cardName?: string;
-  card?: MatchCard;
-  targetPlayerId?: string;
-}
-
-export type MatchAction =
-  | { type: "INIT_MATCH"; botCount?: number }
-  | { type: "DRAW_CARD" }
-  | { type: "PLAY_CARD"; cardId: string; targetPlayerId?: string }
-  | { type: "DISCARD_CARD"; cardId: string }
-  | { type: "END_TURN" }
-  | { type: "SET_WINNER"; winnerUserId: string };
-
-function pseudoRandom(seed: number): () => number {
+const pseudoRandom = (seed: number): () => number => {
   let x = seed || 123456789;
   return () => {
     x ^= x << 13;
@@ -147,13 +49,8 @@ function shuffle<T>(arr: T[], rng: () => number): T[] {
   return next;
 }
 
-async function starterDeck(rng: () => number): Promise<MatchCard[]> {
-  const base = await generateNamedBaseCards();
-  const copies = base.flatMap((card) => [
-    { ...card, id: `${card.id}_0` },
-    { ...card, id: `${card.id}_1` },
-  ]);
-  return shuffle(copies, rng);
+async function starterDeck(rng: () => number, fullDeck: MatchCard[]): Promise<MatchCard[]> {
+  return shuffle(fullDeck, rng);
 }
 
 function evaluateWinner(state: MatchPayload): string | undefined {
@@ -202,6 +99,9 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string):
          if (opps.length === 0) return [];
          return [opps[Math.floor(Math.random() * opps.length)]];
      }
+     if (targetStr === 'inherited') {
+         return targetId ? getTargetIndices('target_player') : [activeIndex];
+     }
      return [];
   };
 
@@ -242,8 +142,11 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string):
       }
   }
 
+  let isTruncated = false;
+
   const evaluatePrims = (prims: any[]) => {
       for (const prim of prims) {
+          if (isTruncated) break;
           const type = prim.type;
           const params = { ...(prim.params || {}), multiplier };
 
@@ -324,12 +227,16 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string):
                executeAtomic(type, params, params.overrideTargetIndex);
           } else {
                const targets = getTargetIndices(params.target);
-               for (const ti of targets) executeAtomic(type, params, ti);
+               for (const ti of targets) {
+                   if (isTruncated) break;
+                   executeAtomic(type, params, ti);
+               }
           }
       }
   };
 
   const executeAtomic = (type: string, params: any, targetIndex: number = activeIndex) => {
+      if (isTruncated) return;
       const p = next.players[targetIndex];
       const active = next.players[activeIndex];
       
@@ -424,13 +331,20 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string):
                 break;
             }
             for(let i=0; i<params.amount * m; i++) {
+                if (isTruncated) break;
                 const swapIdx = next.activePlayerIndex;
                 next.activePlayerIndex = targetIndex;
+                const beforeDraw = next.hasDrawnThisTurn;
                 next = drawForActive(next);
+                // If a special card was triggered, it would have changed topCard or turnPile
+                if (next.topCard?.type === 'TWIST' || next.topCard?.type === 'CATACLYSM') {
+                    isTruncated = true;
+                }
                 next.activePlayerIndex = swapIdx;
+                next.hasDrawnThisTurn = beforeDraw; // Preserve original draw status during effects
             }
             break;
-         }
+          }
          case 'DISCARD_CARDS':
             if (p.hand.length >= params.amount) {
                let discarded: MatchCard[] = [];
@@ -520,9 +434,29 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string):
             next.turnDirection = next.turnDirection === 1 ? -1 : 1;
             break;
             
-         case 'APPLY_BUFF':
-            p.twistEffect = params.buffId;
+         case 'APPLY_BUFF': {
+            const buffId = params.buffId;
+            const duration = params.duration || 'next_event';
+            
+            let kind: TriggerKind | null = null;
+            if (buffId === 'block_first_disaster') kind = 'NEGATE_NEXT_DISASTER';
+            if (buffId === 'block_catac') kind = 'NEGATE_NEXT_CATAC_EFFECT';
+            if (buffId === 'redirect_chaos_disaster') kind = 'REDIRECT_NEXT_DISASTER';
+            if (buffId === 'prevent_negative') kind = 'NEGATE_NEXT_NEGATIVE_EFFECT';
+            if (buffId === 'skip_next') kind = 'SKIP_NEXT_TURN';
+            
+            if (kind) {
+                p.triggers.push({
+                    id: `buff_${Date.now()}_${Math.random()}`,
+                    kind,
+                    duration,
+                    sourceCardId: card.id
+                });
+            } else {
+                p.twistEffect = buffId;
+            }
             break;
+          }
          case 'ADD_TRIGGER': {
             const trigger: Trigger = {
                 id: `trigger_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -563,16 +497,20 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string):
          }
 
          // --- NEW PRIMITIVES FOR 100% PARITY ---
-         case 'ENSURE_HAND_SIZE': {
+          case 'ENSURE_HAND_SIZE': {
             while (p.hand.length < params.amount) {
+               if (isTruncated) break;
                const swapIdx = next.activePlayerIndex;
                next.activePlayerIndex = targetIndex;
                next = drawForActive(next);
+               if (next.topCard?.type === 'TWIST' || next.topCard?.type === 'CATACLYSM') {
+                   isTruncated = true;
+               }
                next.activePlayerIndex = swapIdx;
                if (next.drawPile.length === 0 && next.discardPile.length === 0) break;
             }
             break;
-         }
+          }
          case 'SKIP_TURN': {
             p.triggers.push({
                id: `skip_${Date.now()}`,
@@ -667,6 +605,8 @@ export function drawForActive(state: MatchPayload, replayOutput?: BotTurnEvent[]
         drawPile: remainingDrawPile,
         discardPile,
         hasDrawnThisTurn: true,
+        // Special draw (Twist/Catac) counts as the turn's first action if it was drawn as the main draw
+        cardsPlayedThisTurn: next.hasDrawnThisTurn ? next.cardsPlayedThisTurn : 0
       },
       card
     );
@@ -683,7 +623,7 @@ export function drawForActive(state: MatchPayload, replayOutput?: BotTurnEvent[]
 }
 
 function playCardImmediate(state: MatchPayload, card: MatchCard): MatchPayload {
-  const isPinned = Boolean(card.blocksDisaster);
+  const isPersistent = Boolean(card.blocksDisaster) || card.type === 'POWER' || card.type === 'ADAPT';
 
   const activeIndex = state.activePlayerIndex;
   const active = { ...state.players[activeIndex] };
@@ -691,10 +631,12 @@ function playCardImmediate(state: MatchPayload, card: MatchCard): MatchPayload {
     ...state,
     topCard: card,
     turnPile: [...state.turnPile, card],
+    // If it's a Twist/Catac drawn as part of an effect, we don't increment here 
+    // (the parent call handles it). If drawn as the main turn draw, we DO increment.
     cardsPlayedThisTurn: state.cardsPlayedThisTurn + 1,
   };
 
-  if (isPinned) {
+  if (isPersistent && card.type !== 'TWIST' && card.type !== 'CATACLYSM') {
     active.powers = [...active.powers, card];
     const newPlayers = [...state.players];
     newPlayers[activeIndex] = active;
@@ -769,7 +711,7 @@ function playCard(
   if (!card) throw new Error("Card not in hand");
   if (!canPlayCard(state, card)) throw new Error("Card does not match top card");
 
-  const isPinned = Boolean(card.blocksDisaster);
+  const isPersistent = Boolean(card.blocksDisaster) || card.type === 'POWER' || card.type === 'ADAPT';
   const discardCost = card.discardCost || 0;
   const newHand = active.hand.filter((c) => c.id !== card.id);
   
@@ -777,7 +719,6 @@ function playCard(
     ...state,
     topCard: card,
     turnPile: [...state.turnPile, card],
-    cardsPlayedThisTurn: state.cardsPlayedThisTurn + 1,
   };
 
   if (discardCost > 0) {
@@ -786,20 +727,25 @@ function playCard(
     next.discardPile = [...state.discardPile, ...cardsToDiscard];
     next.players = state.players.map((p, i) =>
       i === activeIndex 
-        ? { ...active, hand: handAfterCost, powers: isPinned ? [...active.powers, card] : active.powers } 
+        ? { ...active, hand: handAfterCost, powers: isPersistent ? [...active.powers, card] : active.powers } 
         : p
     );
   } else {
     next.players = state.players.map((p, i) =>
       i === activeIndex 
-        ? { ...active, hand: newHand, powers: isPinned ? [...active.powers, card] : active.powers } 
+        ? { ...active, hand: newHand, powers: isPersistent ? [...active.powers, card] : active.powers } 
         : p
     );
   }
 
-  next.discardPile = isPinned ? next.discardPile : [...next.discardPile, card];
+  next.discardPile = isPersistent ? next.discardPile : [...next.discardPile, card];
 
-  return resolveEffect(next, card, targetPlayerId);
+  // Increment action counter AFTER the effect finishes
+  const resolved = resolveEffect(next, card, targetPlayerId);
+  return {
+    ...resolved,
+    cardsPlayedThisTurn: resolved.cardsPlayedThisTurn + 1
+  };
 }
 
 function chooseBotAction(
@@ -835,7 +781,9 @@ function runBotTurnsUntilHuman(state: MatchPayload): {
   let next = state;
   const replay: BotTurnEvent[] = [];
 
-  while (!next.winnerId) {
+  let turnSafetyCounter = 0;
+  while (!next.winnerId && turnSafetyCounter < 20) {
+    turnSafetyCounter++;
     const active = next.players[next.activePlayerIndex];
     if (!active.isBot) break;
 
@@ -890,6 +838,7 @@ export async function initializeMatch(input: {
     isBot?: boolean;
   }>;
   roomCode: string;
+  fullDeck: MatchCard[];
   botCount?: number;
 }): Promise<MatchPayload> {
   const botsToAdd = Math.max(0, Math.min(3, input.botCount ?? 0));
@@ -910,7 +859,7 @@ export async function initializeMatch(input: {
     .split("")
     .reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
   const rng = pseudoRandom(seed || 7);
-  const fullDeck = await starterDeck(rng);
+  const fullDeck = input.fullDeck;
   const safeForInitial = fullDeck.filter(
     (c) => c.type !== "TWIST" && c.type !== "CATACLYSM"
   );
@@ -974,11 +923,8 @@ export async function applyMatchAction(input: {
   }
 
   if (action.type === "INIT_MATCH") {
-    return await initializeMatch({
-      roomPlayers: input.roomPlayers,
-      roomCode: input.roomCode,
-      botCount: action.botCount,
-    });
+    // Note: Caller must provide fullDeck
+    throw new Error("INIT_MATCH must be handled by calling initializeMatch directly with fullDeck");
   }
 
   if (state.winnerId && action.type !== "SET_WINNER") {

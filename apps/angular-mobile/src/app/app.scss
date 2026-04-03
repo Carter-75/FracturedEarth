@@ -1,0 +1,49 @@
+@keyframes loading {
+  0% { width: 100%; }
+  100% { width: 0%; }
+}
+
+@keyframes fe-modal-zoom {
+  0% { opacity: 0; transform: scale(0.9); filter: blur(20px); }
+  100% { opacity: 1; transform: scale(1); filter: blur(0px); }
+}
+
+.inspector-card-wrapper {
+  animation: fe-modal-zoom 0.4s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+  filter: drop-shadow(0 0 40px var(--accent-soft));
+}
+
+:host {
+  display: block;
+  height: 100%;
+}
+
+.fe-floating-auth {
+  pointer-events: auto;
+  
+  button {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    &:active { transform: scale(0.95); }
+  }
+
+  .fe-hologram {
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+    &:hover {
+      border-color: var(--accent);
+      box-shadow: 0 0 20px rgba(var(--accent-rgb), 0.2);
+    }
+  }
+}
+
+.rotate-180 {
+  transform: rotate(180deg);
+}
+
+@keyframes slide-in-top {
+  0% { transform: translateY(-10px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+.animate-in {
+  animation: slide-in-top 0.25s ease-out forwards;
+}

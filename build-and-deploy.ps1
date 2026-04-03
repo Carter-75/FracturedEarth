@@ -17,17 +17,18 @@ $MONGODB_URI = $env:MONGODB_URI
 if (-not $MONGODB_URI) {
     $masterConfig = "$PSScriptRoot\local.properties"
     if (Test-Path $masterConfig) {
-        $msg = "Loading MONGODB_URI from master local.properties..."
+        $msg = "Loading MONGODB_URI and ADMOB from master local.properties..."
         Write-Host "[$msg]" -ForegroundColor Gray
-        $line = Get-Content $masterConfig | Select-String "MONGODB_URI=" | Select-Object -First 1
-        if ($line) {
-            $MONGODB_URI = ($line -split "MONGODB_URI=")[1].Trim().Trim('"').Trim("'")
-        }
+        $cfg = Get-Content $masterConfig
+        $mongoLine = $cfg | Select-String "MONGODB_URI=" | Select-Object -First 1
+        if ($mongoLine) { $MONGODB_URI = ($mongoLine -split "MONGODB_URI=")[1].Trim().Trim('"').Trim("'") }
+        $admobLine = $cfg | Select-String "ADMOB_APP_ID=" | Select-Object -First 1
+        if ($admobLine) { $ADMOB_APP_ID = ($admobLine -split "ADMOB_APP_ID=")[1].Trim().Trim('"').Trim("'") }
     }
 }
 
 if (-not $MONGODB_URI) {
-    Write-Host "[ERROR] MONGODB_URI not found in Environment or apps/next-api/.env.local" -ForegroundColor Red
+    Write-Host "[ERROR] MONGODB_URI not found in Environment or local.properties" -ForegroundColor Red
     Write-Host "Please set MONGODB_URI to continue." -ForegroundColor Red
     exit 1
 }

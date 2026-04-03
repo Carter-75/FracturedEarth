@@ -1,0 +1,40 @@
+<div 
+  class="card-container" 
+  [class.disabled]="disabled" 
+  [class.glow]="glow"
+  [class]="'size-' + size"
+  (click)="onSelect()"
+>
+  <!-- Interactive frame effects -->
+  <div class="card-frame" [style.borderColor]="getTypeColor()"></div>
+  <div class="fe-grid pointer-events-none"></div>
+  <div class="fe-scanline pointer-events-none"></div>
+
+  <!-- Header Section -->
+  <div class="card-header">
+    <div class="type-label" [style.color]="getTypeColor()">{{ card.type }}</div>
+    <div class="card-name">{{ card.name }}</div>
+  </div>
+
+  <!-- Illustration / Core UI -->
+  <div class="card-illustration">
+     <div class="icon-preview">🌍</div>
+     <div class="fe-scanline"></div>
+     <div class="fe-grid"></div>
+  </div>
+
+  <!-- Body Section -->
+  <div class="card-body">
+    <div class="card-description" [innerHTML]="card.description"></div>
+  </div>
+
+  <!-- Footer Section -->
+  <div class="card-footer">
+    <div class="card-id">{{ card.id }}</div>
+    <div class="tier-indicator">
+       <div class="dot" [class.filled]="(card.discardCost ?? 0) <= 0"></div>
+       <div class="dot" [class.filled]="(card.discardCost ?? 0) > 1"></div>
+       <div class="dot" [class.filled]="(card.discardCost ?? 0) > 2"></div>
+    </div>
+  </div>
+</div>

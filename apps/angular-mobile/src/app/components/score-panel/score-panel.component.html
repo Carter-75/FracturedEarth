@@ -1,0 +1,26 @@
+<div class="score-glass">
+  <!-- Round Tracker -->
+  <div class="item">
+    <div class="label">{{ getRoundLabel() }}</div>
+    <div class="value">STABILITY_{{ state.isGlobalDisasterPhase ? 'LOW' : 'HIGH' }}</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Leading Score -->
+  <div class="item">
+    <div class="label">LEAD_SURVIVAL</div>
+    <div class="value">{{ getWinningScore() }} <span class="text-[10px] opacity-40 ml-1">POINTS</span></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Session Status -->
+  <div class="item">
+    <div class="label">LINK_STATUS</div>
+    <div class="status-indicator">
+       <div class="dot"></div>
+       <div class="value !text-sm tracking-widest opacity-80 uppercase">Established</div>
+    </div>
+  </div>
+</div>

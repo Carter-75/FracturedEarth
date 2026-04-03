@@ -1,0 +1,62 @@
+[33mΓ¥»[39m Building...
+[32mΓ£ö[39m Building...
+Application bundle generation failed. [7.640 seconds] - 2026-04-02T15:53:55.712Z
+
+Γû▓ [WARNING] NG8113: RouterOutlet is not used within the template of AppComponent [plugin angular-compiler]
+
+    src/app/app.ts:18:4:
+      18 Γöé     RouterOutlet,
+         Γò╡     ~~~~~~~~~~~~
+
+
+Γû▓ [WARNING] Deprecation [plugin angular-sass]
+
+    src/app/components/game-card/game-card.component.scss:1:8:
+      1 Γöé @import "../../../styles.scss";
+        Γò╡         ^
+
+
+  Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
+  
+  More info and automated migrator: https://sass-lang.com/d/import
+
+
+X [ERROR] TS2532: Object is possibly 'undefined'. [plugin angular-compiler]
+
+    src/app/components/game-card/game-card.component.html:35:40:
+      35 Γöé        <div class="dot" [class.filled]="card.discardCost <= 0"></div>
+         Γò╡                                         ~~~~~~~~~~~~~~~~~~~~~
+
+  Error occurs in the template of component GameCardComponent.
+
+    src/app/components/game-card/game-card.component.ts:9:15:
+      9 Γöé   templateUrl: './game-card.component.html',
+        Γò╡                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+X [ERROR] TS2532: Object is possibly 'undefined'. [plugin angular-compiler]
+
+    src/app/components/game-card/game-card.component.html:36:40:
+      36 Γöé        <div class="dot" [class.filled]="card.discardCost > 1"></div>
+         Γò╡                                         ~~~~~~~~~~~~~~~~~~~~
+
+  Error occurs in the template of component GameCardComponent.
+
+    src/app/components/game-card/game-card.component.ts:9:15:
+      9 Γöé   templateUrl: './game-card.component.html',
+        Γò╡                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+X [ERROR] TS2532: Object is possibly 'undefined'. [plugin angular-compiler]
+
+    src/app/components/game-card/game-card.component.html:37:40:
+      37 Γöé        <div class="dot" [class.filled]="card.discardCost > 2"></div>
+         Γò╡                                         ~~~~~~~~~~~~~~~~~~~~
+
+  Error occurs in the template of component GameCardComponent.
+
+    src/app/components/game-card/game-card.component.ts:9:15:
+      9 Γöé   templateUrl: './game-card.component.html',
+        Γò╡                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+

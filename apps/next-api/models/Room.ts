@@ -18,6 +18,7 @@ const RoomSchema = new Schema({
   status: { type: String, enum: ['OPEN', 'IN_GAME', 'CLOSED'], default: 'OPEN' },
   maxPlayers: { type: Number, default: 4 },
   members: [RoomMemberSchema],
+  kickedUserIds: { type: [String], default: [] },
   createdAtEpochMs: { type: Number, required: true },
   updatedAtEpochMs: { type: Number, required: true },
 }, { timestamps: true });

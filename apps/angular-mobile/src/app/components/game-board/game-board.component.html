@@ -1,0 +1,76 @@
+<div class="board-container">
+  <!-- Cinematic Tabletop Layer -->
+  <div class="table-surface pointer-events-none"></div>
+  <div class="fe-vignette pointer-events-none"></div>
+
+  <!-- Center Interaction Area (Draw/Discard Piles) -->
+  <div class="center-piles">
+    <div class="pile" (click)="onDraw()">
+      <div 
+        class="card-stack draw-pile" 
+        [class.active]="isMyTurn() && !state.hasDrawnThisTurn"
+        [class.pointer-events-none]="!isMyTurn()"
+        [class.opacity-40]="!isMyTurn()"
+      >
+        <div class="fe-grid"></div>
+        <div class="fe-scanline"></div>
+      </div>
+      <div class="pile-label">STORAGE_{{ state.drawPile.length }}</div>
+    </div>
+
+    <div class="pile">
+      <div class="card-stack discard-pile">
+        <app-game-card 
+          *ngIf="state.topCard" 
+          [card]="state.topCard" 
+          [size]="'md'" 
+          [disabled]="true"
+        ></app-game-card>
+      </div>
+      <div class="pile-label">WASTE_{{ state.discardPile.length }}</div>
+    </div>
+  </div>
+
+  <!-- Player Radial Ring -->
+  <div class="player-radial">
+    <div 
+      *ngFor="let p of state.players; let i = index" 
+      class="player-node"
+      [class.active]="state.activePlayerIndex === i"
+      [class.bottom]="i === 0"
+      [class.left]="i === 1"
+      [class.top]="i === 2"
+      [class.right]="i === 3"
+    >
+      <div class="avatar-wrapper">
+        <span>{{ p.emoji }}</span>
+        
+        <!-- Kick Control (Host Only) -->
+        <div 
+           *ngIf="isHost && p.id !== currentUserId" 
+           class="kick-btn"
+           (click)="kickPlayer.emit(p.id)"
+        >✖</div>
+
+        <div class="health-bar">
+          <div class="fill" [style.width.%]="p.health * 20" [style.backgroundColor]="p.health < 2 ? '#ef4444' : '#10b981'"></div>
+        </div>
+      </div>
+      <div class="node-label">{{ p.displayName }}</div>
+      <div class="fe-hologram text-[8px] opacity-60">{{ p.survivalPoints }} PTS</div>
+    </div>
+  </div>
+
+  <!-- Disaster Phase Indicator -->
+  <div 
+    *ngIf="state.isGlobalDisasterPhase"
+    class="absolute inset-0 z-50 flex items-center justify-center pointer-events-none bg-rose-500/10"
+  >
+     <div class="fe-hologram text-rose-500 text-3xl font-black italic fe-flicker tracking-[0.4em]">CHAOS_INBOUND</div>
+  </div>
+
+  <!-- End Turn Control -->
+  <div class="turn-controls" *ngIf="isMyTurn() && state.hasDrawnThisTurn">
+    <button (click)="onEndTurn()" class="fe-holo-btn !bg-emerald-500/10 !border-emerald-500 !text-emerald-400 !px-8 !py-4 font-black">END_SEQUENCE</button>
+  </div>
+</div>

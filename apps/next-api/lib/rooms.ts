@@ -172,13 +172,25 @@ export async function joinRoom(input: {
   emoji?: string;
 }): Promise<RoomSnapshot | null> {
   await dbConnect();
-  const code = normalizeCode(input.code);
   const room = await Room.findOne({ code });
-  if (!room || room.status !== 'OPEN') return null;
+  if (!room) return null;
 
+  // Block join if user was kicked
+  if (room.kickedUserIds && room.kickedUserIds.includes(input.userId)) {
+    throw new Error('You have been kicked from this room.');
+  }
+
+  // Handle joining/rejoining based on room status
   const exists = room.members.find((m: any) => m.userId === input.userId);
-  const activeCount = room.members.filter(isActiveMember).length;
-  if (!exists && activeCount >= room.maxPlayers) return null;
+  if (room.status === 'IN_GAME') {
+    if (!exists) throw new Error('Game in progress. New players cannot join.');
+    // Allow rejoining
+  } else if (room.status === 'OPEN') {
+    const activeCount = room.members.filter(isActiveMember).length;
+    if (!exists && activeCount >= room.maxPlayers) return null;
+  } else {
+    return null;
+  }
 
   const emoji = pickAvailableEmoji(room.members, input.emoji, input.userId);
   const now = Date.now();
@@ -332,4 +344,44 @@ export async function putRoomGameState(input: {
   );
 
   return result.toObject();
+}
+
+/**
+ * Kick a player from a room (Host only)
+ */
+export async function kickMember(input: {
+  code: string;
+  hostUserId: string;
+  targetUserId: string;
+}): Promise<RoomSnapshot | null> {
+  await dbConnect();
+  const code = normalizeCode(input.code);
+  const room = await Room.findOne({ code });
+  if (!room || room.hostUserId !== input.hostUserId) return null;
+  if (input.hostUserId === input.targetUserId) return null; // Cannot kick self
+
+  const member = room.members.find((m: any) => m.userId === input.targetUserId);
+  if (member) {
+    member.disconnectedAtEpochMs = Date.now();
+  }
+
+  if (!room.kickedUserIds.includes(input.targetUserId)) {
+    room.kickedUserIds.push(input.targetUserId);
+  }
+
+  room.updatedAtEpochMs = Date.now();
+  await room.save();
+  return getRoom(code);
+}
+
+/**
+ * Get all rooms by their mode (e.g. LOCAL_WIFI)
+ */
+export async function getRoomsByMode(mode: string): Promise<any[]> {
+  await dbConnect();
+  try {
+    return Room.find({ mode }).sort({ updatedAtEpochMs: -1 }).limit(10);
+  } catch (e) {
+    return [];
+  }
 }
