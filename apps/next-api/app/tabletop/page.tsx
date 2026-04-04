@@ -749,9 +749,9 @@ function TabletopContent() {
                <PlayerStatsHUD player={myPlayer} isActive={isMyTurn} />
             </div>
 
-            <div className="absolute bottom-2 md:bottom-12 left-0 right-0 z-[1100] flex flex-row items-end justify-center pointer-events-none px-4">
+            <div className="fixed bottom-0 left-0 right-0 z-[1100] flex flex-row items-end justify-center pointer-events-none px-4 pb-4 md:pb-12">
                {/* Hand */}
-               <div className="relative h-[var(--card-h)] flex justify-center pointer-events-auto w-full max-w-[95vw] md:max-w-2xl shrink-0">
+               <div className="relative h-[var(--card-h)] flex justify-center pointer-events-auto w-full max-w-[100vw] overflow-visible shrink-0">
                   <AnimatePresence>
                  {myPlayer.hand.map((card, i) => (
                     <motion.div

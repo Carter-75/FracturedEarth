@@ -148,7 +148,7 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string):
       for (const prim of prims) {
           if (isTruncated) break;
           const type = prim.type;
-          const params = { ...(prim.params || {}), multiplier };
+          const params = { ...(prim.params || {}), multiplier: (prim.params?.multiplier || 1) * multiplier };
 
           // Resolving Conditionals
           if (type === 'IF_UNBLOCKED') {
@@ -623,7 +623,7 @@ export function drawForActive(state: MatchPayload, replayOutput?: BotTurnEvent[]
 }
 
 function playCardImmediate(state: MatchPayload, card: MatchCard): MatchPayload {
-  const isPersistent = Boolean(card.blocksDisaster) || card.type === 'POWER' || card.type === 'ADAPT';
+  const isPersistent = (Boolean(card.blocksDisaster) || card.type === 'POWER' || card.type === 'ADAPT') && card.type !== 'TWIST' && card.type !== 'CATACLYSM';
 
   const activeIndex = state.activePlayerIndex;
   const active = { ...state.players[activeIndex] };
@@ -711,7 +711,7 @@ function playCard(
   if (!card) throw new Error("Card not in hand");
   if (!canPlayCard(state, card)) throw new Error("Card does not match top card");
 
-  const isPersistent = Boolean(card.blocksDisaster) || card.type === 'POWER' || card.type === 'ADAPT';
+  const isPersistent = (Boolean(card.blocksDisaster) || card.type === 'POWER' || card.type === 'ADAPT') && card.type !== 'TWIST' && card.type !== 'CATACLYSM';
   const discardCost = card.discardCost || 0;
   const newHand = active.hand.filter((c) => c.id !== card.id);
   

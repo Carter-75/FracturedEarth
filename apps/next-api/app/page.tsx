@@ -10,7 +10,10 @@ export default function HomePage() {
 
   useEffect(() => {
     setHistory(loadMatchHistory());
-    setActivePin(loadRoomPin());
+    const syncPin = () => setActivePin(loadRoomPin());
+    syncPin();
+    const timer = setInterval(syncPin, 5000);
+    return () => clearInterval(timer);
   }, []);
 
   return (

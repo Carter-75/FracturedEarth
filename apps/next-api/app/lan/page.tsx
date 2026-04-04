@@ -112,8 +112,7 @@ function LanContent() {
       });
       const data = await res.json();
       setRoom(data);
-      setRoomCode(data.code);
-      saveRoomPin({ code: data.code, userId, displayName, emoji, ttlMs: 600000 });
+      saveRoomPin({ code: data.code, userId, displayName, emoji, ttlMs: 60000 });
     } catch (e) { setError('Failed to create room.'); } finally { setBusyAction(''); }
   }
 
@@ -129,8 +128,7 @@ function LanContent() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setRoom(data);
-      setRoomCode(data.code);
-      saveRoomPin({ code: data.code, userId, displayName, emoji, ttlMs: 600000 });
+      saveRoomPin({ code: data.code, userId, displayName, emoji, ttlMs: 60000 });
     } catch (e: any) { setError(e.message); } finally { setBusyAction(''); }
   }
 

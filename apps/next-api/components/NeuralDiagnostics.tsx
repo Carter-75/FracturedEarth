@@ -24,7 +24,7 @@ export default function NeuralDiagnostics() {
     return (
       <button 
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-4 right-4 z-[9999] fe-hologram p-2 px-4 border border-[var(--accent)]/30 rounded-lg bg-black/40 backdrop-blur-md text-[10px] font-black tracking-[0.3em] uppercase hover:bg-[var(--accent)]/20 transition-all opacity-40 hover:opacity-100"
+        className="fixed top-4 right-4 z-[9999] fe-hologram p-2 px-4 border border-[var(--accent)]/30 rounded-lg bg-black/40 backdrop-blur-md text-[10px] font-black tracking-[0.3em] uppercase hover:bg-[var(--accent)]/20 transition-all opacity-40 hover:opacity-100"
       >
         Neural_Diag_{logs.length > 0 ? `(${logs.length})` : 'OK'}
       </button>
@@ -34,10 +34,10 @@ export default function NeuralDiagnostics() {
   return (
     <AnimatePresence>
       <motion.div 
-        initial={{ opacity: 0, y: 20, scale: 0.95 }}
+        initial={{ opacity: 0, y: -20, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, y: 20, scale: 0.95 }}
-        className={`fixed bottom-4 right-4 z-[9999] flex flex-col bg-black/90 border border-white/10 rounded-2xl shadow-2xl backdrop-blur-3xl overflow-hidden transition-all duration-300 ${isMinimized ? 'w-80 h-16' : 'w-96 h-[30rem]'}`}
+        exit={{ opacity: 0, y: -20, scale: 0.95 }}
+        className={`fixed top-4 right-4 z-[9999] flex flex-col bg-black/90 border border-white/10 rounded-2xl shadow-2xl backdrop-blur-3xl overflow-hidden transition-all duration-300 ${isMinimized ? 'w-80 h-16' : 'w-96 h-[30rem]'}`}
       >
         {/* Header */}
         <div className="p-4 border-b border-white/5 flex items-center justify-between shrink-0">
