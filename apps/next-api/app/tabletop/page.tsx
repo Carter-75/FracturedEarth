@@ -745,11 +745,13 @@ function TabletopContent() {
       {myPlayer && (
         <>
             {/* HUD: Top-Right on mobile, next to Hand on desktop */}
-            <div className="fixed top-20 right-4 md:top-auto md:absolute md:bottom-12 md:left-4 md:right-auto z-[1200] pointer-events-auto transform scale-[0.6] md:scale-100 origin-top-right md:origin-bottom translate-y-[var(--hud-y-off,0px)]">
+            <div className="fixed right-4 md:top-auto md:absolute md:left-4 md:right-auto z-[1200] pointer-events-auto transform scale-[0.6] md:scale-100 origin-top-right md:origin-bottom translate-y-[var(--hud-y-off,0px)]"
+                 style={{ top: isMobile ? 'calc(var(--header-height, 60px) + 1rem)' : 'auto', bottom: isMobile ? 'auto' : 'clamp(2rem, 10vh, 5rem)' }}>
                <PlayerStatsHUD player={myPlayer} isActive={isMyTurn} />
             </div>
 
-            <div className="fixed bottom-0 left-0 right-0 z-[1100] flex flex-row items-end justify-center pointer-events-none px-4 pb-4 md:pb-12">
+            <div className="fixed bottom-0 left-0 right-0 z-[1100] flex flex-row items-end justify-center pointer-events-none px-4"
+                 style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom), 5vmin)' }}>
                {/* Hand */}
                <div className="relative h-[var(--card-h)] flex justify-center pointer-events-auto w-full max-w-[100vw] overflow-visible shrink-0">
                   <AnimatePresence>

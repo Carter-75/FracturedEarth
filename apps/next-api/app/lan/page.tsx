@@ -182,7 +182,7 @@ function LanContent() {
   }
 
   return (
-    <main className="fe-scene bg-black overflow-y-auto sm:overflow-hidden flex items-center justify-center">
+    <main className="fe-scene bg-black min-h-screen overflow-y-auto flex flex-col items-center">
       {/* Cinematic Environment */}
       <div className="absolute inset-0 z-0 h-full">
          <img src="/assets/type-bgs/adapt.png" className="w-full h-full object-cover opacity-20 blur-2xl scale-125" alt="" />
@@ -192,16 +192,16 @@ function LanContent() {
       </div>
 
       {/* Header Overlay */}
-      <div className="absolute top-12 left-12 z-50">
-         <div className="fe-hologram text-[var(--accent)] opacity-60 mb-2 font-bold tracking-[0.2em] text-[10px]">Sector Frequency Link 1.0</div>
-         <h1 className="text-5xl font-black italic tracking-tighter text-[var(--fg)] uppercase leading-none">SECTOR<span className="text-[var(--accent)] font-bold block">LOBBY</span></h1>
+      <div className="relative z-50 w-full px-[5vw] pt-[calc(var(--header-height,60px)+2rem)] text-left">
+         <div className="fe-hologram text-[var(--accent)] opacity-60 mb-2 font-bold tracking-[0.2em] text-[min(10px,2vw)]">Sector Frequency Link 1.0</div>
+         <h1 className="text-[clamp(2.5rem,10vw,5rem)] font-black italic tracking-tighter text-[var(--fg)] uppercase leading-none">SECTOR<span className="text-[var(--accent)] font-bold block">LOBBY</span></h1>
       </div>
 
-      <div className="relative z-10 w-full max-w-7xl px-4 md:px-12 grid lg:grid-cols-[1.3fr_0.7fr] gap-12 items-center py-20 lg:py-0">
+      <div className="relative z-10 w-full max-w-[95vw] px-[5vw] grid lg:grid-cols-[1.2fr_0.8fr] gap-[5vmin] items-center pt-12 pb-24 lg:py-0">
          
          {/* The 3D Table for Seats */}
-         <div className="relative h-[30rem] md:h-[48rem] flex items-center justify-center overflow-hidden lg:overflow-visible">
-             <div className="absolute w-[45rem] h-[34rem] border border-white/5 rounded-[100%] [transform:rotateX(60deg)] bg-blue-500/[0.03] shadow-[0_0_100px_rgba(59,130,246,0.05)] scale-50 md:scale-100" />
+         <div className="relative h-[60vh] flex items-center justify-center overflow-hidden lg:overflow-visible">
+             <div className="absolute w-[90vw] h-[70vh] border border-white/5 rounded-[100%] [transform:rotateX(60deg)] bg-blue-500/[0.03] shadow-[0_0_100px_rgba(59,130,246,0.05)] scale-75 md:scale-100" />
              
              <div className="relative w-full h-full scale-[0.4] sm:scale-[0.6] md:scale-100 transition-transform duration-700">
                 {seats.map((seat) => (
@@ -280,7 +280,9 @@ function LanContent() {
          </div>
       </div>
 
-      <Link href="/" className="absolute bottom-12 left-12 fe-hologram text-[var(--fg)] opacity-20 hover:opacity-100 transition-all text-[10px] tracking-[0.4em] font-black uppercase">← TERMINATE SESSION</Link>
+      <div className="w-full px-[5vw] py-12 flex justify-start">
+        <Link href="/" className="fe-hologram text-[var(--fg)] opacity-20 hover:opacity-100 transition-all text-xs tracking-[0.4em] font-black uppercase">← TERMINATE SESSION</Link>
+      </div>
 
       {showInterstitial && (
          <InterstitialAd onComplete={() => {

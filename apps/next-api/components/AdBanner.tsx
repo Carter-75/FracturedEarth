@@ -57,7 +57,7 @@ export function AdBanner() {
   const isNative = Capacitor.isNativePlatform();
 
   return (
-    <div className="fixed top-0 left-0 right-0 h-[60px] z-[1000] bg-black border-b border-white/5 flex items-center justify-between px-4 overflow-hidden group">
+    <div className="fixed top-0 left-0 right-0 h-[60px] z-[1000] bg-black/80 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-2 md:px-4 overflow-hidden group">
         {/* Cinematic Grid + Scanline for the banner area */}
         <div className="absolute inset-0 fe-grid opacity-20" />
         <div className="absolute inset-0 fe-scanline opacity-10" />
@@ -80,13 +80,13 @@ export function AdBanner() {
         </div>
 
         {/* Persistent Link Actions */}
-        <div className="relative z-10 flex items-center gap-2 pl-4">
+        <div className="relative z-10 flex items-center gap-1 md:gap-2 pl-2 md:pl-4">
           {status === 'authenticated' ? (
-            <div className="flex items-center gap-4">
-              <span className="hidden md:inline fe-hologram text-[9px] text-white/40 uppercase tracking-widest italic">{session.user?.name || 'Active_Subject'}</span>
+            <div className="flex items-center gap-2 md:gap-4">
+              <span className="hidden lg:inline fe-hologram text-[9px] text-white/40 uppercase tracking-widest italic">{session.user?.name || 'Active_Subject'}</span>
               <button 
                 onClick={() => signOut()}
-                className="fe-holo-btn !py-1 !px-3 !text-[8px] md:!text-[10px] !border-rose-500/30 !text-rose-400 hover:!bg-rose-400/10 transition-all uppercase tracking-widest"
+                className="fe-holo-btn !py-1 !px-2 md:!px-3 !text-[8px] md:!text-[10px] !border-rose-500/30 !text-rose-400 hover:!bg-rose-400/10 transition-all uppercase tracking-widest"
               >
                  Exit_Link
               </button>
@@ -94,7 +94,7 @@ export function AdBanner() {
           ) : (
             <button 
               onClick={() => signIn('google')}
-              className="fe-holo-btn !py-1 !px-3 !text-[8px] md:!text-[10px] !border-[var(--accent)]/50 !text-[var(--accent)] hover:!bg-[var(--accent)]/10 transition-all uppercase tracking-widest"
+              className="fe-holo-btn !py-1 !px-2 md:!px-3 !text-[8px] md:!text-[10px] !border-[var(--accent)]/50 !text-[var(--accent)] hover:!bg-[var(--accent)]/10 transition-all uppercase tracking-widest"
             >
                Sign_In
             </button>
@@ -102,7 +102,7 @@ export function AdBanner() {
 
           <a 
             href="/store"
-            className="fe-holo-btn !py-1 !px-3 !text-[8px] md:!text-[10px] !border-sky-500/50 !text-sky-400 hover:!bg-sky-400/10 transition-all uppercase tracking-widest"
+            className="fe-holo-btn !py-1 !px-2 md:!px-3 !text-[8px] md:!text-[10px] !border-sky-500/50 !text-sky-400 hover:!bg-sky-400/10 transition-all uppercase tracking-widest"
           >
              Sector Pass
           </a>
