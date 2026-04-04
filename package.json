@@ -5,6 +5,12 @@
   "workspaces": [
     "apps/*"
   ],
+  "scripts": {
+    "dev": "next dev apps/next-api",
+    "build": "next build apps/next-api",
+    "start": "next start apps/next-api",
+    "lint": "next lint apps/next-api"
+  },
   "dependencies": {
     "@capacitor-community/admob": "^6.0.0",
     "@capacitor/android": "^6.1.2",

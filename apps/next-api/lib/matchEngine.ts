@@ -204,17 +204,22 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string):
               continue;
           }
           if (type === 'IF_CHAOS_PLAYED') {
-              if (state.turnPile.some(c => c.type === 'CHAOS') && prim.then) evaluatePrims(prim.then);
+              if (state.turnHistory.some(c => c.type === 'CHAOS') && prim.then) evaluatePrims(prim.then);
               continue;
           }
           if (type === 'IF_PREVIOUS_CARD_TYPE') {
-              const prev = state.turnPile.length > 0 ? state.turnPile[state.turnPile.length - 1] : null;
+              const prev = state.turnHistory.length > 0 ? state.turnHistory[state.turnHistory.length - 1] : null;
               if (prev && prev.type === params.cardType && prim.then) evaluatePrims(prim.then);
               continue;
           }
           if (type === 'IF_NO_OTHER_SURVIVAL') {
-              if (!state.turnPile.some(c => c.type === 'SURVIVAL' && c.id !== card.id) && prim.then) evaluatePrims(prim.then);
+              if (!state.turnHistory.some(c => c.type === 'SURVIVAL' && c.id !== card.id) && prim.then) evaluatePrims(prim.then);
               continue;
+          }
+          if (type === 'REPEAT_LAST_SURVIVAL') {
+             const lastSurv = state.turnHistory.filter(c => c.type === 'SURVIVAL' && c.id !== card.id).pop();
+             if (lastSurv) resolveEffect(next, lastSurv, targetId);
+             continue;
           }
           if (type === 'CHANCE') {
               if (Math.random() < params.probability && prim.then) evaluatePrims(prim.then);
@@ -630,7 +635,8 @@ function playCardImmediate(state: MatchPayload, card: MatchCard): MatchPayload {
   let next = {
     ...state,
     topCard: card,
-    turnPile: [...state.turnPile, card],
+    turnPile: isPersistent ? [...state.turnPile, card] : state.turnPile,
+    turnHistory: [...(state.turnHistory || []), card],
     // If it's a Twist/Catac drawn as part of an effect, we don't increment here 
     // (the parent call handles it). If drawn as the main turn draw, we DO increment.
     cardsPlayedThisTurn: state.cardsPlayedThisTurn + 1,
@@ -670,6 +676,7 @@ function advanceTurn(state: MatchPayload): MatchPayload {
     cardsPlayedThisTurn: 0,
     hasDrawnThisTurn: false,
     turnPile: [],
+    turnHistory: [],
     botTurnReplay: undefined,
   };
 
@@ -718,7 +725,8 @@ function playCard(
   let next: MatchPayload = {
     ...state,
     topCard: card,
-    turnPile: [...state.turnPile, card],
+    turnPile: isPersistent ? [...state.turnPile, card] : state.turnPile,
+    turnHistory: [...(state.turnHistory || []), card],
   };
 
   if (discardCost > 0) {
@@ -892,6 +900,7 @@ export async function initializeMatch(input: {
     topCard: drawPile[0],
     turnDirection: 1,
     turnPile: [],
+    turnHistory: [],
     isGlobalDisasterPhase: false,
     cardsPlayedThisTurn: 0,
     hasDrawnThisTurn: false,

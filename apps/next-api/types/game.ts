@@ -81,6 +81,7 @@ export interface MatchPayload {
   drawPile: MatchCard[];
   discardPile: MatchCard[];
   turnPile: MatchCard[];
+  turnHistory: MatchCard[];
   topCard?: MatchCard;
   turnDirection: 1 | -1;
   isGlobalDisasterPhase: boolean;
