@@ -181,21 +181,6 @@ function PlayerStatsHUD({ player, isActive }: { player: MatchPlayer; isActive: b
            </div>
         </div>
 
-       {/* Opponent Pinned Powers */}
-       {player.powers && player.powers.length > 0 && (
-          <div 
-             className="absolute top-full mt-4 flex justify-center gap-2 cursor-pointer hover:scale-105 transition-transform"
-             onClick={() => window.dispatchEvent(new CustomEvent('fe:view-pile', { detail: player.powers }))}
-             role="button"
-          >
-             {player.powers.map((card, i) => (
-                <div key={card.id} className="relative w-16 h-24 bg-[var(--bg)] rounded-lg border border-[var(--accent)]/30 overflow-hidden shadow-[0_4px_10px_rgba(var(--accent-rgb),0.2)]">
-                   <div className="absolute inset-0 bg-[var(--accent)]/10" />
-                   <div className="fe-hologram text-[6px] text-[var(--accent)] opacity-80 p-1 text-center font-bold absolute bottom-0 w-full bg-black/50">{card.name}</div>
-                </div>
-             ))}
-          </div>
-       )}
     </div>
   );
 }

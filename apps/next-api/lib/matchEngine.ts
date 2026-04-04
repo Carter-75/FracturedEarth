@@ -623,7 +623,7 @@ export function drawForActive(state: MatchPayload, replayOutput?: BotTurnEvent[]
 }
 
 function playCardImmediate(state: MatchPayload, card: MatchCard): MatchPayload {
-  const isPersistent = (Boolean(card.blocksDisaster) || card.type === 'POWER' || card.type === 'ADAPT') && card.type !== 'TWIST' && card.type !== 'CATACLYSM';
+  const isPersistent = card.type === 'POWER' || card.type === 'ADAPT';
 
   const activeIndex = state.activePlayerIndex;
   const active = { ...state.players[activeIndex] };
@@ -636,7 +636,7 @@ function playCardImmediate(state: MatchPayload, card: MatchCard): MatchPayload {
     cardsPlayedThisTurn: state.cardsPlayedThisTurn + 1,
   };
 
-  if (isPersistent && card.type !== 'TWIST' && card.type !== 'CATACLYSM') {
+  if (isPersistent) {
     active.powers = [...active.powers, card];
     const newPlayers = [...state.players];
     newPlayers[activeIndex] = active;
@@ -711,7 +711,7 @@ function playCard(
   if (!card) throw new Error("Card not in hand");
   if (!canPlayCard(state, card)) throw new Error("Card does not match top card");
 
-  const isPersistent = (Boolean(card.blocksDisaster) || card.type === 'POWER' || card.type === 'ADAPT') && card.type !== 'TWIST' && card.type !== 'CATACLYSM';
+  const isPersistent = card.type === 'POWER' || card.type === 'ADAPT';
   const discardCost = card.discardCost || 0;
   const newHand = active.hand.filter((c) => c.id !== card.id);
   
