@@ -5,6 +5,9 @@ import { SessionProvider } from 'next-auth/react';
 import { THEME_PRESETS } from '@/lib/gameConfig';
 import { loadLocalSettings, type LocalUserSettings } from '@/lib/localProfile';
 import { initializeNativeBridge } from '@/lib/nativeBridge';
+import { addLog } from '@/lib/logDiagnostics';
+
+import NeuralDiagnostics from '@/components/NeuralDiagnostics';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   useEffect(() => {
@@ -38,6 +41,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     };
 
     applyTheme();
+    addLog('info', `Initializing Neural_Link Identity: ${loadLocalSettings().userId}`);
 
     const onSettingsChanged = (event: Event) => {
       applyTheme((event as CustomEvent<LocalUserSettings>).detail);
@@ -59,5 +63,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  return <SessionProvider>{children}</SessionProvider>;
+  return (
+    <SessionProvider>
+      {children}
+      <NeuralDiagnostics />
+    </SessionProvider>
+  );
 }

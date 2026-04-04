@@ -181,6 +181,11 @@ export async function joinRoom(input: {
     throw new Error('You have been kicked from this room.');
   }
 
+  // 🔥 AUDIT FIX: Block legacy generic ID to prevent database collisions
+  if (input.userId === 'web_player') {
+    throw new Error('Legacy Identity Detected. Please refresh your browser to sync your Neural Link.');
+  }
+
   // Handle joining/rejoining based on room status
   const exists = room.members.find((m: any) => m.userId === input.userId);
   if (room.status === 'IN_GAME') {

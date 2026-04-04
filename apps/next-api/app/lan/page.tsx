@@ -49,8 +49,8 @@ export default function LanRoomsPage() {
 function LanContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [userId, setUserId] = useState('web_player');
-  const [displayName, setDisplayName] = useState('Web Player');
+  const [userId, setUserId] = useState('');
+  const [displayName, setDisplayName] = useState('');
   const [emoji, setEmoji] = useState('🌍');
   const [roomCode, setRoomCode] = useState(searchParams.get('code') ?? '');
   const [room, setRoom] = useState<Room | null>(null);

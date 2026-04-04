@@ -55,8 +55,23 @@ export function loadLocalSettings(): LocalUserSettings {
 
   try {
     const parsed = JSON.parse(raw) as Partial<LocalUserSettings>;
+    let userId = (parsed.userId || '').trim();
+    
+    // 🔥 AUDIT FIX: Eliminate the "web_player" collision vector once and for all.
+    // Any legacy user with the generic ID is force-migrated to a new unique guest entry.
+    if (!userId || userId === 'web_player') {
+      userId = generateGuestId();
+      const updated = {
+        ...defaultSettings,
+        userId,
+        displayName: 'Guest Player'
+      };
+      saveLocalSettings(updated);
+      return updated;
+    }
+
     return {
-      userId: (parsed.userId || defaultSettings.userId).trim(),
+      userId,
       displayName: (parsed.displayName || defaultSettings.displayName).trim(),
       emoji: (parsed.emoji || defaultSettings.emoji).trim(),
       theme: isThemeName(String(parsed.theme ?? '').trim())
