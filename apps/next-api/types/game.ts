@@ -108,3 +108,10 @@ export type MatchAction =
   | { type: "DISCARD_CARD"; cardId: string }
   | { type: "END_TURN" }
   | { type: "SET_WINNER"; winnerUserId: string };
+
+export interface StateEnvelope {
+  revision: number;
+  updatedAtEpochMs: number;
+  updatedByUserId: string;
+  payload: MatchPayload;
+}

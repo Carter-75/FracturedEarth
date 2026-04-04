@@ -1,6 +1,6 @@
 import { Room, RoomGameState } from '@/models/Room';
 import { initializeMatch, applyMatchAction } from './matchEngine';
-import { MatchPayload, MatchAction, MatchCard } from '../types/game';
+import { MatchPayload, MatchAction, MatchCard, StateEnvelope } from '../types/game';
 import cardsData from '../data/cards.json';
 import dbConnect from './mongodb';
 
@@ -19,7 +19,7 @@ const getFullDeck = (): MatchCard[] => {
   })) as MatchCard[];
 };
 
-export async function initMatchService(roomCode: string, userId: string): Promise<MatchPayload | null> {
+export async function initMatchService(roomCode: string, userId: string): Promise<StateEnvelope | null> {
   await dbConnect();
   
   const room = await Room.findOne({ code: roomCode.toUpperCase() });
@@ -39,20 +39,20 @@ export async function initMatchService(roomCode: string, userId: string): Promis
     roomPlayers,
     roomCode,
     fullDeck,
-    botCount: 0 // Bots already in room members if added via addBotToRoom
+    botCount: 0 
   });
+
+  const envelope = {
+    revision: 1,
+    updatedAtEpochMs: Date.now(),
+    updatedByUserId: userId,
+    payload: initialPayload
+  };
 
   // Persist to RoomGameState
   await RoomGameState.findOneAndUpdate(
     { roomCode: roomCode.toUpperCase() },
-    {
-      $set: {
-        revision: 1,
-        updatedAtEpochMs: Date.now(),
-        updatedByUserId: userId,
-        payload: initialPayload
-      }
-    },
+    envelope,
     { upsert: true, new: true }
   );
 
@@ -61,10 +61,10 @@ export async function initMatchService(roomCode: string, userId: string): Promis
   room.updatedAtEpochMs = Date.now();
   await room.save();
 
-  return initialPayload;
+  return envelope;
 }
 
-export async function getMatchState(roomCode: string): Promise<MatchPayload | null> {
+export async function getMatchState(roomCode: string): Promise<StateEnvelope | null> {
   await dbConnect();
   const room = await Room.findOne({ code: roomCode.toUpperCase() });
   if (!room) return null;
@@ -75,12 +75,10 @@ export async function getMatchState(roomCode: string): Promise<MatchPayload | nu
   const payload = gameStateDoc.payload as MatchPayload;
   const now = Date.now();
 
-  // Inject Pause Logic
   let isPaused = false;
   let discUserId = '';
   
   room.members.forEach((m: any) => {
-    // 5s buffer for inactivity (heartbeat is now every 1s)
     if (!m.isBot && (now - m.lastHeartbeatEpochMs > 5000)) {
       isPaused = true;
       discUserId = m.userId;
@@ -88,13 +86,18 @@ export async function getMatchState(roomCode: string): Promise<MatchPayload | nu
   });
 
   return {
-    ...payload,
-    isPaused,
-    disconnectedUserId: discUserId
+    revision: gameStateDoc.revision,
+    updatedAtEpochMs: gameStateDoc.updatedAtEpochMs,
+    updatedByUserId: gameStateDoc.updatedByUserId,
+    payload: {
+      ...payload,
+      isPaused,
+      disconnectedUserId: discUserId
+    }
   };
 }
 
-export async function submitMatchAction(roomCode: string, userId: string, action: MatchAction): Promise<MatchPayload | null> {
+export async function submitMatchAction(roomCode: string, userId: string, action: MatchAction): Promise<StateEnvelope | null> {
   await dbConnect();
 
   const room = await Room.findOne({ code: roomCode.toUpperCase() });
@@ -103,9 +106,8 @@ export async function submitMatchAction(roomCode: string, userId: string, action
   const gameStateDoc = await RoomGameState.findOne({ roomCode: roomCode.toUpperCase() });
   if (!gameStateDoc) throw new Error('Game state not found');
 
-  // Prevent actions if paused
   const currentState = await getMatchState(roomCode);
-  if (currentState?.isPaused && currentState.disconnectedUserId !== userId) {
+  if (currentState?.payload?.isPaused && currentState.payload.disconnectedUserId !== userId) {
     throw new Error('Game is paused until reconnection');
   }
 
@@ -131,5 +133,10 @@ export async function submitMatchAction(roomCode: string, userId: string, action
   gameStateDoc.updatedByUserId = userId;
   await gameStateDoc.save();
 
-  return nextPayload;
+  return {
+    revision: gameStateDoc.revision,
+    updatedAtEpochMs: gameStateDoc.updatedAtEpochMs,
+    updatedByUserId: gameStateDoc.updatedByUserId,
+    payload: nextPayload
+  };
 }
