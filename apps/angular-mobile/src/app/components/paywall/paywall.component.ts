@@ -67,13 +67,15 @@ import { PurchasesPackage, PurchasesOffering } from '@revenuecat/purchases-capac
   styles: [`
     .paywall-overlay {
       position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-      z-index: 9999; display: flex; align-items: center; justify-content: center;
-      background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
+      z-index: 10000; display: flex; align-items: start; justify-content: center;
+      background: rgba(0,0,0,0.85); backdrop-filter: blur(20px);
+      overflow-y: auto; padding: 2rem 1rem;
     }
     .paywall-card {
-      width: 90%; max-width: 400px; padding: 2rem; border-radius: 2rem;
+      width: 100%; max-width: 400px; padding: 2.5rem 2rem; border-radius: 2.5rem;
       border: 1px solid rgba(255,255,255,0.1); text-align: center;
       background: radial-gradient(circle at top right, rgba(0,255,242,0.05), transparent 70%);
+      margin-top: auto; margin-bottom: auto;
     }
     .paywall-header { position: relative; margin-bottom: 2rem; }
     .close-btn { 

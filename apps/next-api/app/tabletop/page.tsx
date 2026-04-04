@@ -71,9 +71,50 @@ type StateEnvelope = {
   roomCode: string;
   revision: number;
   payload: GameStatePayload;
+  isPaused?: boolean;
+  disconnectedUserId?: string;
 };
 
 /* --- Physical Scene Components --- */
+
+function ConnectionLostOverlay({ userId, players }: { userId: string, players: MatchPlayer[] }) {
+  const disconnectedPlayer = players.find(p => p.id === userId);
+  return (
+    <motion.div 
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+      className="fixed inset-0 z-[10000] bg-black/90 backdrop-blur-3xl flex flex-col items-center justify-center p-8 text-center"
+    >
+      <div className="fe-flicker flex flex-col items-center gap-8">
+        <div className="w-24 h-24 rounded-full border-4 border-rose-500/30 flex items-center justify-center animate-pulse">
+           <div className="w-4 h-4 bg-rose-500 rounded-full shadow-[0_0_20px_rose-500]" />
+        </div>
+        
+        <div className="space-y-2">
+          <h2 className="text-4xl font-black italic tracking-tighter text-rose-500 fe-glow-text uppercase">Comm_Link_Severed</h2>
+          <p className="text-[var(--fg)] opacity-40 fe-hologram text-xs tracking-[0.3em] uppercase">Waiting for Neural Sync stabilization...</p>
+        </div>
+
+        <div className="bg-rose-500/10 border border-rose-500/20 p-6 rounded-2xl max-w-sm">
+           <span className="text-rose-500 font-bold text-lg">{disconnectedPlayer?.displayName || 'Unknown Subject'}</span>
+           <span className="text-[var(--fg)] opacity-60 text-[10px] block mt-2 uppercase tracking-widest font-black italic">
+             Dropped Out of Reality Sector {Math.random().toString(36).substring(7).toUpperCase()}
+           </span>
+        </div>
+
+        <div className="mt-12 flex flex-col items-center gap-4">
+           <div className="w-64 h-1 bg-white/5 rounded-full overflow-hidden">
+              <motion.div 
+                animate={{ x: [-256, 256] }} 
+                transition={{ repeat: Infinity, duration: 2, ease: "linear" }} 
+                className="w-1/2 h-full bg-rose-500 shadow-[0_0_10px_rose-500]" 
+              />
+           </div>
+           <span className="text-[var(--fg)] opacity-20 text-[8px] uppercase tracking-[0.5em] font-black">Syncing_Back_To_Engine</span>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
 
 function PhysicalCard({ card, onClick, isSelected, className, style }: { card: MatchCard; onClick?: () => void; isSelected?: boolean; className?: string; style?: any }) {
   const theme = cardTheme(card.type);
@@ -402,12 +443,22 @@ function TabletopContent() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userId }),
         });
+        // Refresh local session pin to keep the 1-minute resume window active
+        if (myPlayer) {
+          saveRoomPin({
+            code,
+            userId,
+            displayName: myPlayer.displayName,
+            emoji: myPlayer.emoji,
+            ttlMs: 60000
+          });
+        }
       } catch (e) { console.error('Heartbeat failed', e); }
     };
     ping();
-    const interval = setInterval(ping, 10000);
+    const interval = setInterval(ping, 1000);
     return () => clearInterval(interval);
-  }, [code, userId]);
+  }, [code, userId, myPlayer]);
 
   // Bug 9: Error Dismissal
   useEffect(() => {
@@ -430,6 +481,7 @@ function TabletopContent() {
             participants: payload?.players.map(p => ({ userId: p.id, displayName: p.displayName, emoji: p.emoji })) || [],
             didWin: winner.id === userId
         });
+        clearRoomPin();
     }
   }, [winner, code, userId, payload?.players]);
 
@@ -512,6 +564,13 @@ function TabletopContent() {
 
   return (
     <main className="fe-scene bg-black flex-1">
+      {/* Pause Overlay (BUG FIXED: Mismatch threshold) */}
+      <AnimatePresence>
+        {state.isPaused && state.disconnectedUserId && payload && (
+          <ConnectionLostOverlay userId={state.disconnectedUserId} players={payload.players} />
+        )}
+      </AnimatePresence>
+
       {/* Bot Turn Replay Cinematic Modal (BUG 5 FIX) */}
       <AnimatePresence>
         {replayEvent && (

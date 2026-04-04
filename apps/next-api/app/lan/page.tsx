@@ -92,13 +92,13 @@ function LanContent() {
         if (!res.ok) return;
         const data = await res.json();
         if (data.status === 'IN_GAME') {
-           router.push(`/tabletop/${room!.code}?userId=${encodeURIComponent(userId)}`);
+           router.push(`/tabletop?code=${room!.code}&userId=${encodeURIComponent(userId)}`);
         } else {
            setRoom(data);
         }
       } catch (e) {}
     }
-    const timer = setInterval(sync, 2000);
+    const timer = setInterval(sync, 1000);
     return () => clearInterval(timer);
   }, [room, userId, router]);
 
@@ -151,7 +151,7 @@ function LanContent() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      router.push(`/tabletop/${room!.code}?userId=${encodeURIComponent(userId)}`);
+      router.push(`/tabletop?code=${room!.code}&userId=${encodeURIComponent(userId)}`);
     } catch (e: any) { setError(e.message); } finally { setBusyAction(''); }
   }
 

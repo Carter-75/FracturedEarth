@@ -2,13 +2,15 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { loadMatchHistory, type LocalMatchOutcome } from '@/lib/localProfile';
+import { loadMatchHistory, loadRoomPin, type LocalMatchOutcome, type LocalRoomPin } from '@/lib/localProfile';
 
 export default function HomePage() {
   const [history, setHistory] = useState<LocalMatchOutcome[]>([]);
+  const [activePin, setActivePin] = useState<LocalRoomPin | null>(null);
 
   useEffect(() => {
     setHistory(loadMatchHistory());
+    setActivePin(loadRoomPin());
   }, []);
 
   return (
@@ -35,9 +37,18 @@ export default function HomePage() {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 md:gap-6 w-full max-w-2xl mt-8 px-4">
-           <Link href="/lan" className="fe-holo-btn flex-1 flex justify-center items-center !py-4 md:!py-5 text-base md:!text-lg !text-[var(--fg)] !bg-[var(--accent)]/10 !border-[var(--accent)]/30 hover:!bg-[var(--accent)]/20">
-             Start Protocol
-           </Link>
+           {activePin ? (
+             <Link 
+               href={`/tabletop?code=${activePin.code}&userId=${encodeURIComponent(activePin.userId)}`} 
+               className="fe-holo-btn flex-1 flex justify-center items-center !py-4 md:!py-5 text-base md:!text-lg !text-[var(--accent)] !bg-[var(--accent)]/10 !border-[var(--accent)] animate-pulse"
+             >
+               Resume Session
+             </Link>
+           ) : (
+             <Link href="/lan" className="fe-holo-btn flex-1 flex justify-center items-center !py-4 md:!py-5 text-base md:!text-lg !text-[var(--fg)] !bg-[var(--accent)]/10 !border-[var(--accent)]/30 hover:!bg-[var(--accent)]/20">
+               Start Protocol
+             </Link>
+           )}
            <Link href="/tutorial" className="fe-holo-btn flex-1 flex justify-center items-center !py-4 md:!py-5 text-base md:!text-lg">
              Training
            </Link>

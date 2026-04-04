@@ -80,7 +80,7 @@ export async function getMatchState(roomCode: string): Promise<MatchPayload | nu
   let discUserId = '';
   
   room.members.forEach((m: any) => {
-    // 5s buffer for inactivity
+    // 5s buffer for inactivity (heartbeat is now every 1s)
     if (!m.isBot && (now - m.lastHeartbeatEpochMs > 5000)) {
       isPaused = true;
       discUserId = m.userId;

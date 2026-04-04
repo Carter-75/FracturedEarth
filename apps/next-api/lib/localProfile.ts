@@ -33,9 +33,11 @@ const HISTORY_KEY = 'fe:match-history:v1';
 const ROOM_PIN_KEY = 'fe:room-pin:v1';
 const TUTORIAL_DONE_KEY = 'fe:tutorial-done:v1';
 
+const generateGuestId = () => `guest_${Math.random().toString(36).substring(2, 11)}`;
+
 const defaultSettings: LocalUserSettings = {
-  userId: 'web_player',
-  displayName: 'Web Player',
+  userId: generateGuestId(),
+  displayName: 'Guest Player',
   emoji: '🌍',
   theme: 'Obsidian',
   soundEnabled: true,
@@ -44,14 +46,19 @@ const defaultSettings: LocalUserSettings = {
 export function loadLocalSettings(): LocalUserSettings {
   if (typeof window === 'undefined') return defaultSettings;
   const raw = window.localStorage.getItem(SETTINGS_KEY);
-  if (!raw) return defaultSettings;
+  
+  if (!raw) {
+    // Persistent initial generation
+    saveLocalSettings(defaultSettings);
+    return defaultSettings;
+  }
 
   try {
     const parsed = JSON.parse(raw) as Partial<LocalUserSettings>;
     return {
-      userId: parsed.userId?.trim() || defaultSettings.userId,
-      displayName: parsed.displayName?.trim() || defaultSettings.displayName,
-      emoji: parsed.emoji?.trim() || defaultSettings.emoji,
+      userId: (parsed.userId || defaultSettings.userId).trim(),
+      displayName: (parsed.displayName || defaultSettings.displayName).trim(),
+      emoji: (parsed.emoji || defaultSettings.emoji).trim(),
       theme: isThemeName(String(parsed.theme ?? '').trim())
         ? String(parsed.theme).trim() as ThemeName
         : defaultSettings.theme,
@@ -126,7 +133,8 @@ export function saveRoomPin(input: {
 }): void {
   if (typeof window === 'undefined') return;
   const now = Date.now();
-  const ttlMs = Math.max(10_000, input.ttlMs ?? 60_000);
+  // Standardize on 1 minute for all resumes
+  const ttlMs = input.ttlMs ?? 60_000;
   const value: LocalRoomPin = {
     code: input.code.trim().toUpperCase(),
     userId: input.userId.trim(),
