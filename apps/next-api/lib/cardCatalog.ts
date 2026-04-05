@@ -30,7 +30,7 @@ function toMatchCard(raw: RawCard): MatchCard {
   };
 }
 
-import { getAllCardsFromMongo } from './cardStorage.js';
+import { getAllCardsFromMongo } from './cardStorage';
 
 const SURVIVAL_CARDS: MatchCard[] = (rawCards.SURVIVAL as RawCard[]).map(toMatchCard);
 const DISASTER_CARDS: MatchCard[] = (rawCards.DISASTER as RawCard[]).map(toMatchCard);
