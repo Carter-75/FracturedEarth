@@ -17,9 +17,18 @@ export class TabletopScene extends Phaser.Scene {
   create() {
     this.userId = loadLocalSettings().userId;
 
-    // Listen for events from PhaserGame React Component
-    this.game.events.on('INIT_STATE', ({ gameState, onAction }: any) => {
+    // 1. Check for persistent initial data from Phaser Registry
+    const initialData = this.registry.get('INITIAL_DATA');
+    if (initialData) {
+      this.userId = initialData.userId || this.userId;
+      this.onAction = initialData.onAction;
+      this.updateBoard(initialData.gameState);
+    }
+
+    // 2. Listen for future events from PhaserGame React Component
+    this.game.events.on('INIT_STATE', ({ gameState, onAction, userId }: any) => {
       this.onAction = onAction;
+      if (userId) this.userId = userId;
       this.updateBoard(gameState);
     });
 

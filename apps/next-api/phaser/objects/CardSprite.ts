@@ -3,7 +3,7 @@ import { MatchCard, cardTheme } from '../../lib/tabletopShared';
 
 export class CardSprite extends Phaser.GameObjects.Container {
   public cardData: MatchCard;
-  private background: Phaser.GameObjects.Image;
+  private background?: Phaser.GameObjects.Image;
   private frame: Phaser.GameObjects.Graphics;
   private nameText: Phaser.GameObjects.Text;
   private typeText: Phaser.GameObjects.Text;
@@ -20,10 +20,16 @@ export class CardSprite extends Phaser.GameObjects.Container {
 
     // 1. Background Image (Preloaded in PreloadScene)
     const assetKey = `bg-${card.type.toLowerCase()}`;
-    this.background = scene.add.image(0, 0, assetKey);
-    this.background.setDisplaySize(width, height);
-    this.background.setAlpha(0.6);
-    this.add(this.background);
+    if (scene.textures.exists(assetKey)) {
+      this.background = scene.add.image(0, 0, assetKey);
+      this.background.setDisplaySize(width, height);
+      this.background.setAlpha(0.6);
+      this.add(this.background);
+    } else {
+      // Fallback if asset is missing
+      const fallback = scene.add.rectangle(0, 0, width, height, 0x1a1a1a);
+      this.add(fallback);
+    }
 
     // 2. Gradient Overlay (Approximated with Graphics)
     const overlay = scene.add.graphics();
@@ -33,8 +39,6 @@ export class CardSprite extends Phaser.GameObjects.Container {
 
     // 3. Border Frame
     this.frame = scene.add.graphics();
-    const borderColor = parseInt(theme.glow.replace('rgba(', '').split(',')[0] === 'var' ? '0x00ffcc' : '0xffffff', 16); 
-    // Fallback logic for colors in Phaser
     const hexColor = this.getThemeHex(card.type);
     this.frame.lineStyle(2, hexColor, 0.3);
     this.frame.strokeRoundedRect(-width/2, -height/2, width, height, 12);

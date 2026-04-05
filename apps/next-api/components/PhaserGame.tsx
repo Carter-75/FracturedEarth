@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import { Game } from 'phaser';
+import { loadLocalSettings } from '@/lib/localProfile';
 
 interface PhaserGameProps {
   roomCode: string;
@@ -21,9 +22,19 @@ export default function PhaserGame({ roomCode, gameState, onAction }: PhaserGame
     // Direct dynamic import to ensure it only runs in the browser
     import('@/phaser/config').then(({ createGame }) => {
       if (gameRef.current) return;
+      
+      const userId = loadLocalSettings().userId;
       gameRef.current = createGame(containerRef.current!);
       
-      // Pass initial state and callbacks to Phaser
+      // Store initial state in registry for scenes that boot later
+      gameRef.current.registry.set('INITIAL_DATA', { 
+        roomCode, 
+        gameState, 
+        userId,
+        onAction: (a: any) => onActionRef.current(a)
+      });
+
+      // Still emit for already-running scenes (unlikely but safe)
       gameRef.current.events.emit('INIT_STATE', { 
         roomCode, 
         gameState, 

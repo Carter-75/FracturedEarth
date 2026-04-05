@@ -26,6 +26,18 @@ export class PreloadScene extends Phaser.Scene {
     this.load.on('complete', () => {
       loadingText.destroy();
     });
+
+    this.load.on('error', (file: any) => {
+      console.warn('Neural_Link_Warning: Asset load failed:', file.src);
+    });
+
+    // 4. Fail-safe timeout
+    this.time.delayedCall(5000, () => {
+      if (this.scene.isActive('PreloadScene')) {
+        console.warn('Neural_Link_Recovery: Preload timed out, forcing transition.');
+        this.scene.start('TabletopScene');
+      }
+    });
   }
 
   create() {
