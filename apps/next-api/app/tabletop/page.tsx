@@ -11,7 +11,8 @@ import {
   saveRoomPin,
 } from '@/lib/localProfile';
 import { apiFetch } from '@/lib/api';
-import { PhaserGame } from '@/components/PhaserGame';
+import dynamic from 'next/dynamic';
+const PhaserGame = dynamic(() => import('@/components/PhaserGame').then(mod => mod.PhaserGame), { ssr: false });
 
 // --- Types ---
 type CardType = 'SURVIVAL' | 'DISASTER' | 'POWER' | 'ADAPT' | 'CHAOS' | 'ASCENDED' | 'TWIST' | 'CATACLYSM';
