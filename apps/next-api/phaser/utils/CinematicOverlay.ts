@@ -20,6 +20,34 @@ export class CinematicOverlay {
     private create() {
         const { width, height } = this.scene.scale;
 
+        // --- Generate Programmatic Textures ---
+        if (!this.scene.textures.exists('noise_gen')) {
+            const noiseGraphic = this.scene.add.graphics();
+            noiseGraphic.fillStyle(0xffffff, 0.1);
+            noiseGraphic.fillRect(0, 0, 2, 2);
+            noiseGraphic.fillStyle(0x000000, 0.1);
+            noiseGraphic.fillRect(1, 1, 1, 1);
+            noiseGraphic.generateTexture('noise_gen', 2, 2);
+            noiseGraphic.destroy();
+        }
+
+        if (!this.scene.textures.exists('vignette_gen')) {
+            const vignetteGraphic = this.scene.add.graphics();
+            const canvas = document.createElement('canvas');
+            canvas.width = 512;
+            canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+                const gradient = ctx.createRadialGradient(256, 256, 128, 256, 256, 256);
+                gradient.addColorStop(0, 'rgba(0,0,0,0)');
+                gradient.addColorStop(1, 'rgba(0,0,0,1)');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, 512, 512);
+                this.scene.textures.addCanvas('vignette_gen', canvas);
+            }
+            vignetteGraphic.destroy();
+        }
+
         // 1. Background Image (Lowest Layer)
         this.background = this.scene.add.image(width / 2, height / 2, this.theme.bgAsset)
             .setDisplaySize(width, height)
@@ -30,7 +58,7 @@ export class CinematicOverlay {
             .setOrigin(0);
 
         // 3. Scanlines
-        this.scanlines = this.scene.add.tileSprite(0, 0, width, height, 'noise')
+        this.scanlines = this.scene.add.tileSprite(0, 0, width, height, 'noise_gen')
             .setOrigin(0)
             .setAlpha(this.theme.scanlineAlpha)
             .setTint(this.theme.primary)
@@ -48,7 +76,7 @@ export class CinematicOverlay {
         }
 
         // 4. Noise / Grain
-        this.noise = this.scene.add.tileSprite(0, 0, width, height, 'noise')
+        this.noise = this.scene.add.tileSprite(0, 0, width, height, 'noise_gen')
             .setOrigin(0)
             .setAlpha(this.theme.noiseAlpha)
             .setBlendMode('SCREEN');
@@ -65,7 +93,7 @@ export class CinematicOverlay {
         });
 
         // 5. Vignette (Highest Layer)
-        this.vignette = this.scene.add.image(width / 2, height / 2, 'vignette')
+        this.vignette = this.scene.add.image(width / 2, height / 2, 'vignette_gen')
             .setDisplaySize(width, height)
             .setAlpha(this.theme.vignetteAlpha)
             .setBlendMode('MULTIPLY');

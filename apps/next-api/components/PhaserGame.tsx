@@ -1,17 +1,9 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
-import { PHASER_CONFIG } from '@/lib/phaserConfig';
 import { BootScene } from '../phaser/scenes/BootScene';
 import { PreloadScene } from '../phaser/scenes/PreloadScene';
-import { HomeScene } from '../phaser/scenes/HomeScene';
 import { GameScene } from '../phaser/scenes/GameScene';
-import { ResultScene } from '../phaser/scenes/ResultScene';
-import { SettingsScene } from '../phaser/scenes/SettingsScene';
-import { RulesScene } from '../phaser/scenes/RulesScene';
-import { LeaderboardScene } from '../phaser/scenes/LeaderboardScene';
-import { TutorialScene } from '../phaser/scenes/TutorialScene';
-import { LANScene } from '../phaser/scenes/LANScene';
 import { loadLocalSettings, saveLocalSettings } from '@/lib/localProfile';
 
 export function PhaserGame({ gameState, onAction }: { gameState: any, onAction: (action: any) => void }) {
@@ -23,18 +15,19 @@ export function PhaserGame({ gameState, onAction }: { gameState: any, onAction: 
       const Phaser = (await import('phaser')).default;
 
       const config: Phaser.Types.Core.GameConfig = {
-        ...PHASER_CONFIG,
+        type: Phaser.AUTO,
+        width: 1280,
+        height: 720,
+        parent: 'phaser-game-container',
+        transparent: true,
+        physics: {
+          default: 'arcade',
+          arcade: { debug: false },
+        },
         scene: [
           BootScene,
           PreloadScene,
-          HomeScene,
           GameScene,
-          ResultScene,
-          SettingsScene,
-          RulesScene,
-          LeaderboardScene,
-          TutorialScene,
-          LANScene,
         ],
       };
 

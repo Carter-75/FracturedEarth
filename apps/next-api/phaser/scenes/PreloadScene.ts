@@ -57,11 +57,9 @@ export class PreloadScene extends Phaser.Scene {
     this.load.image('card_frame', '/assets/ui_card_frame.png');
     this.load.image('card_back', '/cards/deck_back.jpg');
     this.load.image('particle_glow', '/assets/fx/particle_glow.png');
-    this.load.image('vignette', '/assets/fx/vignette.png');
-    this.load.image('noise', '/assets/fx/noise.png');
   }
 
   create() {
-    this.scene.start('HomeScene');
+    this.scene.start('GameScene');
   }
 }
