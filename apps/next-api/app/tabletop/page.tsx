@@ -57,7 +57,7 @@ export default function TabletopPage() {
   const isMyTurn = activePlayer?.id === userId;
   const opponents = payload?.players.filter(p => p.id !== userId) || [];
 
-  async function sync() {
+  const sync = React.useCallback(async () => {
     try {
       const res = await apiFetch(`/api/rooms/${code}/state`, { cache: 'no-store' });
       if (res.status === 404) {
@@ -69,14 +69,14 @@ export default function TabletopPage() {
       setState(stateSnapshot);
       setError(null);
     } catch (e) {}
-  }
+  }, [code]);
 
   useEffect(() => {
     if (!code) return;
     sync();
     const timer = setInterval(sync, 2000);
     return () => clearInterval(timer);
-  }, [code]);
+  }, [code, sync]);
 
   useEffect(() => {
      if (myPlayer && code) {

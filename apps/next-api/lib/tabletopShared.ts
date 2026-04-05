@@ -1,6 +1,18 @@
+'use client';
+
 import { MatchCard, MatchPlayer, CardType } from '@/types/game';
 
 export { type MatchCard, type MatchPlayer, type CardType };
+
+export interface TacticalData {
+  summary: string;
+  pips: Array<{
+    label: string;
+    icon: string;
+    color: string;
+    value: string | number;
+  }>;
+}
 
 export function cardTheme(type: CardType) {
   switch (type) {

@@ -12,6 +12,8 @@ interface PhaserGameProps {
 export default function PhaserGame({ roomCode, gameState, onAction }: PhaserGameProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const gameRef = useRef<Game | null>(null);
+  const onActionRef = useRef(onAction);
+  onActionRef.current = onAction;
 
   useEffect(() => {
     if (!containerRef.current || gameRef.current) return;
@@ -25,7 +27,7 @@ export default function PhaserGame({ roomCode, gameState, onAction }: PhaserGame
       gameRef.current.events.emit('INIT_STATE', { 
         roomCode, 
         gameState, 
-        onAction 
+        onAction: (a: any) => onActionRef.current(a)
       });
     });
 
@@ -35,7 +37,7 @@ export default function PhaserGame({ roomCode, gameState, onAction }: PhaserGame
         gameRef.current = null;
       }
     };
-  }, [roomCode]);
+  }, [roomCode, gameState]);
 
   // Sync state updates to Phaser
   useEffect(() => {
