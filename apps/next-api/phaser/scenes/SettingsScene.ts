@@ -1,9 +1,11 @@
 import * as Phaser from 'phaser';
 import { THEMES, Theme } from '../../lib/themeConfig';
+import { CinematicOverlay } from '../utils/CinematicOverlay';
 
 export class SettingsScene extends Phaser.Scene {
   private currentTheme!: Theme;
   private themeIndex: number = 0;
+  private overlay?: CinematicOverlay;
 
   constructor() {
     super('SettingsScene');
@@ -17,6 +19,11 @@ export class SettingsScene extends Phaser.Scene {
   }
 
   create() {
+    const { width, height } = this.scale;
+    
+    // Initial Overlay
+    this.overlay = new CinematicOverlay(this, this.currentTheme);
+
     this.renderSettings();
   }
 
@@ -25,8 +32,10 @@ export class SettingsScene extends Phaser.Scene {
     const { width, height } = this.scale;
     const theme = this.currentTheme;
 
-    // Background
-    this.add.image(width / 2, height / 2, 'bg_power').setDisplaySize(width, height).setAlpha(0.1).setTint(theme.bgTint);
+    // Refresh Overlay
+    if (this.overlay) {
+        this.overlay.updateTheme(theme);
+    }
 
     // Title
     this.add.text(width / 2, height * 0.15, 'SYSTEM_CONFIGURATION', {

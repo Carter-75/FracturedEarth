@@ -1,8 +1,10 @@
 import * as Phaser from 'phaser';
 import { THEMES, Theme } from '../../lib/themeConfig';
+import { CinematicOverlay } from '../utils/CinematicOverlay';
 
 export class TutorialScene extends Phaser.Scene {
   private currentTheme!: Theme;
+  private overlay?: CinematicOverlay;
 
   constructor() {
     super('TutorialScene');
@@ -17,8 +19,8 @@ export class TutorialScene extends Phaser.Scene {
     const { width, height } = this.scale;
     const theme = this.currentTheme;
 
-    // Background
-    this.add.image(width / 2, height / 2, 'bg_adapt').setDisplaySize(width, height).setAlpha(0.1).setTint(theme.bgTint);
+    // Cinematic Overlay
+    this.overlay = new CinematicOverlay(this, theme);
 
     // Title
     this.add.text(width / 2, height * 0.1, 'TRAINING_PROGRAM: NEURAL_DEPLOYMENT', {

@@ -43,25 +43,22 @@ export class PreloadScene extends Phaser.Scene {
     });
 
     // --- Essential Assets ---
-    // Backgrounds
-    this.load.image('bg_survival', '/backgrounds/survival.jpg');
-    this.load.image('bg_home', '/backgrounds/home_bg.jpg'); // New cinematic bg
-    this.load.image('bg_power', '/backgrounds/power.jpg');
-    this.load.image('bg_adapt', '/backgrounds/adapt.jpg');
-    this.load.image('bg_chaos', '/backgrounds/chaos.jpg');
-
-    // Type backgrounds
-    this.load.image('bg_power', '/backgrounds/type_power.jpg');
-    this.load.image('bg_survival', '/backgrounds/type_survival.jpg');
-    this.load.image('bg_disaster', '/backgrounds/type_disaster.jpg');
-    this.load.image('bg_cataclysm', '/backgrounds/type_cataclysm.jpg');
-    this.load.image('bg_adaptation', '/backgrounds/type_adapt.jpg');
-    this.load.image('bg_twist', '/backgrounds/type_twist.jpg');
+    // Backgrounds (Standardized to the 10 Themes)
+    this.load.image('bg_survival', '/assets/type-bgs/survival.png');
+    this.load.image('bg_power', '/assets/type-bgs/power.png');
+    this.load.image('bg_adapt', '/assets/type-bgs/adapt.png');
+    this.load.image('bg_chaos', '/assets/type-bgs/chaos.png');
+    this.load.image('bg_disaster', '/assets/type-bgs/disaster.png');
+    this.load.image('bg_cataclysm', '/assets/type-bgs/cataclysm.png');
+    this.load.image('bg_ascended', '/assets/type-bgs/ascended.png');
+    this.load.image('bg_twist', '/assets/type-bgs/twist.png');
 
     // UI & Card Parts
-    this.load.image('card_frame', '/cards/frame_default.png');
-    this.load.image('card_back', '/cards/card_back.png');
-    this.load.image('particle_glow', '/particles/glow.png');
+    this.load.image('card_frame', '/assets/ui_card_frame.png');
+    this.load.image('card_back', '/cards/deck_back.jpg');
+    this.load.image('particle_glow', '/assets/fx/particle_glow.png');
+    this.load.image('vignette', '/assets/fx/vignette.png');
+    this.load.image('noise', '/assets/fx/noise.png');
   }
 
   create() {

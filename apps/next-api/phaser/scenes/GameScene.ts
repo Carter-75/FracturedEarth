@@ -1,10 +1,12 @@
 import * as Phaser from 'phaser';
 import { cardTheme, describeCardEffect } from '../../lib/tabletopShared';
 import { THEMES, Theme } from '../../lib/themeConfig';
+import { CinematicOverlay } from '../utils/CinematicOverlay';
 
 export class GameScene extends Phaser.Scene {
   private gameState: any;
   private currentTheme!: Theme;
+  private overlay?: CinematicOverlay;
   private playerHand: Phaser.GameObjects.Container[] = [];
   private botHand: Phaser.GameObjects.Container[] = [];
   private drawDeck!: Phaser.GameObjects.Container;
@@ -33,8 +35,8 @@ export class GameScene extends Phaser.Scene {
   create() {
     const { width, height } = this.scale;
 
-    // --- Background Layer ---
-    this.setupBackground();
+    // --- Background Layer (Cinematic Stack) ---
+    this.overlay = new CinematicOverlay(this, this.currentTheme);
 
     // --- Table Layout ---
     this.setupTable();
@@ -47,38 +49,16 @@ export class GameScene extends Phaser.Scene {
       this.handleStateChange(newState);
     });
 
-    this.game.events.on('theme-changed', (newName: string) => {
-        const found = THEMES.find(t => t.name === newName);
-        if (found) {
-            this.currentTheme = found;
-            if (this.scene.isActive()) this.scene.restart();
-        }
+    const onThemeChange = (newName: string) => {
+        if (this.scene.isActive()) this.scene.restart();
+    };
+    this.game.events.on('theme-changed', onThemeChange);
+    this.events.once('shutdown', () => {
+        this.game.events.off('theme-changed', onThemeChange);
     });
 
     // Initial render
     this.updateBoard(true);
-  }
-
-  private setupBackground() {
-    const { width, height } = this.scale;
-    const theme = this.currentTheme;
-    
-    // Base themed background
-    this.add.image(width / 2, height / 2, 'bg_survival')
-      .setDisplaySize(width, height)
-      .setAlpha(0.2)
-      .setTint(theme.bgTint);
-
-    // Decorative grid
-    const grid = this.add.graphics();
-    grid.lineStyle(1, theme.primary, 0.05);
-    for (let i = 0; i < width; i += 60) {
-      grid.moveTo(i, 0); grid.lineTo(i, height);
-    }
-    for (let j = 0; j < height; j += 60) {
-      grid.moveTo(0, j); grid.lineTo(width, j);
-    }
-    grid.strokePath();
   }
 
   private setupTable() {

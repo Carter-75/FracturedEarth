@@ -1,8 +1,10 @@
 import * as Phaser from 'phaser';
 import { THEMES, Theme } from '../../lib/themeConfig';
+import { CinematicOverlay } from '../utils/CinematicOverlay';
 
 export class LeaderboardScene extends Phaser.Scene {
   private currentTheme!: Theme;
+  private overlay?: CinematicOverlay;
 
   constructor() {
     super('LeaderboardScene');
@@ -17,11 +19,11 @@ export class LeaderboardScene extends Phaser.Scene {
     const { width, height } = this.scale;
     const theme = this.currentTheme;
 
-    // Background
-    this.add.image(width / 2, height / 2, 'bg_chaos').setDisplaySize(width, height).setAlpha(0.1).setTint(theme.bgTint);
+    // Cinematic Overlay
+    this.overlay = new CinematicOverlay(this, theme);
 
     // Title
-    this.add.text(width / 2, height * 0.1, 'GLOBAL_SECTOR_FREQUENCIES', {
+    this.add.text(width / 2, height * 0.1, 'SECTOR_DOMINANCE_INDEX', {
       fontFamily: theme.fontPrimary, fontSize: '32px', fontStyle: 'bold', color: Phaser.Display.Color.IntegerToColor(theme.accent).rgba, letterSpacing: 8
     }).setOrigin(0.5);
 

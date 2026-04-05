@@ -1,8 +1,10 @@
 import * as Phaser from 'phaser';
 import { THEMES, Theme } from '../../lib/themeConfig';
+import { CinematicOverlay } from '../utils/CinematicOverlay';
 
 export class HomeScene extends Phaser.Scene {
   private currentTheme!: Theme;
+  private overlay?: CinematicOverlay;
 
   constructor() {
     super('HomeScene');
@@ -17,8 +19,8 @@ export class HomeScene extends Phaser.Scene {
     const { width, height } = this.scale;
     const theme = this.currentTheme;
 
-    // Background Art
-    this.add.image(width / 2, height / 2, 'bg_home').setDisplaySize(width, height).setAlpha(0.2).setTint(theme.bgTint);
+    // Cinematic Overlay (Stack: BG Art -> Scanlines -> Noise -> Vignette)
+    this.overlay = new CinematicOverlay(this, theme);
 
     // Title Section
     const titleTop = this.add.text(width / 2, height * 0.35, 'FRACTURED', {
@@ -29,7 +31,7 @@ export class HomeScene extends Phaser.Scene {
       fontFamily: theme.fontPrimary, fontSize: '130px', fontStyle: 'bold italic', color: Phaser.Display.Color.IntegerToColor(theme.primary).rgba
     }).setOrigin(0.5);
 
-    // Ambient Particles
+    // Ambient Particles (Refined to use Theme primary)
     this.add.particles(0, 0, 'particle_glow', {
         x: { min: 0, max: width },
         y: { min: 0, max: height },
@@ -37,7 +39,7 @@ export class HomeScene extends Phaser.Scene {
         scale: { start: 0.2, end: 0 },
         alpha: { start: 0.3, end: 0 },
         lifespan: 5000,
-        tint: theme.particle,
+        tint: theme.primary,
         frequency: 50,
         blendMode: 'ADD'
     });
@@ -56,7 +58,7 @@ export class HomeScene extends Phaser.Scene {
     buttons.forEach((btn, i) => {
         this.createMenuButton(width / 2, menuY + i * spacing, btn.text, () => {
             if (btn.scene === 'Exit') {
-                // Handle exit or transition
+                // Exit logic
             } else {
                 this.scene.start(btn.scene);
             }
@@ -64,17 +66,17 @@ export class HomeScene extends Phaser.Scene {
     });
 
     // Version Footer
-    this.add.text(width - 20, height - 20, 'FE_OS_v2.4.9', {
-      fontFamily: theme.fontPrimary, fontSize: '12px', color: '#ffffff'
-    }).setOrigin(1, 1).setAlpha(0.5);
+    this.add.text(width - 20, height - 20, 'FE_OS_v2.5.0', {
+      fontFamily: theme.fontPrimary, fontSize: '10px', color: '#ffffff'
+    }).setOrigin(1, 1).setAlpha(0.3);
 
     // Registry Listener for Theme Changes
-    this.game.events.on('theme-changed', (newName: string) => {
-        const found = THEMES.find(t => t.name === newName);
-        if (found) {
-            this.currentTheme = found;
-            if (this.scene.isActive()) this.scene.restart();
-        }
+    const onThemeChange = (newName: string) => {
+        if (this.scene.isActive()) this.scene.restart();
+    };
+    this.game.events.on('theme-changed', onThemeChange);
+    this.events.once('shutdown', () => {
+        this.game.events.off('theme-changed', onThemeChange);
     });
   }
 
