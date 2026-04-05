@@ -8,7 +8,7 @@ export class BootScene extends Phaser.Scene {
 
   preload() {
     // Basic loading assets for the Preload screen itself
-    this.load.image('particle_glow', '/particles/glow.png');
+    this.load.image('particle_glow', '/assets/fx/particle_glow.png');
   }
 
   create() {

@@ -1,4 +1,4 @@
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://fractured-earth.vercel.app';
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 import { addLog } from './logDiagnostics';
 

@@ -105,6 +105,10 @@ function TabletopContent() {
     async function sync() {
       try {
         const res = await apiFetch(`/api/rooms/${code}/state`, { cache: 'no-store' });
+        if (res.status === 404) {
+          setError('ROOM_NOT_FOUND_OR_CLOSED');
+          return;
+        }
         if (!res.ok) return;
         const stateSnapshot = await res.json();
         setState(stateSnapshot);

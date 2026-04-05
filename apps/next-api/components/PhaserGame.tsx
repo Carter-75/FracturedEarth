@@ -18,7 +18,7 @@ export function PhaserGame({ gameState, onAction }: { gameState: any, onAction: 
         type: Phaser.AUTO,
         width: 1280,
         height: 720,
-        parent: 'phaser-game-container',
+        parent: 'phaser-container',
         transparent: true,
         physics: {
           default: 'arcade',

@@ -1,22 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { validateRoomMember } from '@/lib/rooms';
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { code: string } }
-) {
+export async function GET(req: NextRequest, { params }: { params: { code: string } }) {
   try {
-    const { searchParams } = new URL(req.url);
-    const userId = searchParams.get('userId');
-    const roomCode = params.code;
+    const { code } = params;
+    const userId = req.nextUrl.searchParams.get('userId');
 
     if (!userId) {
-      return NextResponse.json({ error: 'Missing userId' }, { status: 400 });
+      return NextResponse.json({ valid: false, reason: 'Missing userId' }, { status: 400 });
     }
 
-    const result = await validateRoomMember(roomCode, userId);
+    const result = await validateRoomMember(code, userId);
     return NextResponse.json(result);
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+  } catch (error: any) {
+    return NextResponse.json({ valid: false, reason: error.message }, { status: 500 });
   }
 }
