@@ -884,6 +884,7 @@ export async function initializeMatch(input: {
     health: INITIAL_HEALTH,
     hand: safeForInitial.slice(index * STARTING_HAND_SIZE, index * STARTING_HAND_SIZE + STARTING_HAND_SIZE),
     powers: [],
+    traits: [],
     triggers: [],
   }));
 

@@ -20,12 +20,15 @@ export interface MatchCard {
   name: string;
   type: CardType;
   tier?: number;
+  pointsDelta?: number;
+  drawCount?: number;
   effect?: string;
   description?: string;
   disasterKind?: DisasterKind;
   blocksDisaster?: DisasterKind;
   primitives?: any[];
   discardCost?: number;
+  gainHealth?: number;
 }
 
 export type TriggerKind = 
@@ -69,6 +72,7 @@ export interface MatchPlayer {
   health: number;
   hand: MatchCard[];
   powers: MatchCard[];
+  traits: MatchCard[];
   triggers: Trigger[];
   twistEffect?: string;
   maxHandModifier?: number;
