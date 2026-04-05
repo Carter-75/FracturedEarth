@@ -8,9 +8,9 @@ import { apiFetch } from '@/lib/api';
 import { loadLocalSettings, saveRoomPin, clearRoomPin } from '@/lib/localProfile';
 import { MatchPayload, StateEnvelope, MatchAction } from '@/types/game';
 import { MatchCard, MatchPlayer, cardTheme } from '@/lib/tabletopShared';
-import PhysicalCard from '@/components/PhysicalCard';
+import PhaserGame from '@/components/PhaserGame';
 
-// --- UI COMPONENTS ---
+// --- UI COMPONENTS (STATIC) ---
 
 function PlayerStatsHUD({ player, isActive }: { player: MatchPlayer; isActive: boolean }) {
   return (
@@ -36,118 +36,6 @@ function PlayerStatsHUD({ player, isActive }: { player: MatchPlayer; isActive: b
               <div className="text-3xl font-black italic text-rose-500 fe-glow-text">{player.health}</div>
            </div>
         </div>
-
-       {/* Pinned Powers/Traits */}
-       {player.powers && player.powers.length > 0 && (
-          <div className="absolute top-full mt-4 flex justify-center gap-2 [transform-style:preserve-3d]">
-             {player.powers.map((card) => (
-                <div key={card.id} className="relative w-16 h-24 bg-[var(--bg)] rounded-lg border border-[var(--accent)]/30 overflow-hidden shadow-[0_4px_10px_rgba(var(--accent-rgb),0.2)]" style={{ transform: `translateZ(10px)` }}>
-                   <div className="absolute inset-0 bg-[var(--accent)]/10" />
-                   <div className="fe-hologram text-[6px] text-[var(--accent)] opacity-80 p-1 text-center font-bold absolute bottom-0 w-full bg-black/50">{card.name}</div>
-                </div>
-             ))}
-          </div>
-       )}
-    </div>
-  );
-}
-
-function PlayPile({ cards }: { cards: MatchCard[] }) {
-  return (
-    <div 
-      className="relative [transform-style:preserve-3d] flex items-center justify-center" 
-      style={{ width: 'var(--card-w)', height: 'var(--card-h)' }}
-    >
-       <div className="absolute inset-0 bg-white/5 border border-white/10 rounded-2xl [transform:translateZ(-10px)]" />
-       <AnimatePresence>
-          {cards.map((card, i) => (
-             <motion.div
-               key={card.id}
-               initial={{ opacity: 0, y: -200, rotateX: -90 }}
-               animate={{ 
-                 opacity: 1, 
-                 y: 0, 
-                 rotateX: 0, 
-                 z: i * 2, 
-                 rotate: (i - (cards.length-1)/2) * 5,
-                 x: `calc(${(i - (cards.length-1)/2)} * (var(--card-w) * 0.2))`
-               }}
-               style={{ transformStyle: 'preserve-3d' }}
-               className="absolute inset-0"
-             >
-                <PhysicalCard card={card} className="w-full h-full shadow-2xl" />
-             </motion.div>
-          ))}
-       </AnimatePresence>
-    </div>
-  );
-}
-
-function FloatingDeck({ count, canDraw, onDraw, highlighted }: { count: number; canDraw: boolean; onDraw: () => void; highlighted?: boolean }) {
-  return (
-    <div 
-      className={`relative group cursor-pointer transition-all ${highlighted ? 'ring-4 ring-[var(--accent-soft)] ring-offset-8 ring-offset-black rounded-[var(--radius)]' : ''}`} 
-      onClick={onDraw}
-      style={{ width: 'var(--card-w)', height: 'var(--card-h)' }}
-    >
-       {[...Array(3)].map((_, i) => (
-         <div key={i} className="absolute inset-0 bg-[var(--bg)] border border-[var(--border)] rounded-[var(--radius)]" style={{ transform: `translateZ(${i * 2}px) translateY(-${i}px)` }} />
-       ))}
-       <motion.div whileHover={canDraw ? { y: -5 } : {}} className={`absolute inset-0 bg-[var(--panel-alt)] border-2 border-[var(--border)] rounded-[var(--radius)] flex items-center justify-center overflow-hidden ${!canDraw ? 'opacity-30' : ''}`}>
-          <div className="fe-grid" />
-          <div className="relative z-10 flex flex-col items-center gap-1">
-             <div className="w-8 h-8 rounded-full border-2 border-white/10 flex items-center justify-center">
-                <div className="w-2 h-2 bg-[var(--accent-soft)] rounded-full shadow-[0_0_10px_var(--accent-soft)]" />
-             </div>
-             <span className="text-[8px] font-black tracking-[0.4em] opacity-40">DECK ({count})</span>
-          </div>
-       </motion.div>
-    </div>
-  );
-}
-
-function OpponentHand({ count, angle, player, isActive }: { count: number; angle: number; player: MatchPlayer; isActive: boolean }) {
-  return (
-    <div 
-      className="absolute flex items-end justify-center pointer-events-none"
-      style={{ 
-        transform: `rotate(${angle}deg) translateY(var(--opp-offset)) rotateX(-30deg)`,
-        transformStyle: 'preserve-3d',
-        top: '50%',
-        left: '50%',
-      }}
-    >
-       <div className="absolute left-1/2 top-0 -translate-x-1/2 flex justify-center [transform-style:preserve-3d] w-0">
-          {[...Array(Math.max(0, count))].map((_, i) => (
-             <motion.div
-               key={i}
-               style={{ 
-                 width: 'calc(var(--card-w) * 0.65)',
-                 height: 'calc(var(--card-h) * 0.65)',
-                 transform: `translateX(calc(${(i - (count-1)/2)} * (var(--card-w) * 0.25))) rotate(${(i - (count-1)/2) * 8}deg)`,
-                 transformOrigin: 'bottom center',
-                 transformStyle: 'preserve-3d',
-                 position: 'absolute'
-               }}
-               className="bg-[var(--bg)] border border-[var(--border)] rounded-[var(--radius)] shadow-xl overflow-hidden -top-full -translate-y-1/2"
-             >
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,var(--panel-alt)_0%,var(--bg)_100%)]" />
-                <div className="fe-grid opacity-30" />
-                <div className="absolute inset-0 flex items-center justify-center">
-                   <div className="w-6 h-6 rounded-full border border-white/5 flex items-center justify-center opacity-20">
-                      <div className="w-1.5 h-1.5 bg-[var(--accent-soft)] rounded-full" />
-                   </div>
-                </div>
-                <div className="absolute bottom-1 left-0 right-0 text-center opacity-10">
-                   <span className="text-[4px] fe-hologram tracking-widest text-[var(--accent-soft)] uppercase">Fractured Earth</span>
-                </div>
-             </motion.div>
-            ))}
-        </div>
-
-       <div className="fe-hologram flex flex-col pointer-events-auto" style={{ transform: 'translateZ(40px) translateY(80px)', minWidth: '150px' }}>
-          <PlayerStatsHUD player={player} isActive={isActive} />
-       </div>
     </div>
   );
 }
@@ -161,16 +49,13 @@ export default function TabletopPage() {
   const [state, setState] = useState<StateEnvelope | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
-  const [selectedTargetId, setSelectedTargetId] = useState<string | null>(null);
 
   const userId = useMemo(() => loadLocalSettings().userId, []);
   const payload = state?.payload;
   const myPlayer = payload?.players.find(p => p.id === userId);
-  const activePlayer = payload?.players[payload.activePlayerIndex];
+  const activePlayer = payload?.players[payload?.activePlayerIndex ?? 0];
   const isMyTurn = activePlayer?.id === userId;
   const opponents = payload?.players.filter(p => p.id !== userId) || [];
-  const selectedCard = myPlayer?.hand.find(c => c.id === selectedCardId);
 
   async function sync() {
     try {
@@ -217,8 +102,6 @@ export default function TabletopPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setState(data);
-      setSelectedCardId(null);
-      setSelectedTargetId(null);
     } catch (e: any) {
       alert(e.message);
     } finally {
@@ -246,81 +129,40 @@ export default function TabletopPage() {
   }
 
   return (
-    <main className="fe-scene overflow-hidden relative cursor-crosshair">
-      <div className="fe-vignette z-10" />
-      <div className="fe-grid opacity-20 pointer-events-none" />
+    <main className="fe-scene overflow-hidden relative cursor-default bg-black">
+      <div className="fe-vignette z-30 pointer-events-none" />
+      <div className="fe-grid opacity-10 pointer-events-none" />
 
-      {/* TOP HEADER */}
-      <div className="absolute top-0 left-0 right-0 p-8 flex justify-between items-start z-50">
+      {/* TOP HEADER (UI OVERLAY) */}
+      <div className="absolute top-0 left-0 right-0 p-8 flex justify-between items-start z-50 pointer-events-none">
           <div className="flex flex-col">
-             <div className="text-[10px] font-black uppercase tracking-[0.5em] text-[var(--accent)] opacity-60">Session_Protocol</div>
+             <div className="text-[10px] font-black uppercase tracking-[0.5em] text-[var(--accent)] opacity-60">Neural_Simulation_Link</div>
              <h1 className="text-4xl font-black italic tracking-tighter text-[var(--fg)] fe-flicker uppercase">Sector_{code}</h1>
           </div>
-          <div className="flex gap-4">
-             <Link href="/lan" className="fe-holo-btn !py-2 !px-4 text-xs opacity-50 hover:opacity-100">Abort</Link>
+          <div className="flex gap-4 pointer-events-auto">
+             <Link href="/lan" className="fe-holo-btn !py-2 !px-4 text-xs opacity-50 hover:opacity-100">Abort Link</Link>
           </div>
       </div>
 
-      {/* ARENA 3D SPACE */}
-      <div className="absolute inset-0 flex items-center justify-center [perspective:2000px]">
-          <div className="relative w-full h-full [transform-style:preserve-3d]">
-              
-              {/* Opponents Around Table */}
-              {opponents.map((opp, i) => {
-                 const angles = opponents.length === 1 ? [180] : opponents.length === 2 ? [150, 210] : [135, 180, 225];
-                 return (
-                    <OpponentHand 
-                      key={opp.id} 
-                      player={opp} 
-                      count={opp.hand.length} 
-                      isActive={activePlayer?.id === opp.id}
-                      angle={angles[i]} 
-                    />
-                 );
-              })}
+      {/* PHASER ENGINE (Z-20) */}
+      <PhaserGame 
+         roomCode={code} 
+         gameState={payload} 
+         onAction={(action) => performAction(action)} 
+      />
 
-              {/* Central Play Pile */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 [transform:rotateX(60deg) translateZ(0)]">
-                  <PlayPile cards={payload?.turnPile || []} />
-              </div>
-
-              {/* Draw Pile (Left) */}
-              <div className="absolute top-1/2 left-[20%] -translate-y-1/2 [transform:rotateX(60deg) translateZ(20px)]">
-                  <div className="flex flex-col items-center gap-4">
-                     <FloatingDeck 
-                        count={payload?.drawPile.length || 0} 
-                        canDraw={isMyTurn && payload?.cardsPlayedThisTurn === 0} 
-                        onDraw={() => isMyTurn && performAction({ type: 'DRAW_CARD' })}
-                        highlighted={isMyTurn && payload?.cardsPlayedThisTurn === 0}
-                     />
-                     <span className="fe-hologram text-[6px] text-white/30 uppercase tracking-[0.3em]">Sector_Draw_Stack</span>
-                  </div>
-              </div>
-
-              {/* Discard Pile (Right) */}
-              <div className="absolute top-1/2 right-[20%] -translate-y-1/2 [transform:rotateX(60deg) translateZ(20px)]">
-                 <div className="flex flex-col items-center gap-4 opacity-50">
-                    <div className="w-[var(--card-w)] h-[var(--card-h)] border-2 border-dashed border-white/10 rounded-[var(--radius)] flex items-center justify-center">
-                       <span className="text-[8px] font-black tracking-widest text-white/20 uppercase">Recall</span>
-                    </div>
-                    <span className="fe-hologram text-[6px] text-white/30 uppercase tracking-[0.3em]">Recall_Buffer</span>
-                 </div>
-              </div>
-          </div>
-      </div>
-
-      {/* PLAYER HUD & HAND (BOTTOM) */}
+      {/* PLAYER HUD (STATIC UI) */}
       <div className="absolute bottom-0 left-0 right-0 p-8 flex flex-col items-center pointer-events-none z-50">
           
           {/* Action Status */}
-          <div className="mb-8 flex flex-col items-center">
+          <div className="mb-4 flex flex-col items-center">
              <AnimatePresence mode="wait">
                 {isMyTurn ? (
                    <motion.div 
                      initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
                      className="fe-hologram text-[var(--accent)] font-black text-sm uppercase tracking-[0.5em] bg-[var(--accent)]/5 px-6 py-2 rounded-full border border-[var(--accent)]/20 shadow-[0_0_20px_rgba(var(--accent-rgb),0.1)] mb-4"
                    >
-                      Your Turn - Select Protocol
+                      Your Turn - Manipulate Data
                    </motion.div>
                 ) : (
                    <motion.div 
@@ -338,97 +180,23 @@ export default function TabletopPage() {
                   disabled={busy}
                   className="fe-holo-btn pointer-events-auto !py-2 !px-8 text-xs border-white/20 !bg-white/5 hover:!bg-white/10"
                 >
-                  End Turn
+                  End Protocol (Turn)
                 </button>
              )}
           </div>
 
-          <div className="w-full max-w-6xl flex items-end justify-between gap-12">
+          <div className="w-full max-w-7xl flex items-end justify-between">
               <div className="pointer-events-auto">
                  {myPlayer && <PlayerStatsHUD player={myPlayer} isActive={isMyTurn} />}
               </div>
 
-              {/* Physical Hand Fan */}
-              <div className="flex-1 flex justify-center [perspective:1000px] h-[300px] pointer-events-auto">
-                  <div className="relative w-full max-w-2xl flex justify-center items-end h-full">
-                     {myPlayer?.hand.map((card, i) => {
-                        const count = myPlayer.hand.length;
-                        const angle = (i - (count-1)/2) * (count > 5 ? 30/count : 8);
-                        const x = (i - (count-1)/2) * (count > 6 ? 400/count : 60);
-                        const y = Math.abs(i - (count-1)/2) * (count > 5 ? 10/count : 5);
-                        
-                        return (
-                           <motion.div
-                              key={card.id}
-                              initial={{ y: 200, opacity: 0 }}
-                              animate={{ 
-                                y: selectedCardId === card.id ? -100 : y,
-                                x,
-                                rotate: angle,
-                                opacity: 1,
-                                zIndex: selectedCardId === card.id ? 100 : i
-                              }}
-                              whileHover={{ y: selectedCardId === card.id ? -100 : -20, scale: 1.05 }}
-                              className="absolute bottom-0 cursor-pointer origin-bottom"
-                              onClick={() => {
-                                 if (selectedCardId === card.id) setSelectedCardId(null);
-                                 else setSelectedCardId(card.id);
-                              }}
-                           >
-                              <PhysicalCard 
-                                 card={card} 
-                                 isSelected={selectedCardId === card.id}
-                                 className="w-[140px] h-[210px] shadow-2xl" 
-                              />
-                           </motion.div>
-                        );
-                     })}
-                  </div>
-              </div>
-
-              {/* Action Sidebar / Selected Card Info */}
-              <div className="w-64 h-64 flex flex-col justify-end pointer-events-auto">
-                 <AnimatePresence>
-                    {selectedCard && (
-                       <motion.div 
-                         initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}
-                         className="p-6 rounded-[var(--radius)] bg-[var(--panel)] border border-[var(--accent)]/30 backdrop-blur-3xl space-y-4"
-                       >
-                          <div className="flex flex-col">
-                             <span className="text-[8px] font-black uppercase text-[var(--accent)] tracking-widest">Protocol_Details</span>
-                             <h4 className="text-xl font-black italic tracking-tighter uppercase">{selectedCard.name}</h4>
-                          </div>
-                          
-                          <p className="text-[10px] text-white/50 leading-relaxed uppercase tracking-tighter">{selectedCard.description || selectedCard.effect || 'No special directives.'}</p>
-                          
-                          {selectedCard.type === 'DISASTER' && selectedCard.disasterKind !== 'GLOBAL' && (
-                             <div className="space-y-1">
-                                <label className="text-[7px] font-black uppercase text-rose-500 tracking-widest">Select Target</label>
-                                <select 
-                                  value={selectedTargetId || ''} 
-                                  onChange={(e) => setSelectedTargetId(e.target.value)}
-                                  className="w-full bg-black/40 border border-rose-500/30 rounded px-2 py-1 text-xs text-white"
-                                >
-                                   <option value="">Choose Witness...</option>
-                                   {opponents.map(o => <option key={o.id} value={o.id}>{o.displayName}</option>)}
-                                </select>
-                             </div>
-                          )}
-
-                          <button 
-                            disabled={busy || !isMyTurn}
-                            onClick={() => performAction({ 
-                               type: 'PLAY_CARD', 
-                               cardId: selectedCard.id, 
-                               targetPlayerId: selectedTargetId || undefined 
-                            })}
-                            className="w-full fe-holo-btn !py-3 !text-sm border-[var(--accent)] !bg-[var(--accent)]/10 hover:!bg-[var(--accent)]/20"
-                          >
-                             Execute Protocol
-                          </button>
-                       </motion.div>
-                    )}
-                 </AnimatePresence>
+              {/* Opponents Stats (Pinned to Screen corners or sides) */}
+              <div className="flex gap-4">
+                 {opponents.map(opp => (
+                    <div key={opp.id} className="pointer-events-auto opacity-70 hover:opacity-100 transition-opacity">
+                       <PlayerStatsHUD player={opp} isActive={activePlayer?.id === opp.id} />
+                    </div>
+                 ))}
               </div>
           </div>
       </div>
