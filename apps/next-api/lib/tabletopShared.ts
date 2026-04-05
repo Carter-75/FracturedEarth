@@ -1,8 +1,8 @@
 'use client';
 
-import { MatchCard, MatchPlayer, CardType } from '@/types/game';
+import { MatchCard, MatchPlayer, CardType, MatchPayload } from '@/types/game';
 
-export { type MatchCard, type MatchPlayer, type CardType };
+export { type MatchCard, type MatchPlayer, type CardType, type MatchPayload };
 
 export interface TacticalData {
   summary: string;
