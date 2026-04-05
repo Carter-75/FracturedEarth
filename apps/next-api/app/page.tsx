@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { loadMatchHistory, loadRoomPin, type LocalMatchOutcome, type LocalRoomPin } from '@/lib/localProfile';
+import { loadMatchHistory, loadRoomPin, clearRoomPin, type LocalMatchOutcome, type LocalRoomPin } from '@/lib/localProfile';
 
 export default function HomePage() {
   const [history, setHistory] = useState<LocalMatchOutcome[]>([]);
@@ -10,11 +10,48 @@ export default function HomePage() {
 
   useEffect(() => {
     setHistory(loadMatchHistory());
-    const syncPin = () => setActivePin(loadRoomPin());
+    
+    let isValidating = false;
+
+    const syncPin = async () => {
+      const pin = loadRoomPin();
+      if (!pin) {
+        setActivePin(null);
+        return;
+      }
+
+      // If we already have a pin in state, don't re-validate every 5s unless it's gone
+      if (activePin?.code === pin.code && !isValidating) {
+        return;
+      }
+
+      // Initial validation or new pin detected
+      if (!isValidating) {
+        isValidating = true;
+        try {
+          const res = await fetch(`/api/rooms/${pin.code}/validate?userId=${encodeURIComponent(pin.userId)}`);
+          const data = await res.json();
+          if (res.ok && data.valid) {
+            setActivePin(pin);
+          } else {
+            console.log('[Session] Server-side validation failed:', data.reason);
+            clearRoomPin();
+            setActivePin(null);
+          }
+        } catch (e) {
+          console.error('[Session] Validation check failed', e);
+          // On network error, we keep the pin for 1min local grace period (existing behavior)
+          setActivePin(pin);
+        } finally {
+          isValidating = false;
+        }
+      }
+    };
+
     syncPin();
     const timer = setInterval(syncPin, 5000);
     return () => clearInterval(timer);
-  }, []);
+  }, [activePin?.code]);
 
   return (
     <main className="fe-scene bg-black overflow-y-auto !justify-start md:!justify-center !items-start pb-20">

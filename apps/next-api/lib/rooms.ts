@@ -391,3 +391,35 @@ export async function getRoomsByMode(mode: string): Promise<any[]> {
     return [];
   }
 }
+
+/**
+ * Validate a user's session in a room
+ */
+export async function validateRoomMember(codeRaw: string, userId: string): Promise<{ valid: boolean; reason?: string }> {
+  await dbConnect();
+  const code = codeRaw.trim().toUpperCase();
+  const room = await Room.findOne({ code });
+
+  if (!room) {
+    return { valid: false, reason: 'Room not found' };
+  }
+
+  if (room.status === 'CLOSED') {
+    return { valid: false, reason: 'Room is closed' };
+  }
+
+  const member = room.members.find((m: any) => m.userId === userId);
+  if (!member) {
+    return { valid: false, reason: 'User not a member' };
+  }
+
+  // If the room is OPEN, check for staleness
+  if (room.status === 'OPEN') {
+     const now = Date.now();
+     if (now - member.lastHeartbeatEpochMs > RECONNECT_GRACE_MS) {
+        return { valid: false, reason: 'Session expired' };
+     }
+  }
+
+  return { valid: true };
+}
