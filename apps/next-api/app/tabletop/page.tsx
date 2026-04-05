@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -42,7 +42,7 @@ function PlayerStatsHUD({ player, isActive }: { player: MatchPlayer; isActive: b
 
 // --- MAIN PAGE ---
 
-export default function TabletopPage() {
+function TabletopGameContent() {
   const search = useSearchParams();
   const router = useRouter();
   const code = search.get('code')?.toUpperCase() || '';
@@ -203,3 +203,17 @@ export default function TabletopPage() {
     </main>
   );
 }
+
+export default function TabletopPage() {
+  return (
+    <Suspense fallback={
+       <div className="fe-scene flex flex-col items-center justify-center bg-black">
+          <div className="w-12 h-12 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin mb-4" />
+          <div className="fe-hologram animate-pulse text-[var(--accent)]">ESTABLISHING_NEURAL_LINK...</div>
+       </div>
+    }>
+       <TabletopGameContent />
+    </Suspense>
+  );
+}
+
