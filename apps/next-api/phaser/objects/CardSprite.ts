@@ -50,7 +50,7 @@ export class CardSprite extends Phaser.GameObjects.Container {
     this.typeText = scene.add.text(width/2 - 15, -height/2 + 15, card.type, {
       fontSize: '10px',
       fontFamily: 'Inter',
-      fontWeight: '900',
+      fontStyle: '900',
       color: '#ffffff'
     }).setOrigin(1, 0).setAlpha(0.6);
     this.add(this.typeText);
@@ -71,7 +71,7 @@ export class CardSprite extends Phaser.GameObjects.Container {
     this.pointsText = scene.add.text(-width/2 + 15, height/2 - 15, `+${card.pointsDelta ?? 0}`, {
       fontSize: '14px',
       fontFamily: 'Inter',
-      fontWeight: '900',
+      fontStyle: '900',
       color: '#ffffff'
     }).setOrigin(0, 1);
     this.add(this.pointsText);
