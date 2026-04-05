@@ -1,4 +1,4 @@
-import Phaser from 'phaser';
+import * as Phaser from 'phaser';
 import { THEMES, Theme } from '../../lib/themeConfig';
 
 export class SettingsScene extends Phaser.Scene {

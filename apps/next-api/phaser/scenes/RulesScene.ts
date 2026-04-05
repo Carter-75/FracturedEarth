@@ -1,4 +1,4 @@
-import Phaser from 'phaser';
+import * as Phaser from 'phaser';
 import { THEMES, Theme } from '../../lib/themeConfig';
 
 export class RulesScene extends Phaser.Scene {
@@ -48,7 +48,7 @@ export class RulesScene extends Phaser.Scene {
     });
 
     panel.add(bg);
-    bg.sendToBack();
+    bg.setToBack();
 
     // Back Button
     this.createButton(width / 2, height * 0.88, 'ACKNOWLEDGE_PROTOCOL', () => this.scene.start('HomeScene'));

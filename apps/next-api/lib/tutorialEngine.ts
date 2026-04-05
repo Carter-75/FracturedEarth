@@ -140,6 +140,7 @@ export async function buildInitialMatch(humanUserId: string): Promise<MatchPaylo
     drawPile,
     discardPile: [],
     turnPile: [],
+    turnHistory: [],
     topCard: undefined,
     turnDirection: 1,
     isGlobalDisasterPhase: false,

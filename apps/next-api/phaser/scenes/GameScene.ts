@@ -1,4 +1,4 @@
-import Phaser from 'phaser';
+import * as Phaser from 'phaser';
 import { cardTheme, describeCardEffect } from '../../lib/tabletopShared';
 import { THEMES, Theme } from '../../lib/themeConfig';
 
