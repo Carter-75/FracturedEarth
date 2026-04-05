@@ -108,6 +108,7 @@ export async function buildInitialMatch(humanUserId: string): Promise<MatchPaylo
       findCard('chaos_orbital_strike'),
     ],
     powers: [],
+    traits: [],
     triggers: [],
   };
 
@@ -120,6 +121,7 @@ export async function buildInitialMatch(humanUserId: string): Promise<MatchPaylo
     health: 5,
     hand: [findCard('disaster_megaquake'), findCard('survival_deep_core_drill')],
     powers: [],
+    traits: [],
     triggers: [],
   };
 
