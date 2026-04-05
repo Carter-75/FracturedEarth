@@ -20,6 +20,8 @@ export class PreloadScene extends Phaser.Scene {
        this.load.image(`bg-${type}`, `/assets/type-bgs/${type}.png`);
     });
 
+    this.load.image('card-back', '/assets/card-back.png');
+
     // 3. Fonts (Already in Web)
     // We assume Spectral and Inter are loaded in CSS, which is true for Next.js
 

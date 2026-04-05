@@ -119,14 +119,7 @@ function TabletopGameContent() {
      );
   }
 
-  if (!state) {
-    return (
-      <div className="fe-scene flex flex-col items-center justify-center">
-         <div className="w-12 h-12 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin mb-4" />
-         <div className="fe-hologram animate-pulse text-[var(--accent)]">SYNCING_SECTOR_STATE...</div>
-      </div>
-    );
-  }
+  if (!state) return null;
 
   return (
     <main className="fe-scene overflow-hidden relative cursor-default bg-black">

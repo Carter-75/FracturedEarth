@@ -48,7 +48,7 @@ export default function PhaserGame({ roomCode, gameState, onAction }: PhaserGame
         gameRef.current = null;
       }
     };
-  }, [roomCode, gameState]);
+  }, [roomCode]);
 
   // Sync state updates to Phaser
   useEffect(() => {
