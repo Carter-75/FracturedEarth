@@ -79,7 +79,7 @@ export async function getMatchState(roomCode: string): Promise<StateEnvelope | n
   let discUserId = '';
   
   room.members.forEach((m: any) => {
-    if (!m.isBot && (now - m.lastHeartbeatEpochMs > 5000)) {
+    if (!m.isBot && (now - m.lastHeartbeatEpochMs > 60000)) {
       isPaused = true;
       discUserId = m.userId;
     }

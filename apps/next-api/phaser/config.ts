@@ -3,7 +3,7 @@ import { BootScene } from './scenes/BootScene';
 import { PreloadScene } from './scenes/PreloadScene';
 import { TabletopScene } from './scenes/TabletopScene';
 
-export function createGame(parent: HTMLElement) {
+export function createGame(parent: HTMLElement, initialData?: any) {
   const config: Phaser.Types.Core.GameConfig = {
     type: Phaser.AUTO,
     parent: parent,
@@ -21,6 +21,13 @@ export function createGame(parent: HTMLElement) {
     scale: {
       mode: Phaser.Scale.RESIZE,
       autoCenter: Phaser.Scale.CENTER_BOTH
+    },
+    callbacks: {
+      preBoot: (game) => {
+        if (initialData) {
+          game.registry.set('INITIAL_DATA', initialData);
+        }
+      }
     }
   };
 

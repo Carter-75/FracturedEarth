@@ -95,6 +95,7 @@ export interface MatchPayload {
   botTurnReplay?: BotTurnEvent[];
   isPaused?: boolean;
   disconnectedUserId?: string;
+  previousState?: any;
 }
 
 export interface BotTurnEvent {
@@ -112,7 +113,8 @@ export type MatchAction =
   | { type: "PLAY_CARD"; cardId: string; targetPlayerId?: string }
   | { type: "DISCARD_CARD"; cardId: string }
   | { type: "END_TURN" }
-  | { type: "SET_WINNER"; winnerUserId: string };
+  | { type: "SET_WINNER"; winnerUserId: string }
+  | { type: "UNDO_LAST_TURN" };
 
 export interface StateEnvelope {
   revision: number;

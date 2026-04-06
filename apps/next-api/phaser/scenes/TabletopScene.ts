@@ -259,20 +259,38 @@ export class TabletopScene extends Phaser.Scene {
     const others = this.gameState.players.filter(p => p.id !== this.userId);
     const width = this.cameras.main.width;
     
-    others.forEach((player) => {
-        const startX = width / 2;
+    const opponentCount = others.length;
+    const opponentSpacing = width / (opponentCount + 1);
+
+    others.forEach((player, oppIndex) => {
+        const startX = opponentSpacing * (oppIndex + 1);
         const startY = 80;
-        const spacing = 30;
-        const totalW = (player.hand.length - 1) * spacing;
+        const cardSpacing = 20;
+        const totalW = (player.hand.length - 1) * cardSpacing;
 
         player.hand.forEach((card, i) => {
-            const back = new CardBackSprite(this, startX - (totalW/2) + (i * spacing), startY);
-            back.setScale(0.4);
+            const back = new CardBackSprite(this, startX - (totalW/2) + (i * cardSpacing), startY);
+            back.setScale(0.3);
             back.setAngle(180);
+            back.setDepth(i + 1);
             this.opponents.push(back);
         });
 
-        this.opponents.push(this.add.text(startX, startY + 60, player.displayName, { fontFamily: 'Spectral', fontSize: '10px', color: '#ffffff' }).setOrigin(0.5).setAlpha(0.6));
+        const nameText = this.add.text(startX, startY + 50, player.displayName, { 
+            fontFamily: 'Inter', 
+            fontSize: '12px', 
+            fontStyle: '900',
+            color: '#ffffff' 
+        }).setOrigin(0.5).setAlpha(0.8).setDepth(100);
+        
+        const healthText = this.add.text(startX, startY + 65, `${player.health}HP | ${player.survivalPoints} NRG`, {
+            fontFamily: 'Inter',
+            fontSize: '10px',
+            color: '#00ffcc'
+        }).setOrigin(0.5).setAlpha(0.6).setDepth(100);
+
+        this.opponents.push(nameText);
+        this.opponents.push(healthText);
     });
   }
 }

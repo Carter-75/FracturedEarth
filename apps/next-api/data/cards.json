@@ -3160,6 +3160,21 @@
           }
         }
       ]
+    },
+    {
+      "id": "adapt_kinetic_field",
+      "name": "Kinetic Field",
+      "type": "ADAPT",
+      "description": "Tutorial: Block next negative effect.",
+      "primitives": [
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "block_negative_effect",
+            "target": "self"
+          }
+        }
+      ]
     }
   ],
   "CHAOS": [

@@ -51,8 +51,7 @@ export default function StorePage() {
     }
   }, []);
 
-  async function handlePurchase(pkg: typeof PACKAGES[number]) {
-    if (!isApp) return;
+  async function handlePurchase(pkg: (typeof PACKAGES)[number]) {
     setLoading(true);
     try {
       console.log(`Initiating purchase for ${pkg.rcId}`);
@@ -139,8 +138,14 @@ export default function StorePage() {
                   </button>
                ) : (
                   <div className="w-full space-y-4">
-                     <button disabled className="fe-holo-btn w-full !py-4 !bg-white/5 !text-white/20 !cursor-not-allowed">Web Link Restricted</button>
-                     <p className="text-[10px] fe-hologram text-white/20 uppercase tracking-widest">Use Mobile App to Purchase</p>
+                    <button
+                      disabled={loading}
+                      onClick={() => handlePurchase(pkg)}
+                      className="fe-holo-btn w-full !py-4 !border-sky-500/30 !text-white/60 hover:!bg-sky-500/10 hover:!text-white hover:!border-sky-500 transition-all font-black"
+                    >
+                      Initialize Sync
+                    </button>
+                    <p className="text-[10px] fe-hologram text-white/20 uppercase tracking-widest">Web Preview Mode</p>
                   </div>
                )}
             </motion.div>

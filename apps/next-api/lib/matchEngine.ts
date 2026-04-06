@@ -54,10 +54,13 @@ async function starterDeck(rng: () => number, fullDeck: MatchCard[]): Promise<Ma
 }
 
 function evaluateWinner(state: MatchPayload): string | undefined {
+  const alive = state.players.filter((p) => p.health > 0);
+  if (alive.length === 1) return alive[0].id;
+  
   const byScore = state.players.find((p) => p.survivalPoints >= WINNING_POINTS)?.id;
   if (byScore) return byScore;
-  const alive = state.players.filter((p) => p.health > 0);
-  return alive.length === 1 ? alive[0].id : undefined;
+  
+  return undefined;
 }
 
 function getPlayerMaxHand(player: MatchPlayer): number {
@@ -68,7 +71,7 @@ function getPlayerMaxHand(player: MatchPlayer): number {
   return MAX_HAND_SIZE + bonus;
 }
 
-function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string): MatchPayload {
+function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string, rng?: () => number): MatchPayload {
   const activeIndex = state.activePlayerIndex;
   
   // Safely deep clone the players array so sub-function mutations are retained cumulatively
@@ -85,6 +88,9 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string):
   const primitives = card.primitives;
   if (!primitives || primitives.length === 0) return next;
 
+  // Use provided rng or fallback for safety
+  const innerRng = rng || pseudoRandom(Date.now());
+
   // Helper to interpret targets
   const getTargetIndices = (targetStr: string): number[] => {
      if (targetStr === 'self') return [activeIndex];
@@ -95,9 +101,9 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string):
      if (targetStr === 'all') return next.players.map((_, i) => i);
      if (targetStr === 'all_opponents') return next.players.map((_, i) => i).filter(i => i !== activeIndex);
      if (targetStr === 'random_opponent') {
-         const opps = next.players.map((_, i) => i).filter(i => i !== activeIndex);
+         const opps = next.players.map((_, i) => i).filter(i => i !== activeIndex && next.players[i].health > 0);
          if (opps.length === 0) return [];
-         return [opps[Math.floor(Math.random() * opps.length)]];
+         return [opps[Math.floor(innerRng() * opps.length)]];
      }
      if (targetStr === 'inherited') {
          return targetId ? getTargetIndices('target_player') : [activeIndex];
@@ -136,13 +142,342 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string):
       if (targetId === activeP.id) {
           const others = next.players.filter(p => p.id !== activeP.id);
           if (others.length > 0) {
-              const randomTarget = others[Math.floor(Math.random() * others.length)];
-              targetId = randomTarget.id;
+              const randomTargetIndex = Math.floor(innerRng() * others.length);
+              targetId = others[randomTargetIndex].id;
           }
       }
   }
 
   let isTruncated = false;
+
+  const executeAtomic = (type: string, params: any, targetIndex: number = activeIndex) => {
+      if (isTruncated) return;
+      const p = next.players[targetIndex];
+      const active = next.players[activeIndex];
+      
+      switch (type) {
+          case 'MODIFY_POINTS': {
+            let finalAmount = params.amount * (params.multiplier || 1);
+            if (finalAmount < 0 && (p.twistEffect === 'prevent_negative' || p.triggers.some(t => t.kind === 'NEGATE_NEXT_NEGATIVE_EFFECT'))) {
+                p.twistEffect = undefined;
+                p.triggers = p.triggers.filter(t => t.kind !== 'NEGATE_NEXT_NEGATIVE_EFFECT');
+                return;
+            }
+            if (finalAmount < 0 && card?.type === 'DISASTER' && p.triggers.some(t => t.kind === 'REDUCE_INCOMING_DISASTER_1')) {
+                finalAmount = Math.min(0, finalAmount + 1);
+            }
+            if (finalAmount > 0 && p.triggers.some(t => t.kind === 'DOUBLE_NEXT_POINTS')) {
+                finalAmount *= 2;
+                p.triggers = p.triggers.filter(t => t.kind !== 'DOUBLE_NEXT_POINTS');
+            }
+            if (finalAmount < 0 && p.triggers.some(t => t.kind === 'PREVENT_NEXT_POINT_LOSS')) {
+                p.triggers = p.triggers.filter(t => t.kind !== 'PREVENT_NEXT_POINT_LOSS');
+                return;
+            }
+
+            // Epicenter Scaling: Global disasters/cataclysms penalize drawer +1
+            if (finalAmount < 0 && (card.disasterKind === 'GLOBAL' || card.type === 'CATACLYSM') && p.id === active.id) {
+                finalAmount -= 1;
+            }
+
+            p.survivalPoints += finalAmount;
+            break;
+         }
+         case 'MODIFY_POINTS_SCALED': {
+            const mult = (params.multiplier || 1);
+            if (params.scaleBy === 'pinned_powers') {
+               p.survivalPoints += (p.powers.length * params.multiplier * mult);
+            }
+            if (params.scaleBy === 'all_pinned_powers') {
+               const total = next.players.reduce((acc, curr) => acc + curr.powers.length, 0);
+               p.survivalPoints += (total * params.multiplier * mult);
+            }
+            break;
+         }
+         case 'MODIFY_HEALTH': {
+            let finalAmountH = params.amount * (params.multiplier || 1);
+            if (finalAmountH < 0 && (p.twistEffect === 'prevent_negative' || p.triggers.some(t => t.kind === 'NEGATE_NEXT_NEGATIVE_EFFECT'))) {
+                p.twistEffect = undefined;
+                p.triggers = p.triggers.filter(t => t.kind !== 'NEGATE_NEXT_NEGATIVE_EFFECT');
+                break;
+            }
+            if (finalAmountH < 0 && card?.type === 'DISASTER' && p.triggers.some(t => t.kind === 'REDUCE_INCOMING_DISASTER_1')) {
+                finalAmountH = Math.min(0, finalAmountH + 1);
+            }
+            if (finalAmountH > 0 && p.triggers.some(t => t.kind === 'PREVENT_HEALTH_REGAIN')) {
+                break;
+            }
+            if (finalAmountH < 0 && p.triggers.some(t => t.kind === 'NEGATE_NEXT_NEGATIVE_EFFECT')) {
+                p.triggers = p.triggers.filter(t => t.kind !== 'NEGATE_NEXT_NEGATIVE_EFFECT');
+                break;
+            }
+            if (finalAmountH < 0 && card?.type === 'DISASTER' && p.triggers.some(t => t.kind === 'NEGATE_NEXT_DISASTER')) {
+                p.triggers = p.triggers.filter(t => t.kind !== 'NEGATE_NEXT_DISASTER');
+                break;
+            }
+
+            // Epicenter Scaling: Global disasters/cataclysms penalize drawer +1
+            if (finalAmountH < 0 && (card.disasterKind === 'GLOBAL' || card.type === 'CATACLYSM') && p.id === active.id) {
+                finalAmountH -= 1;
+            }
+
+            p.health = Math.min(INITIAL_HEALTH, Math.max(0, p.health + finalAmountH));
+            break;
+         }
+         case 'MODIFY_HEALTH_SCALED':
+            if (params.scaleBy === 'pinned_adapt') {
+               p.health = Math.min(INITIAL_HEALTH, p.health + (p.powers.filter(c => c.type === 'ADAPT').length * params.multiplier));
+            }
+            break;
+         case 'MODIFY_POINTS_RANDOM':
+            p.survivalPoints += Math.floor(innerRng() * (params.max - params.min + 1)) + params.min;
+            break;
+         case 'MODIFY_HEALTH_RANDOM':
+            p.health = Math.min(INITIAL_HEALTH, Math.max(0, p.health + (Math.floor(innerRng() * (params.max - params.min + 1)) + params.min) * (params.multiplier || 1)));
+            break;
+         case 'SET_POINTS':
+            p.survivalPoints = params.amount;
+            break;
+         
+         case 'DRAW_CARDS': {
+            const targetIndexLocal = targetIndex; 
+            if (activeIndex === targetIndexLocal) {
+               for(let i=0; i<params.amount; i++) {
+                  if (isTruncated) break;
+                  next = drawForActive(next, undefined, innerRng);
+                  // If a special card was triggered, it would have changed topCard or turnPile
+                  if (next.topCard?.type === 'TWIST' || next.topCard?.type === 'CATACLYSM') {
+                      isTruncated = true;
+                  }
+               }
+            } else {
+               // Drawing for someone else
+               for(let i=0; i<(params.drawAmount || params.amount); i++) {
+                  const swapIdx = next.activePlayerIndex;
+                  next.activePlayerIndex = targetIndex;
+                  next = drawForActive(next, undefined, innerRng);
+                  next.activePlayerIndex = swapIdx;
+               }
+            }
+            break;
+          }
+         case 'DISCARD_CARDS':
+            for (let i = 0; i < params.amount; i++) {
+               if (p.hand.length === 0) break;
+               const dropped = p.hand.pop()!;
+               next.discardPile.push(dropped);
+            }
+            break;
+         case 'DISCARD_AND_DRAW':
+            if (p.hand.length >= params.discardAmount) {
+               const discarded = p.hand.slice(0, params.discardAmount);
+               p.hand = p.hand.slice(params.discardAmount);
+               next.discardPile = [...next.discardPile, ...discarded];
+               for(let i=0; i<params.drawAmount; i++) {
+                  const swapIdx = next.activePlayerIndex;
+                  next.activePlayerIndex = targetIndex;
+                  next = drawForActive(next, undefined, innerRng);
+                  next.activePlayerIndex = swapIdx;
+               }
+            }
+            break;
+            
+         case 'SWAP_HANDS':
+            if (params.targetB === 'discard_pile') {
+               const tempH = [...p.hand];
+               p.hand = [...next.discardPile];
+               next.discardPile = tempH;
+            } else if (params.targetB === 'random_opponent' || params.targetB === 'target_player') {
+               const bIdxs = getTargetIndices(params.targetB);
+               if (bIdxs.length > 0) {
+                   const b = next.players[bIdxs[0]];
+                   const tempH = [...p.hand];
+                   p.hand = [...b.hand];
+                   b.hand = tempH;
+               }
+            }
+            break;
+         case 'RESET_HAND_5':
+            next.discardPile = [...next.discardPile, ...p.hand];
+            p.hand = [];
+            for (let i = 0; i < 5; i++) {
+                const swapIdx = next.activePlayerIndex;
+                next.activePlayerIndex = targetIndex;
+                next = drawForActive(next, undefined, innerRng);
+                next.activePlayerIndex = swapIdx;
+            }
+            break;
+         case 'SHUFFLE_HAND_INTO_DECK':
+            next.drawPile = shuffle([...next.drawPile, ...p.hand], innerRng);
+            p.hand = [];
+            break;
+         case 'SHUFFLE_ALL_PILES':
+            next.drawPile = shuffle([...next.drawPile, ...next.discardPile, ...next.turnPile], innerRng);
+            next.discardPile = [];
+            break;
+         case 'SHUFFLE_DISCARD_INTO_DECK':
+            next.drawPile = shuffle([...next.drawPile, ...next.discardPile], innerRng);
+            next.discardPile = [];
+            break;
+         case 'RETURN_FROM_DISCARD':
+            if (next.discardPile.length >= params.amount) {
+               const cards = next.discardPile.slice(-params.amount);
+               next.discardPile = next.discardPile.slice(0, -params.amount);
+               p.hand.push(...cards);
+            }
+            break;
+         case 'STEAL_POINTS': {
+            const amt = Math.min(p.survivalPoints, params.amount);
+            p.survivalPoints -= amt;
+            active.survivalPoints += amt;
+            break;
+         }
+            
+         case 'MODIFY_MAX_HAND':
+            p.maxHandModifier = (p.maxHandModifier ?? 0) + params.amount;
+            break;
+         case 'MODIFY_ACTIONS':
+            next.cardsPlayedThisTurn = Math.max(0, next.cardsPlayedThisTurn - params.amount);
+            break;
+         case 'REVERSE_TURN_ORDER':
+            next.turnDirection = next.turnDirection === 1 ? -1 : 1;
+            break;
+            
+         case 'APPLY_BUFF': {
+            const buffId = params.buffId;
+            const duration = params.duration || 'next_event';
+            
+            let kind: TriggerKind | null = null;
+            if (buffId === 'block_first_disaster') kind = 'NEGATE_NEXT_DISASTER';
+            if (buffId === 'block_catac') kind = 'NEGATE_NEXT_CATAC_EFFECT';
+            if (buffId === 'redirect_chaos_disaster') kind = 'REDIRECT_NEXT_DISASTER';
+            if (buffId === 'prevent_negative') kind = 'NEGATE_NEXT_NEGATIVE_EFFECT';
+            if (buffId === 'block_negative_effect') kind = 'NEGATE_NEXT_NEGATIVE_EFFECT';
+            if (buffId === 'evade_chaos') kind = 'NEGATE_NEXT_NEGATIVE_EFFECT';
+            if (buffId === 'avoid_disaster') kind = 'NEGATE_NEXT_DISASTER';
+            if (buffId === 'double_next_points') kind = 'DOUBLE_NEXT_POINTS';
+            if (buffId === 'prevent_point_loss') kind = 'PREVENT_NEXT_POINT_LOSS';
+            if (buffId === 'skip_next_draw') kind = 'SKIP_NEXT_DRAW';
+            if (buffId === 'prevent_turn_skip_reverse') kind = 'NEGATE_NEXT_NEGATIVE_EFFECT';
+            if (buffId === 'redirect_negative') kind = 'REDIRECT_NEXT_NEGATIVE';
+            if (buffId === 'redirect_catac') kind = 'REDIRECT_NEXT_NEGATIVE';
+            if (buffId === 'cancel_catac') kind = 'NEGATE_NEXT_CATAC_EFFECT';
+            if (buffId === 'skip_next') kind = 'SKIP_NEXT_TURN';
+            
+            if (kind) {
+                p.triggers.push({
+                    id: `${kind}_${Date.now()}`,
+                    kind,
+                    duration,
+                    sourceCardId: card.id
+                });
+            } else {
+                p.twistEffect = buffId;
+            }
+            break;
+          }
+         case 'ADD_TRIGGER': {
+            const trigger: Trigger = {
+                id: `trigger_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                kind: params.triggerKind,
+                value: params.value,
+                duration: params.duration || 'next_event',
+                sourceCardId: card.id
+            };
+             p.triggers.push(trigger);
+             break;
+          }
+          case 'SWAP_HAND_WITH_DISCARD': {
+             const tempHand = [...p.hand];
+             p.hand = [...next.discardPile];
+             next.discardPile = tempHand;
+             break;
+          }
+         case 'DESTROY_PINNED':
+            if (p.powers.length > 0) {
+               const dumped = p.powers.slice(0, params.amount);
+               p.powers = p.powers.slice(params.amount);
+               next.discardPile = [...next.discardPile, ...dumped];
+               // Remove associated triggers
+               for (const d of dumped) {
+                   p.triggers = p.triggers.filter(t => t.sourceCardId !== d.id);
+               }
+            }
+            break;
+          case 'SWAP_PINNED_POWERS': {
+            const bIdxs = getTargetIndices(params.targetB);
+            if (bIdxs.length > 0) {
+               const b = next.players[bIdxs[0]];
+               const tmp = [...p.powers];
+               p.powers = [...b.powers];
+               b.powers = tmp;
+            }
+            break;
+         }
+
+         // --- NEW PRIMITIVES FOR 100% PARITY ---
+          case 'ENSURE_HAND_SIZE': {
+            while (p.hand.length < params.amount) {
+               if (isTruncated) break;
+               const swapIdx = next.activePlayerIndex;
+               next.activePlayerIndex = targetIndex;
+               next = drawForActive(next, undefined, innerRng);
+               if (next.topCard?.type === 'TWIST' || next.topCard?.type === 'CATACLYSM') {
+                   isTruncated = true;
+               }
+               next.activePlayerIndex = swapIdx;
+               if (next.drawPile.length === 0 && next.discardPile.length === 0) break;
+            }
+            break;
+          }
+         case 'SKIP_TURN': {
+            p.triggers.push({
+               id: `skip_${Date.now()}`,
+               kind: 'SKIP_NEXT_TURN',
+               duration: 'permanent'
+            });
+            break;
+         }
+         case 'REDISTRIBUTE_POINTS': {
+            const total = next.players.reduce((acc, curr) => acc + curr.survivalPoints, 0);
+            const avg = Math.floor(total / next.players.length);
+            next.players.forEach(pl => pl.survivalPoints = avg);
+            break;
+         }
+         case 'SWAP_POWERS_RANDOM': {
+            const allPowers = next.players.flatMap(pl => {
+               const pList = [...pl.powers];
+               pl.powers = [];
+               return pList;
+            });
+            const shuffled = shuffle(allPowers, innerRng);
+            shuffled.forEach((c, i) => {
+               const receiver = next.players[i % next.players.length];
+               receiver.powers.push(c);
+            });
+            break;
+         }
+         case 'RESHUFFLE_TURN_ORDER': {
+            next.turnDirection = innerRng() > 0.5 ? 1 : -1;
+            break;
+         }
+         case 'REPEAT_LAST_SURVIVAL': {
+            const lastSurv = state.turnHistory.filter(c => c.type === 'SURVIVAL' && c.id !== card.id).pop();
+            if (lastSurv) resolveEffect(next, lastSurv, targetId, innerRng);
+            break;
+         }
+         case 'UNDO_LAST_TURN': {
+             if (state.previousState) {
+                return { 
+                  ...state.previousState, 
+                  previousState: undefined 
+                };
+             }
+             p.health = Math.min(INITIAL_HEALTH, p.health + 1);
+             break;
+         }
+      }
+  };
 
   const evaluatePrims = (prims: any[]) => {
       for (const prim of prims) {
@@ -218,11 +553,11 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string):
           }
           if (type === 'REPEAT_LAST_SURVIVAL') {
              const lastSurv = state.turnHistory.filter(c => c.type === 'SURVIVAL' && c.id !== card.id).pop();
-             if (lastSurv) resolveEffect(next, lastSurv, targetId);
+             if (lastSurv) resolveEffect(next, lastSurv, targetId, innerRng);
              continue;
           }
           if (type === 'CHANCE') {
-              if (Math.random() < params.probability && prim.then) evaluatePrims(prim.then);
+              if (innerRng() < params.probability && prim.then) evaluatePrims(prim.then);
               else if (prim.else) evaluatePrims(prim.else);
               continue;
           }
@@ -240,345 +575,23 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string):
       }
   };
 
-  const executeAtomic = (type: string, params: any, targetIndex: number = activeIndex) => {
-      if (isTruncated) return;
-      const p = next.players[targetIndex];
-      const active = next.players[activeIndex];
-      
-      switch (type) {
-          case 'MODIFY_POINTS': {
-            let finalAmount = params.amount * (params.multiplier || 1);
-            if (finalAmount < 0 && (p.twistEffect === 'prevent_negative' || p.triggers.some(t => t.kind === 'NEGATE_NEXT_NEGATIVE_EFFECT'))) {
-                p.twistEffect = undefined;
-                p.triggers = p.triggers.filter(t => t.kind !== 'NEGATE_NEXT_NEGATIVE_EFFECT');
-                return;
-            }
-            if (finalAmount < 0 && card?.type === 'DISASTER' && p.triggers.some(t => t.kind === 'REDUCE_INCOMING_DISASTER_1')) {
-                finalAmount = Math.min(0, finalAmount + 1);
-            }
-            if (finalAmount > 0 && p.triggers.some(t => t.kind === 'DOUBLE_NEXT_POINTS')) {
-                finalAmount *= 2;
-                p.triggers = p.triggers.filter(t => t.kind !== 'DOUBLE_NEXT_POINTS');
-            }
-            if (finalAmount < 0 && p.triggers.some(t => t.kind === 'PREVENT_NEXT_POINT_LOSS')) {
-                p.triggers = p.triggers.filter(t => t.kind !== 'PREVENT_NEXT_POINT_LOSS');
-                return;
-            }
-
-            // Epicenter Scaling: Global disasters/cataclysms penalize drawer +1
-            if (finalAmount < 0 && (card.disasterKind === 'GLOBAL' || card.type === 'CATACLYSM') && p.id === active.id) {
-                finalAmount -= 1;
-            }
-
-            p.survivalPoints += finalAmount;
-            break;
-         }
-         case 'MODIFY_POINTS_SCALED': {
-            const mult = (params.multiplier || 1);
-            if (params.scaleBy === 'pinned_powers') {
-               p.survivalPoints += (p.powers.length * params.multiplier * mult);
-            }
-            if (params.scaleBy === 'all_pinned_powers') {
-               const total = next.players.reduce((acc, curr) => acc + curr.powers.length, 0);
-               p.survivalPoints += (total * params.multiplier * mult);
-            }
-            break;
-         }
-         case 'MODIFY_HEALTH': {
-            let finalAmountH = params.amount * (params.multiplier || 1);
-            if (finalAmountH < 0 && (p.twistEffect === 'prevent_negative' || p.triggers.some(t => t.kind === 'NEGATE_NEXT_NEGATIVE_EFFECT'))) {
-                p.twistEffect = undefined;
-                p.triggers = p.triggers.filter(t => t.kind !== 'NEGATE_NEXT_NEGATIVE_EFFECT');
-                break;
-            }
-            if (finalAmountH < 0 && card?.type === 'DISASTER' && p.triggers.some(t => t.kind === 'REDUCE_INCOMING_DISASTER_1')) {
-                finalAmountH = Math.min(0, finalAmountH + 1);
-            }
-            if (finalAmountH > 0 && p.triggers.some(t => t.kind === 'PREVENT_HEALTH_REGAIN')) {
-                return;
-            }
-            if (finalAmountH < 0 && p.triggers.some(t => t.kind === 'NEGATE_NEXT_NEGATIVE_EFFECT')) {
-                p.triggers = p.triggers.filter(t => t.kind !== 'NEGATE_NEXT_NEGATIVE_EFFECT');
-                break;
-            }
-            if (finalAmountH < 0 && card?.type === 'DISASTER' && p.triggers.some(t => t.kind === 'NEGATE_NEXT_DISASTER')) {
-                p.triggers = p.triggers.filter(t => t.kind !== 'NEGATE_NEXT_DISASTER');
-                break;
-            }
-
-            // Epicenter Scaling: Global disasters/cataclysms penalize drawer +1
-            if (finalAmountH < 0 && (card.disasterKind === 'GLOBAL' || card.type === 'CATACLYSM') && p.id === active.id) {
-                finalAmountH -= 1;
-            }
-
-            p.health = Math.min(INITIAL_HEALTH, Math.max(0, p.health + finalAmountH));
-            break;
-         }
-         case 'MODIFY_HEALTH_SCALED':
-            if (params.scaleBy === 'pinned_adapt') {
-               p.health = Math.min(INITIAL_HEALTH, p.health + (p.powers.filter(c => c.type === 'ADAPT').length * params.multiplier));
-            }
-            break;
-         case 'MODIFY_POINTS_RANDOM':
-            p.survivalPoints += Math.floor(Math.random() * (params.max - params.min + 1)) + params.min;
-            break;
-         case 'MODIFY_HEALTH_RANDOM':
-            p.health = Math.min(INITIAL_HEALTH, Math.max(0, p.health + (Math.floor(Math.random() * (params.max - params.min + 1)) + params.min) * (params.multiplier || 1)));
-            break;
-         case 'SET_POINTS':
-            p.survivalPoints = params.amount;
-            break;
-         
-         case 'DRAW_CARDS': {
-            const m = (params.multiplier || 1);
-            if (p.triggers.some(t => t.kind === 'SKIP_NEXT_DRAW')) {
-                p.triggers = p.triggers.filter(t => t.kind !== 'SKIP_NEXT_DRAW');
-                break;
-            }
-            for(let i=0; i<params.amount * m; i++) {
-                if (isTruncated) break;
-                const swapIdx = next.activePlayerIndex;
-                next.activePlayerIndex = targetIndex;
-                const beforeDraw = next.hasDrawnThisTurn;
-                next = drawForActive(next);
-                // If a special card was triggered, it would have changed topCard or turnPile
-                if (next.topCard?.type === 'TWIST' || next.topCard?.type === 'CATACLYSM') {
-                    isTruncated = true;
-                }
-                next.activePlayerIndex = swapIdx;
-                next.hasDrawnThisTurn = beforeDraw; // Preserve original draw status during effects
-            }
-            break;
-          }
-         case 'DISCARD_CARDS':
-            if (p.hand.length >= params.amount) {
-               let discarded: MatchCard[] = [];
-               if (params.filter === 'SURVIVAL') {
-                   const survs = p.hand.filter(c => c.type === 'SURVIVAL');
-                   discarded = survs.slice(0, params.amount);
-                   p.hand = p.hand.filter(c => !discarded.includes(c));
-               } else {
-                   discarded = p.hand.slice(0, params.amount);
-                   p.hand = p.hand.slice(params.amount);
-               }
-               next.discardPile = [...next.discardPile, ...discarded];
-            }
-            break;
-         case 'DISCARD_AND_DRAW':
-            if (p.hand.length >= params.discardAmount) {
-               const discarded = p.hand.slice(0, params.discardAmount);
-               p.hand = p.hand.slice(params.discardAmount);
-               next.discardPile = [...next.discardPile, ...discarded];
-               for(let i=0; i<params.drawAmount; i++) {
-                  const swapIdx = next.activePlayerIndex;
-                  next.activePlayerIndex = targetIndex;
-                  next = drawForActive(next);
-                  next.activePlayerIndex = swapIdx;
-               }
-            }
-            break;
-            
-         case 'SWAP_HANDS':
-            if (params.targetB === 'discard_pile') {
-               const tempH = [...p.hand];
-               p.hand = [...next.discardPile];
-               next.discardPile = tempH;
-            } else if (params.targetB === 'random_opponent' || params.targetB === 'target_player') {
-               const bIdxs = getTargetIndices(params.targetB);
-               if (bIdxs.length > 0) {
-                   const b = next.players[bIdxs[0]];
-                   const tempH = [...p.hand];
-                   p.hand = [...b.hand];
-                   b.hand = tempH;
-               }
-            }
-            break;
-         case 'RESET_HAND_5':
-            next.discardPile = [...next.discardPile, ...p.hand];
-            p.hand = [];
-            for (let i = 0; i < 5; i++) {
-                const swapIdx = next.activePlayerIndex;
-                next.activePlayerIndex = targetIndex;
-                next = drawForActive(next);
-                next.activePlayerIndex = swapIdx;
-            }
-            break;
-         case 'SHUFFLE_HAND_INTO_DECK':
-            next.drawPile = shuffle([...next.drawPile, ...p.hand], pseudoRandom(Date.now()));
-            p.hand = [];
-            break;
-         case 'SHUFFLE_ALL_PILES':
-            next.drawPile = shuffle([...next.drawPile, ...next.discardPile, ...next.turnPile], pseudoRandom(Date.now()));
-            next.discardPile = [];
-            break;
-         case 'SHUFFLE_DISCARD_INTO_DECK':
-            next.drawPile = shuffle([...next.drawPile, ...next.discardPile], pseudoRandom(Date.now()));
-            next.discardPile = [];
-            break;
-         case 'RETURN_FROM_DISCARD':
-            if (next.discardPile.length >= params.amount) {
-               const cards = next.discardPile.slice(-params.amount);
-               next.discardPile = next.discardPile.slice(0, -params.amount);
-               p.hand.push(...cards);
-            }
-            break;
-         case 'STEAL_POINTS': {
-            const amt = Math.min(p.survivalPoints, params.amount);
-            p.survivalPoints -= amt;
-            active.survivalPoints += amt;
-            break;
-         }
-            
-         case 'MODIFY_MAX_HAND':
-            p.maxHandModifier = (p.maxHandModifier ?? 0) + params.amount;
-            break;
-         case 'MODIFY_ACTIONS':
-            next.cardsPlayedThisTurn = Math.max(0, next.cardsPlayedThisTurn - params.amount);
-            break;
-         case 'REVERSE_TURN_ORDER':
-            next.turnDirection = next.turnDirection === 1 ? -1 : 1;
-            break;
-            
-         case 'APPLY_BUFF': {
-            const buffId = params.buffId;
-            const duration = params.duration || 'next_event';
-            
-            let kind: TriggerKind | null = null;
-            if (buffId === 'block_first_disaster') kind = 'NEGATE_NEXT_DISASTER';
-            if (buffId === 'block_catac') kind = 'NEGATE_NEXT_CATAC_EFFECT';
-            if (buffId === 'redirect_chaos_disaster') kind = 'REDIRECT_NEXT_DISASTER';
-            if (buffId === 'prevent_negative') kind = 'NEGATE_NEXT_NEGATIVE_EFFECT';
-            if (buffId === 'skip_next') kind = 'SKIP_NEXT_TURN';
-            
-            if (kind) {
-                p.triggers.push({
-                    id: `buff_${Date.now()}_${Math.random()}`,
-                    kind,
-                    duration,
-                    sourceCardId: card.id
-                });
-            } else {
-                p.twistEffect = buffId;
-            }
-            break;
-          }
-         case 'ADD_TRIGGER': {
-            const trigger: Trigger = {
-                id: `trigger_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-                kind: params.triggerKind,
-                value: params.value,
-                duration: params.duration || 'next_event',
-                sourceCardId: card.id
-            };
-             p.triggers.push(trigger);
-             break;
-          }
-          case 'SWAP_HAND_WITH_DISCARD': {
-             const tempHand = [...p.hand];
-             p.hand = [...next.discardPile];
-             next.discardPile = tempHand;
-             break;
-          }
-         case 'DESTROY_PINNED':
-            if (p.powers.length > 0) {
-               const dumped = p.powers.slice(0, params.amount);
-               p.powers = p.powers.slice(params.amount);
-               next.discardPile = [...next.discardPile, ...dumped];
-               // Remove associated triggers
-               for (const d of dumped) {
-                   p.triggers = p.triggers.filter(t => t.sourceCardId !== d.id);
-               }
-            }
-            break;
-          case 'SWAP_PINNED_POWERS': {
-            const bIdxs = getTargetIndices(params.targetB);
-            if (bIdxs.length > 0) {
-               const b = next.players[bIdxs[0]];
-               const tmp = [...p.powers];
-               p.powers = [...b.powers];
-               b.powers = tmp;
-            }
-            break;
-         }
-
-         // --- NEW PRIMITIVES FOR 100% PARITY ---
-          case 'ENSURE_HAND_SIZE': {
-            while (p.hand.length < params.amount) {
-               if (isTruncated) break;
-               const swapIdx = next.activePlayerIndex;
-               next.activePlayerIndex = targetIndex;
-               next = drawForActive(next);
-               if (next.topCard?.type === 'TWIST' || next.topCard?.type === 'CATACLYSM') {
-                   isTruncated = true;
-               }
-               next.activePlayerIndex = swapIdx;
-               if (next.drawPile.length === 0 && next.discardPile.length === 0) break;
-            }
-            break;
-          }
-         case 'SKIP_TURN': {
-            p.triggers.push({
-               id: `skip_${Date.now()}`,
-               kind: 'SKIP_NEXT_TURN',
-               duration: 'permanent'
-            });
-            break;
-         }
-         case 'REDISTRIBUTE_POINTS': {
-            const total = next.players.reduce((acc, curr) => acc + curr.survivalPoints, 0);
-            const avg = Math.floor(total / next.players.length);
-            next.players.forEach(pl => pl.survivalPoints = avg);
-            break;
-         }
-         case 'SWAP_POWERS_RANDOM': {
-            const allPowers = next.players.flatMap(pl => {
-               const pList = [...pl.powers];
-               pl.powers = [];
-               return pList;
-            });
-            const shuffled = shuffle(allPowers, pseudoRandom(Date.now()));
-            shuffled.forEach((c, i) => {
-               const receiver = next.players[i % next.players.length];
-               receiver.powers.push(c);
-            });
-            break;
-         }
-         case 'RESHUFFLE_TURN_ORDER': {
-            next.turnDirection = Math.random() > 0.5 ? 1 : -1;
-            break;
-         }
-         case 'REPEAT_LAST_SURVIVAL': {
-            const lastSurv = state.turnPile.filter(c => c.type === 'SURVIVAL' && c.id !== card.id).pop();
-            if (lastSurv) resolveEffect(next, lastSurv, targetId);
-            break;
-         }
-         case 'UNDO_LAST_TURN': {
-            // Simplified: Revert points and health to state at start of turn
-            // We'd need startingState in payload. For now, let's just heal 2 and add 2 pts as "undo" proxy 
-            // OR if we have history, we use it. Let's assume we want actual Undo.
-            p.health = Math.min(INITIAL_HEALTH, p.health + 2);
-            p.survivalPoints += 2;
-            break;
-         }
-      }
-  };
-
   evaluatePrims(primitives);
   return next;
 }
 
-export function drawForActive(state: MatchPayload, replayOutput?: BotTurnEvent[]): MatchPayload {
+export function drawForActive(state: MatchPayload, replayOutput?: BotTurnEvent[], rng?: () => number): MatchPayload {
   let next = { ...state };
-  const active = next.players[next.activePlayerIndex];
+  const active = { ...next.players[next.activePlayerIndex], hand: [...next.players[next.activePlayerIndex].hand] };
 
   if (active.triggers.some(t => t.kind === 'PREVENT_OPPONENT_DRAW_1')) {
       active.triggers = active.triggers.filter(t => t.kind !== 'PREVENT_OPPONENT_DRAW_1');
+      next.players[next.activePlayerIndex] = active;
       return next;
   }
 
-  // Check for SKIP_NEXT_DRAW
   if (active.triggers.some(t => t.kind === 'SKIP_NEXT_DRAW')) {
       active.triggers = active.triggers.filter(t => t.kind !== 'SKIP_NEXT_DRAW');
+      next.players[next.activePlayerIndex] = active;
       return next;
   }
 
@@ -587,7 +600,9 @@ export function drawForActive(state: MatchPayload, replayOutput?: BotTurnEvent[]
 
   if (drawPile.length === 0) {
     if (discardPile.length === 0) return next;
-    drawPile = shuffle(discardPile, pseudoRandom(Date.now()));
+    // Use the provided rng or fallback to pseudoRandom(Date.now()) only if not provided
+    const innerRng = rng || pseudoRandom(Date.now());
+    drawPile = shuffle(discardPile, innerRng);
     discardPile = [];
   }
 
@@ -599,25 +614,33 @@ export function drawForActive(state: MatchPayload, replayOutput?: BotTurnEvent[]
        replayOutput.push({
          actorId: active.id,
          actorName: active.displayName,
+         action: "DRAW",
+       });
+       replayOutput.push({
+         actorId: active.id,
+         actorName: active.displayName,
          action: "PLAY",
          cardName: card.name,
          card: card,
        });
     }
+
+    next.hasDrawnThisTurn = true;
     return playCardImmediate(
       {
         ...next,
         drawPile: remainingDrawPile,
         discardPile,
         hasDrawnThisTurn: true,
-        // Special draw (Twist/Catac) counts as the turn's first action if it was drawn as the main draw
-        cardsPlayedThisTurn: next.hasDrawnThisTurn ? next.cardsPlayedThisTurn : 0
+        cardsPlayedThisTurn: next.hasDrawnThisTurn ? next.cardsPlayedThisTurn : 1
       },
-      card
+      card,
+      undefined,
+      rng
     );
   }
 
-  active.hand = [...active.hand, card];
+  active.hand.push(card);
   next.players[next.activePlayerIndex] = active;
   next.drawPile = remainingDrawPile;
   next.discardPile = discardPile;
@@ -627,7 +650,7 @@ export function drawForActive(state: MatchPayload, replayOutput?: BotTurnEvent[]
   return next;
 }
 
-function playCardImmediate(state: MatchPayload, card: MatchCard): MatchPayload {
+function playCardImmediate(state: MatchPayload, card: MatchCard, targetId?: string, rng?: () => number): MatchPayload {
   const isPersistent = card.type === 'POWER' || card.type === 'ADAPT';
 
   const activeIndex = state.activePlayerIndex;
@@ -637,9 +660,9 @@ function playCardImmediate(state: MatchPayload, card: MatchCard): MatchPayload {
     topCard: card,
     turnPile: isPersistent ? [...state.turnPile, card] : state.turnPile,
     turnHistory: [...(state.turnHistory || []), card],
-    // If it's a Twist/Catac drawn as part of an effect, we don't increment here 
-    // (the parent call handles it). If drawn as the main turn draw, we DO increment.
-    cardsPlayedThisTurn: state.cardsPlayedThisTurn + 1,
+    // Reset cardsPlayedThisTurn if this is a free play from a Twist/Catac? 
+    // Actually, playCardImmediate is usually called from drawForActive when a 
+    // Twist/Catac is drawn. It shouldn't increment the human's "actions used" counter.
   };
 
   if (isPersistent) {
@@ -651,7 +674,7 @@ function playCardImmediate(state: MatchPayload, card: MatchCard): MatchPayload {
     next.discardPile = [...state.discardPile, card];
   }
 
-  return resolveEffect(next, card);
+  return resolveEffect(next, card, targetId, rng);
 }
 
 function advanceTurn(state: MatchPayload): MatchPayload {
@@ -710,13 +733,14 @@ function advanceTurn(state: MatchPayload): MatchPayload {
 function playCard(
   state: MatchPayload,
   cardId: string,
-  targetPlayerId?: string
+  targetPlayerId?: string,
+  rng?: () => number
 ): MatchPayload {
   const activeIndex = state.activePlayerIndex;
   const active = state.players[activeIndex];
   const card = active.hand.find((c) => c.id === cardId);
   if (!card) throw new Error("Card not in hand");
-  if (!canPlayCard(state, card)) throw new Error("Card does not match top card");
+  if (!canPlayCard(state, card)) throw new Error("Card cannot be played");
 
   const isPersistent = card.type === 'POWER' || card.type === 'ADAPT';
   const discardCost = card.discardCost || 0;
@@ -746,10 +770,11 @@ function playCard(
     );
   }
 
-  next.discardPile = isPersistent ? next.discardPile : [...next.discardPile, card];
+  if (!isPersistent) {
+    next.discardPile = [...next.discardPile, card];
+  }
 
-  // Increment action counter AFTER the effect finishes
-  const resolved = resolveEffect(next, card, targetPlayerId);
+  const resolved = resolveEffect(next, card, targetPlayerId, rng);
   return {
     ...resolved,
     cardsPlayedThisTurn: resolved.cardsPlayedThisTurn + 1
@@ -782,7 +807,7 @@ function chooseBotAction(
   };
 }
 
-function runBotTurnsUntilHuman(state: MatchPayload): {
+function runBotTurnsUntilHuman(state: MatchPayload, rng: () => number): {
   state: MatchPayload;
   replay: BotTurnEvent[];
 } {
@@ -792,47 +817,46 @@ function runBotTurnsUntilHuman(state: MatchPayload): {
   let turnSafetyCounter = 0;
   while (!next.winnerId && turnSafetyCounter < 20) {
     turnSafetyCounter++;
-    const active = next.players[next.activePlayerIndex];
+    const activeIndex = next.activePlayerIndex;
+    const active = next.players[activeIndex];
     if (!active.isBot) break;
 
     replay.push({
-      actorId: active?.id ?? "unknown",
-      actorName: active?.displayName ?? "Unknown Player",
+      actorId: active.id,
+      actorName: active.displayName,
       action: "THINKING",
     });
 
-    replay.push({
-      actorId: active?.id ?? "unknown",
-      actorName: active?.displayName ?? "Unknown Player",
-      action: "DRAW",
-    });
-    next = drawForActive(next, replay);
+    next = drawForActive(next, replay, rng);
 
     for (let i = 0; i < 3; i++) {
-      const action = chooseBotAction(next);
-      if (!action) break;
+        if (next.winnerId) break;
+        const action = chooseBotAction(next);
+        if (!action) break;
 
-      const fullCard = active.hand.find(c => c.id === action.cardId);
+        const currentActive = next.players[next.activePlayerIndex];
+        const fullCard = currentActive.hand.find(c => c.id === action.cardId);
 
-      replay.push({
-        actorId: active?.id ?? "unknown",
-        actorName: active?.displayName ?? "Unknown Player",
-        action: "PLAY",
-        cardName: action.cardName,
-        card: fullCard,
-        targetPlayerId: action.targetPlayerId,
-      });
+        replay.push({
+          actorId: currentActive.id,
+          actorName: currentActive.displayName,
+          action: "PLAY",
+          cardName: action.cardName,
+          card: fullCard,
+          targetPlayerId: action.targetPlayerId,
+        });
 
-      next = playCard(next, action.cardId, action.targetPlayerId);
-      if (next.winnerId) break;
+        next = playCard(next, action.cardId, action.targetPlayerId, rng);
     }
 
-    replay.push({
-      actorId: active?.id ?? "unknown",
-      actorName: active?.displayName ?? "Unknown Player",
-      action: "END_TURN",
-    });
-    next = advanceTurn(next);
+    if (!next.winnerId) {
+        replay.push({
+          actorId: next.players[next.activePlayerIndex].id,
+          actorName: next.players[next.activePlayerIndex].displayName,
+          action: "END_TURN",
+        });
+        next = advanceTurn(next);
+    }
   }
 
   return { state: next, replay };
@@ -863,9 +887,7 @@ export async function initializeMatch(input: {
     });
   }
 
-  const seed = input.roomCode
-    .split("")
-    .reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+  const seed = input.roomCode.split("").reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
   const rng = pseudoRandom(seed || 7);
   const fullDeck = input.fullDeck;
   const safeForInitial = fullDeck.filter(
@@ -921,8 +943,17 @@ export async function applyMatchAction(input: {
   }>;
   roomCode: string;
 }): Promise<MatchPayload> {
-  let state = { ...input.current };
   const action = input.action;
+  
+  // Deterministic RNG Seed
+  const seed = input.roomCode.split("").reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+  const rng = pseudoRandom(seed + (input.current.round * 100) + (input.current.activePlayerIndex * 10));
+
+  let state: MatchPayload = { 
+    ...input.current,
+    previousState: input.action.type === 'UNDO_LAST_TURN' ? input.current.previousState : input.current 
+  };
+
   const active = state.players[state.activePlayerIndex];
   const isActorInRoom = input.roomPlayers.some(
     (p) => p.userId === input.actorUserId
@@ -930,11 +961,6 @@ export async function applyMatchAction(input: {
 
   if (!isActorInRoom) {
     throw new Error("Actor is not in room");
-  }
-
-  if (action.type === "INIT_MATCH") {
-    // Note: Caller must provide fullDeck
-    throw new Error("INIT_MATCH must be handled by calling initializeMatch directly with fullDeck");
   }
 
   if (state.winnerId && action.type !== "SET_WINNER") {
@@ -947,7 +973,7 @@ export async function applyMatchAction(input: {
       if (state.hasDrawnThisTurn) {
         throw new Error("You can only draw once per turn");
       }
-      const next = drawForActive(state);
+      const next = drawForActive(state, undefined, rng);
       return { ...next, botTurnReplay: undefined };
     }
     case "PLAY_CARD": {
@@ -958,7 +984,7 @@ export async function applyMatchAction(input: {
       if (state.cardsPlayedThisTurn >= MAX_ACTIONS_PER_TURN) {
         throw new Error(`Max ${MAX_ACTIONS_PER_TURN} cards per turn`);
       }
-      const next = playCard(state, action.cardId, action.targetPlayerId);
+      const next = playCard(state, action.cardId, action.targetPlayerId, rng);
       return { ...next, botTurnReplay: undefined };
     }
     case "DISCARD_CARD": {
@@ -971,7 +997,6 @@ export async function applyMatchAction(input: {
       const nextPlayers = [...state.players];
       nextPlayers[state.activePlayerIndex] = nextActive;
       
-      // BUG 4 FIX: Append to END of discardPile so it tops the stack, and accurately update topCard!
       return {
         ...state,
         players: nextPlayers,
@@ -985,23 +1010,27 @@ export async function applyMatchAction(input: {
       if (!state.hasDrawnThisTurn) {
         throw new Error("You must draw before ending turn");
       }
-      // END TURN RULE: Must be at or below max hand size
       if (active.hand.length > getPlayerMaxHand(active)) {
         throw new Error(`Must discard cards. Hand size limit: ${getPlayerMaxHand(active)}`);
       }
       const next = advanceTurn(state);
-      const resolved = runBotTurnsUntilHuman(next);
+      const resolved = runBotTurnsUntilHuman(next, rng);
       return { ...resolved.state, botTurnReplay: resolved.replay };
     }
     case "SET_WINNER": {
-      if (!state.players.some((p) => p.id === action.winnerUserId)) {
-        throw new Error("Winner not found");
-      }
       return {
         ...state,
         winnerId: action.winnerUserId,
         botTurnReplay: undefined,
       };
+    }
+    case "UNDO_LAST_TURN": {
+       if (active.id !== input.actorUserId) throw new Error("Not your turn");
+       if (!state.previousState) throw new Error("Nothing to undo");
+       return {
+         ...state.previousState,
+         botTurnReplay: undefined
+       };
     }
     default:
       return state;

@@ -24,22 +24,14 @@ export default function PhaserGame({ roomCode, gameState, onAction }: PhaserGame
       if (gameRef.current) return;
       
       const userId = loadLocalSettings().userId;
-      gameRef.current = createGame(containerRef.current!);
-      
-      // Store initial state in registry for scenes that boot later
-      gameRef.current.registry.set('INITIAL_DATA', { 
+      const initialData = { 
         roomCode, 
         gameState, 
         userId,
         onAction: (a: any) => onActionRef.current(a)
-      });
+      };
 
-      // Still emit for already-running scenes (unlikely but safe)
-      gameRef.current.events.emit('INIT_STATE', { 
-        roomCode, 
-        gameState, 
-        onAction: (a: any) => onActionRef.current(a)
-      });
+      gameRef.current = createGame(containerRef.current!, initialData);
     });
 
     return () => {

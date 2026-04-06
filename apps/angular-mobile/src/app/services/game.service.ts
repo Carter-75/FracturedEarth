@@ -63,7 +63,7 @@ export class GameService {
    */
   async performAction(roomCode: string, userId: string, action: MatchAction) {
     try {
-      const response = await this.http.post<MatchPayload>(`${this.apiBase}/match/${roomCode}/action`, { 
+      const response = await this.http.post<MatchPayload>(`${this.apiBase}/rooms/${roomCode}/action`, { 
         userId, 
         action 
       }).toPromise();
@@ -98,7 +98,7 @@ export class GameService {
    */
   async pollMatchState(roomCode: string) {
     try {
-      const response = await this.http.get<MatchPayload>(`${this.apiBase}/match/${roomCode}/action`).toPromise();
+      const response = await this.http.get<MatchPayload>(`${this.apiBase}/rooms/${roomCode}/action`).toPromise();
       if (response) {
         this._matchState.next(response);
       }

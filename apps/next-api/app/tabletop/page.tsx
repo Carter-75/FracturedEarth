@@ -147,20 +147,20 @@ function TabletopGameContent() {
       {/* PLAYER HUD (STATIC UI) */}
       <div className="absolute bottom-0 left-0 right-0 p-8 flex flex-col items-center pointer-events-none z-50">
           
-          {/* Action Status */}
-          <div className="mb-4 flex flex-col items-center">
+          {/* Action Status - MOVED TO TOP-CENTER AREA */}
+          <div className="fixed top-24 left-1/2 -translate-x-1/2 flex flex-col items-center z-[60] pointer-events-none">
              <AnimatePresence mode="wait">
                 {isMyTurn ? (
                    <motion.div 
-                     initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
-                     className="fe-hologram text-[var(--accent)] font-black text-sm uppercase tracking-[0.5em] bg-[var(--accent)]/5 px-6 py-2 rounded-full border border-[var(--accent)]/20 shadow-[0_0_20px_rgba(var(--accent-rgb),0.1)] mb-4"
+                     initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
+                     className="fe-hologram text-[var(--accent)] font-black text-sm uppercase tracking-[0.5em] bg-black/40 backdrop-blur-md px-8 py-3 rounded-full border border-[var(--accent)]/40 shadow-[0_0_40px_rgba(var(--accent-rgb),0.3)] mb-4"
                    >
                       Your Turn - Manipulate Data
                    </motion.div>
                 ) : (
                    <motion.div 
                      initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                     className="text-white/20 text-[10px] uppercase tracking-[0.5em] mb-4"
+                     className="text-white/40 text-[10px] uppercase tracking-[0.5em] mb-4 bg-black/20 px-4 py-1 rounded-full"
                    >
                       Waiting for {activePlayer?.displayName}...
                    </motion.div>
@@ -171,7 +171,7 @@ function TabletopGameContent() {
                 <button 
                   onClick={() => performAction({ type: 'END_TURN' })}
                   disabled={busy}
-                  className="fe-holo-btn pointer-events-auto !py-2 !px-8 text-xs border-white/20 !bg-white/5 hover:!bg-white/10"
+                  className="fe-holo-btn pointer-events-auto !py-2 !px-8 text-xs border-[var(--accent)]/40 !bg-[var(--accent)]/5 hover:!bg-[var(--accent)]/20 shadow-lg transition-all"
                 >
                   End Protocol (Turn)
                 </button>
