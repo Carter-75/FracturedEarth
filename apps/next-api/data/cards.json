@@ -3768,12 +3768,14 @@
       "id": "ascended_temporal_rewind",
       "name": "Temporal Rewind",
       "type": "ASCENDED",
-      "description": "Undo last turn of any player.",
+      "description": "Discard your hand and draw 5 fresh Core Units.",
       "tier": 4,
       "primitives": [
         {
-          "type": "UNDO_LAST_TURN",
-          "params": {}
+          "type": "RESET_HAND_5",
+          "params": {
+            "target": "self"
+          }
         }
       ]
     },

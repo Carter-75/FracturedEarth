@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
 import { apiFetch } from '@/lib/api';
 import { loadLocalSettings, saveRoomPin, clearRoomPin } from '@/lib/localProfile';
 import { MatchAction, StateEnvelope } from '@/types/game';
@@ -235,20 +236,25 @@ function TabletopGameContent() {
       <div className="absolute bottom-0 left-0 right-0 p-8 flex flex-col items-center pointer-events-none z-50">
           
           {/* End Turn (Bottom Right) */}
-           {isMyTurn && (
-             <div className="fixed bottom-8 right-8 z-[70] pointer-events-auto flex flex-col items-end gap-2">
-                <button 
-                  onClick={() => performAction({ type: 'END_TURN' })}
-                  disabled={busy || (myPlayer && myPlayer.hand.length > MAX_HAND_SIZE)}
-                  className={`fe-holo-btn !py-2 !px-6 text-[10px] border-[var(--accent)]/20 !bg-black/50 shadow-xl transition-all font-black uppercase tracking-widest flex items-center gap-2 group ${
-                    (myPlayer && myPlayer.hand.length > MAX_HAND_SIZE) ? 'opacity-20 grayscale pointer-events-none' : 'hover:!bg-[var(--accent)]/10'
-                  }`}
-                >
-                  <span className="opacity-40 group-hover:opacity-100 transition-opacity">NEXT_CYCLE</span>
-                  <div className={`w-1.5 h-1.5 rounded-full bg-[var(--accent)] ${busy ? 'animate-spin' : 'animate-pulse'}`} />
-                </button>
-             </div>
-           )}
+            {isMyTurn && (
+              <div className="fixed bottom-8 right-8 z-[70] pointer-events-auto flex flex-col items-end gap-2">
+                 <button 
+                   onClick={() => performAction({ type: 'END_TURN' })}
+                   disabled={busy || (myPlayer && myPlayer.hand.length > 5)}
+                   className={`fe-holo-btn !py-2 !px-6 text-[10px] border-[var(--accent)]/20 !bg-black/50 shadow-xl transition-all font-black uppercase tracking-widest flex items-center gap-2 group ${
+                     (myPlayer && myPlayer.hand.length > 5) ? 'opacity-20 grayscale cursor-not-allowed' : 'hover:!bg-[var(--accent)]/10'
+                   }`}
+                 >
+                   <span className="opacity-40 group-hover:opacity-100 transition-opacity">
+                     {(myPlayer && myPlayer.hand.length > 5) ? 'REDUCE_HAND_SIZE' : 'NEXT_CYCLE'}
+                   </span>
+                   <div className={`w-1.5 h-1.5 rounded-full bg-[var(--accent)] ${busy ? 'animate-spin' : 'animate-pulse'}`} />
+                 </button>
+                 {(myPlayer && myPlayer.hand.length > 5) && (
+                   <span className="text-[8px] text-rose-500 font-bold uppercase tracking-widest animate-pulse px-2">Hand_Limit_Exceeded (5)</span>
+                 )}
+              </div>
+            )}
 
           <div className="w-full max-w-7xl flex items-end justify-between">
               <div className="pointer-events-auto">

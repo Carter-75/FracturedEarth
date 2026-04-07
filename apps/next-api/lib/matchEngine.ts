@@ -90,7 +90,8 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string, 
   if (!primitives || primitives.length === 0) return next;
 
   // Use provided rng or fallback for safety
-  const innerRng = rng || pseudoRandom(Date.now());
+  // Use provided rng or fallback to state-based seed for determinism
+  const innerRng = rng || pseudoRandom(state.round * 1000 + state.activePlayerIndex * 100 + (state.turnHistory?.length || 0));
 
   // Helper to interpret targets
   const getTargetIndices = (targetStr: string, activeIdx: number): number[] => {
@@ -500,14 +501,9 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string, 
             }
             break;
          }
-         case 'UNDO_LAST_TURN': {
-             if (state.previousState) {
-                return { 
-                  ...state.previousState, 
-                  previousState: undefined 
-                };
-             }
-             p.health = Math.min(INITIAL_HEALTH, p.health + 1);
+         case 'REDUCE_POINTS': {
+             const tIdxs = getTargetIndices(params.target, activeIndex);
+             tIdxs.forEach(ti => next.players[ti].survivalPoints = Math.max(0, next.players[ti].survivalPoints - params.amount));
              break;
          }
       }
@@ -1028,7 +1024,7 @@ export async function applyMatchAction(input: {
 
   let state: MatchPayload = { 
     ...input.current,
-    previousState: input.action.type === 'UNDO_LAST_TURN' ? input.current.previousState : input.current 
+    previousState: input.current 
   };
 
   const active = state.players[state.activePlayerIndex];
@@ -1087,12 +1083,12 @@ export async function applyMatchAction(input: {
       if (!state.hasDrawnThisTurn) {
         throw new Error("You must draw before ending turn");
       }
-      if (active.hand.length > getPlayerMaxHand(active)) {
-        throw new Error(`Must discard cards. Hand size limit: ${getPlayerMaxHand(active)}`);
+      if (active.hand.length > 5) {
+        throw new Error(`Must discard cards. You have more than 5 cards in hand.`);
       }
+      // Just advance turn and let the matchService's heartbeat take over
       const next = advanceTurn(state);
-      const resolved = runBotTurnsUntilHuman(next, rng);
-      return { ...resolved.state, botTurnReplay: resolved.replay };
+      return { ...next, botTurnReplay: undefined };
     }
     case "SET_WINNER": {
       return {
@@ -1100,14 +1096,6 @@ export async function applyMatchAction(input: {
         winnerId: action.winnerUserId,
         botTurnReplay: undefined,
       };
-    }
-    case "UNDO_LAST_TURN": {
-       if (active.id !== input.actorUserId) throw new Error("Not your turn");
-       if (!state.previousState) throw new Error("Nothing to undo");
-       return {
-         ...state.previousState,
-         botTurnReplay: undefined
-       };
     }
     default:
       return state;

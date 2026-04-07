@@ -38,8 +38,9 @@ export class AIBrain {
         for (const targetId of potentialTargets) {
             try {
                 // Simulate the state after playing this card
-                // Note: We use a pseudo-RNG with a fixed seed for deterministic simulation
-                const simulatedState = playCard(this.state, card.id, targetId, () => 0.5);
+                // Use state-based seed for simulation to ensure dynamic but deterministic moves
+                const simSeed = (this.state.revision || 0) + (this.state.round * 100) + targetId?.length!;
+                const simulatedState = playCard(this.state, card.id, targetId, () => (simSeed % 100) / 100);
                 const utility = this.scoreStateUtility(simulatedState, this.bot.id);
                 
                 decisions.push({
@@ -123,21 +124,23 @@ export class AIBrain {
     if (me.survivalPoints >= 30) score += 5000; // Winning state!
 
     // 2. My Health (Survival is mandatory)
-    score += me.health * 10;
-    if (me.health < 5) score -= 100; // Danger zone penalty
+    score += me.health * 100; // Much higher weight on health to prevent suicide moves
+    if (me.health < 5) score -= 500; // Danger zone penalty
 
     // 3. Opponent Suppression (Preventing others from winning)
     if (leader) {
-        score -= leader.survivalPoints * 30; // High penalty for leader points
-        if (leader.survivalPoints >= 25) score -= 200; // Immediate threat penalty
+        score -= (leader.survivalPoints - me.survivalPoints) * 30; // Scale penalty relative to me
+        if (leader.survivalPoints >= 25) score -= 1000; // Critical threat
     }
 
     // 4. Board Presence (Pinned powers/traits)
-    score += me.powers.length * 15;
-    score += me.traits.length * 10;
-
+    // Value power cards that block disasters that are likely/active
+    score += me.powers.length * 30; 
+    
     // 5. Hand Potential (More cards = more options)
-    score += me.hand.length * 5;
+    // Avoid playing too many cards if hand is small (resource management)
+    score += me.hand.length * 10;
+    if (me.hand.length < 3) score -= 50; 
 
     return score;
   }

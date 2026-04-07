@@ -90,8 +90,8 @@ export async function getMatchState(roomCode: string): Promise<StateEnvelope | n
   const lastAction = payload.lastBotActionEpochMs || 0;
   
   // If it's a bot's turn, we act as the "Heartbeat"
-  // Logic: 1.2s delay between single moves to make it "feel" real-time
-  if (activePlayer?.isBot && !payload.winnerId && (now - lastAction > 1500)) {
+  // Logic: 1.0s delay between single moves to make it "feel" real-time
+  if (activePlayer?.isBot && !payload.winnerId && (now - lastAction > 1000)) {
      const rng = pseudoRandom(now);
      
      if (!payload.hasDrawnThisTurn) {
@@ -100,31 +100,33 @@ export async function getMatchState(roomCode: string): Promise<StateEnvelope | n
      } else {
         const brain = new AIBrain(payload, activePlayer.id);
         const move = brain.chooseBestAction();
-        
-        if (move && move.score > 0) {
-           // 2. Play Move
-           payload = playCard(payload, move.cardId!, move.targetPlayerId, rng);
-        } else {
-           const maxHand = getPlayerMaxHand(activePlayer);
-           if (payload.players[activeIdx].hand.length > maxHand) {
-              // 3. Discard Move
-              const worst = brain.chooseBestDiscard();
-              const cardId = worst.cardId!;
-              const player = payload.players[activeIdx];
-              const card = player.hand.find(c => c.id === cardId)!;
-              const idx = player.hand.findIndex(c => c.id === cardId);
-              const nextHand = player.hand.filter((_, i) => i !== idx);
-              payload = {
-                 ...payload,
-                 players: payload.players.map((p, i) => i === activeIdx ? { ...p, hand: nextHand } : p),
-                 discardPile: [...payload.discardPile, card],
-                 topCard: card
-              };
-           } else {
-              // 4. End Turn Move
-              payload = advanceTurn(payload);
-           }
-        }
+         if (move && move.score > 0 && payload.cardsPlayedThisTurn < 3) {
+            // 2. Real-Time Play Move
+            payload = playCard(payload, move.cardId!, move.targetPlayerId, rng);
+            payload.lastBotActionEpochMs = now;
+         } else {
+            const maxHand = 5; // Enforcement
+            if (payload.players[activeIdx].hand.length > maxHand) {
+               // 3. Real-Time Discard Move
+               const worst = brain.chooseBestDiscard();
+               const cardId = worst.cardId!;
+               const player = payload.players[activeIdx];
+               const card = player.hand.find(c => c.id === cardId)!;
+               const idx = player.hand.findIndex(c => c.id === cardId);
+               const nextHand = player.hand.filter((_, i) => i !== idx);
+               payload = {
+                  ...payload,
+                  players: payload.players.map((p, i) => i === activeIdx ? { ...p, hand: nextHand } : p),
+                  discardPile: [...payload.discardPile, card],
+                  topCard: card
+               };
+               payload.lastBotActionEpochMs = now;
+            } else {
+               // 4. Real-Time End Turn Move
+               payload = advanceTurn(payload);
+               payload.lastBotActionEpochMs = now;
+            }
+         }
      }
      
      // Update persistent state for this incremental bot move

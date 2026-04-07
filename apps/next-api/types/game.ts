@@ -115,8 +115,7 @@ export type MatchAction =
   | { type: "PLAY_CARD"; cardId: string; targetPlayerId?: string }
   | { type: "DISCARD_CARD"; cardId: string }
   | { type: "END_TURN" }
-  | { type: "SET_WINNER"; winnerUserId: string }
-  | { type: "UNDO_LAST_TURN" };
+  | { type: "SET_WINNER"; winnerUserId: string };
 
 export interface StateEnvelope {
   revision: number;

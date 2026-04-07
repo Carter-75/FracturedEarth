@@ -14,7 +14,10 @@ export class GameService {
     return this._matchState.value;
   }
 
-  private apiBase = 'https://fractured-earth.vercel.app/api';
+  // Use environment variables for the API URL in a real mobile app
+  private apiBase = typeof window !== 'undefined' && window.location.hostname === 'localhost' 
+    ? 'http://localhost:3000/api' 
+    : 'https://fractured-earth.vercel.app/api';
   private heartbeatInterval: any;
 
   constructor(private http: HttpClient) {}
@@ -98,7 +101,7 @@ export class GameService {
    */
   async pollMatchState(roomCode: string) {
     try {
-      const response = await this.http.get<MatchPayload>(`${this.apiBase}/rooms/${roomCode}/action`).toPromise();
+      const response = await this.http.get<MatchPayload>(`${this.apiBase}/rooms/${roomCode}/state`).toPromise();
       if (response) {
         this._matchState.next(response);
       }
