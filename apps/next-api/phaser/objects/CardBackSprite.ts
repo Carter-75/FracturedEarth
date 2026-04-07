@@ -1,6 +1,8 @@
 import Phaser from 'phaser';
 
 export class CardBackSprite extends Phaser.GameObjects.Container {
+  private backImage: Phaser.GameObjects.Image;
+
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene, x, y);
 
@@ -20,6 +22,7 @@ export class CardBackSprite extends Phaser.GameObjects.Container {
     const offsetX = (sourceW - cropW) / 2;
     
     back.setCrop(offsetX, 0, cropW, sourceH);
+    this.backImage = back;
     this.add(back);
 
     // 2. Tactical Glow
@@ -40,5 +43,13 @@ export class CardBackSprite extends Phaser.GameObjects.Container {
 
     this.setSize(width, height);
     scene.add.existing(this);
+  }
+
+  public setTint(color: number) {
+    this.backImage.setTint(color);
+  }
+
+  public clearTint() {
+    this.backImage.clearTint();
   }
 }

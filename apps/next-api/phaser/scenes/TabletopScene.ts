@@ -40,26 +40,7 @@ export class TabletopScene extends Phaser.Scene {
       this.updateBoard(gameState);
     });
 
-    // Handle Drag Events
-    this.input.on('drag', (pointer: Phaser.Input.Pointer, gameObject: CardSprite, dragX: number, dragY: number) => {
-        gameObject.x = dragX;
-        gameObject.y = dragY;
-        gameObject.setAngle(0); // Flatten while dragging
-    });
-
-    this.input.on('dragend', (pointer: Phaser.Input.Pointer, gameObject: CardSprite) => {
-        const height = this.cameras.main.height;
-        if (gameObject.y < height * 0.6) {
-           // PLAY CARD
-           if (this.onAction) {
-              this.onAction({ 
-                 type: 'PLAY_CARD', 
-                 cardId: gameObject.cardData.id 
-              });
-           }
-        }
-        this.renderHand(); // Snap back if not played
-    });
+    // --- REMOVED DRAG-TO-PLAY ---
   }
 
   private updateBoard(state: MatchPayload) {
@@ -131,13 +112,10 @@ export class TabletopScene extends Phaser.Scene {
 
        sprite.setDepth(i + 100);
        
-       // Drag and Drop (only if it's my turn)
-       const isMyTurn = this.gameState?.players[this.gameState.activePlayerIndex].id === this.userId;
-       if (isMyTurn) {
-          this.input.setDraggable(sprite);
-       } else {
-          this.input.setDraggable(sprite, false);
-       }
+       // Click-to-Detail Interaction (No more dragging)
+       sprite.on('pointerdown', () => {
+          this.game.events.emit('OPEN_CARD_DETAIL', card);
+       });
     });
   }
 
@@ -195,20 +173,31 @@ export class TabletopScene extends Phaser.Scene {
     const width = this.cameras.main.width;
     const height = this.cameras.main.height;
 
-    // 1. Draw Pile
-    const drawPile = this.add.container(width - 150, height / 2);
+    const centerX = width / 2;
+    const centerY = height / 2;
+
+    // 1. Draw Pile (Right Side of Center)
+    const drawPile = this.add.container(centerX + 80, centerY);
     const count = this.gameState?.drawPile.length || 0;
+    const isMyTurn = this.gameState?.players[this.gameState.activePlayerIndex].id === this.userId;
     
     if (count > 0) {
         // Visual stack
         for (let i = 0; i < Math.min(3, count); i++) {
             const back = new CardBackSprite(this, -i * 2, -i * 2);
             back.setScale(0.7);
+            
+            // TURN INDICATOR: Gray out if not my turn
+            if (!isMyTurn) {
+                back.setTint(0x777777);
+            } else {
+                back.clearTint();
+            }
+            
             drawPile.add(back);
         }
         
         // Interaction (Only on my turn and if I haven't drawn yet)
-        const isMyTurn = this.gameState?.players[this.gameState.activePlayerIndex].id === this.userId;
         if (isMyTurn && !this.gameState?.hasDrawnThisTurn) {
             drawPile.setSize(100, 150);
             drawPile.setInteractive({ useHandCursor: true });
@@ -228,17 +217,17 @@ export class TabletopScene extends Phaser.Scene {
         drawPile.add(frame);
     }
 
-    const countText = this.add.text(0, 110, `${count} DATA_UNITS`, {
+    const countText = this.add.text(0, 110, `${count} CORE_UNITS`, {
         fontFamily: 'Inter',
-        fontSize: '14px',
+        fontSize: '12px',
         fontStyle: '900',
-        color: '#00ffcc'
+        color: isMyTurn ? '#00ffcc' : '#777777'
     }).setOrigin(0.5);
     drawPile.add(countText);
     this.decks.push(drawPile);
 
-    // 2. Discard Pile
-    const discardPile = this.add.container(120, height / 2);
+    // 2. Discard Pile (Left Side of Center)
+    const discardPile = this.add.container(centerX - 80, centerY);
     const top = this.gameState?.discardPile[this.gameState.discardPile.length - 1];
     if (top) {
         const sprite = new CardSprite(this, 0, 0, top);

@@ -130,24 +130,6 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string, 
      throw new Error('Survival cards are disabled this turn');
   }
 
-  // --- REDIRECT LOGIC ---
-  const isDisaster = card.type === 'DISASTER';
-  const isNegativeCard = isDisaster || card.type === 'CHAOS' || card.type === 'CATACLYSM';
-  const hasRedirection = (isDisaster && activeP.triggers.some(t => t.kind === 'REDIRECT_NEXT_DISASTER')) || 
-                        (isNegativeCard && activeP.triggers.some(t => t.kind === 'REDIRECT_NEXT_NEGATIVE'));
-
-  if (hasRedirection) {
-      activeP.triggers = activeP.triggers.filter(t => t.kind !== 'REDIRECT_NEXT_DISASTER' && t.kind !== 'REDIRECT_NEXT_NEGATIVE');
-      // Force target to someone else if targeting self
-      if (targetId === activeP.id) {
-          const others = next.players.filter(p => p.id !== activeP.id);
-          if (others.length > 0) {
-              const randomTargetIndex = Math.floor(innerRng() * others.length);
-              targetId = others[randomTargetIndex].id;
-          }
-      }
-  }
-
   let isTruncated = false;
 
   const executeAtomic = (type: string, params: any, targetIndex: number = activeIndex) => {
@@ -158,6 +140,24 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string, 
       switch (type) {
           case 'MODIFY_POINTS': {
             let finalAmount = params.amount * (params.multiplier || 1);
+            
+            // --- REDIRECTION CHECK (Target Side) ---
+            const isNegative = finalAmount < 0;
+            const isDisaster = card?.type === 'DISASTER';
+            const hasTargetRedirection = (isDisaster && p.triggers.some(t => t.kind === 'REDIRECT_NEXT_DISASTER')) || 
+                                         (isNegative && p.triggers.some(t => t.kind === 'REDIRECT_NEXT_NEGATIVE'));
+
+            if (isNegative && hasTargetRedirection) {
+                p.triggers = p.triggers.filter(t => t.kind !== 'REDIRECT_NEXT_DISASTER' && t.kind !== 'REDIRECT_NEXT_NEGATIVE');
+                const others = next.players.filter(op => op.id !== p.id && op.health > 0);
+                if (others.length > 0) {
+                    const newTarget = others[Math.floor(innerRng() * others.length)];
+                    const newTargetIdx = next.players.findIndex(op => op.id === newTarget.id);
+                    executeAtomic(type, params, newTargetIdx);
+                    return;
+                }
+            }
+
             if (finalAmount < 0 && (p.twistEffect === 'prevent_negative' || p.triggers.some(t => t.kind === 'NEGATE_NEXT_NEGATIVE_EFFECT'))) {
                 p.twistEffect = undefined;
                 p.triggers = p.triggers.filter(t => t.kind !== 'NEGATE_NEXT_NEGATIVE_EFFECT');
@@ -196,6 +196,24 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string, 
          }
          case 'MODIFY_HEALTH': {
             let finalAmountH = params.amount * (params.multiplier || 1);
+            
+            // --- REDIRECTION CHECK (Target Side) ---
+            const isNegativeH = finalAmountH < 0;
+            const isDisasterH = card?.type === 'DISASTER';
+            const hasTargetRedirectionH = (isDisasterH && p.triggers.some(t => t.kind === 'REDIRECT_NEXT_DISASTER')) || 
+                                           (isNegativeH && p.triggers.some(t => t.kind === 'REDIRECT_NEXT_NEGATIVE'));
+
+            if (isNegativeH && hasTargetRedirectionH) {
+                p.triggers = p.triggers.filter(t => t.kind !== 'REDIRECT_NEXT_DISASTER' && t.kind !== 'REDIRECT_NEXT_NEGATIVE');
+                const others = next.players.filter(op => op.id !== p.id && op.health > 0);
+                if (others.length > 0) {
+                    const newTarget = others[Math.floor(innerRng() * others.length)];
+                    const newTargetIdx = next.players.findIndex(op => op.id === newTarget.id);
+                    executeAtomic(type, params, newTargetIdx);
+                    return;
+                }
+            }
+
             if (finalAmountH < 0 && (p.twistEffect === 'prevent_negative' || p.triggers.some(t => t.kind === 'NEGATE_NEXT_NEGATIVE_EFFECT'))) {
                 p.twistEffect = undefined;
                 p.triggers = p.triggers.filter(t => t.kind !== 'NEGATE_NEXT_NEGATIVE_EFFECT');
@@ -326,8 +344,16 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string, 
                p.hand.push(...cards);
             }
             break;
-         case 'STEAL_POINTS': {
-            const amt = Math.min(p.survivalPoints, params.amount);
+          case 'STEAL_POINTS': {
+            let amt = Math.min(p.survivalPoints, params.amount);
+            
+            // Redirection / Negation Check for Point Loss
+            if (amt > 0 && (p.twistEffect === 'prevent_negative' || p.triggers.some(t => t.kind === 'NEGATE_NEXT_NEGATIVE_EFFECT' || t.kind === 'PREVENT_NEXT_POINT_LOSS'))) {
+                p.triggers = p.triggers.filter(t => t.kind !== 'NEGATE_NEXT_NEGATIVE_EFFECT' && t.kind !== 'PREVENT_NEXT_POINT_LOSS');
+                p.twistEffect = undefined;
+                break;
+            }
+
             p.survivalPoints -= amt;
             active.survivalPoints += amt;
             break;
@@ -503,7 +529,7 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string, 
              if (unblockedTargets.length > 0 && prim.then) {
                  for (const inner of prim.then) {
                      for (const u_idx of unblockedTargets) {
-                         executeAtomic(inner.type, { ...inner.params, overrideTargetIndex: u_idx });
+                         executeAtomic(inner.type, inner.params, u_idx);
                      }
                  }
              }

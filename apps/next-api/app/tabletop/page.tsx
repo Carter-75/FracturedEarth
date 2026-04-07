@@ -14,12 +14,12 @@ import PhaserGame from '@/components/PhaserGame';
 
 function PlayerStatsHUD({ player, isActive }: { player: MatchPlayer; isActive: boolean }) {
   return (
-    <div className={`flex flex-col gap-2 p-6 rounded-[var(--radius)] bg-[var(--panel)] backdrop-blur-3xl border ${isActive ? 'border-[var(--accent)] shadow-[0_0_30px_rgba(var(--accent-rgb),0.2)]' : 'border-[var(--border)]'} min-w-[12rem]`}>
+    <div className={`flex flex-col gap-2 p-6 rounded-[var(--radius)] bg-[var(--panel)] backdrop-blur-3xl border ${isActive ? 'border-[var(--accent)] shadow-[0_0_30px_rgba(var(--accent-rgb),0.2)]' : 'border-[var(--border)]'} min-w-[12rem] transition-all duration-500`}>
         <div className="flex items-center gap-3">
            <div className="text-2xl">{player.emoji}</div>
            <div className="flex flex-col">
               <span className="text-[10px] font-black uppercase tracking-widest text-[var(--fg)] opacity-40">{player.displayName}</span>
-              <div className={`h-[2px] ${isActive ? 'bg-[var(--accent)] shadow-[0_0_10px_var(--glow-color)]' : 'bg-[var(--border)]'} w-8 mt-1`} />
+              <div className={`h-[2px] ${isActive ? 'bg-[var(--accent)] shadow-[0_0_10px_var(--glow-color)]' : 'bg-[var(--border)]'} w-8 mt-1 transition-all duration-500`} />
            </div>
         </div>
         <div className="flex justify-between items-end mt-4">
@@ -28,7 +28,7 @@ function PlayerStatsHUD({ player, isActive }: { player: MatchPlayer; isActive: b
               <div className="text-3xl font-black italic text-[var(--fg)] opacity-80 fe-glow-text">{player.hand.length}</div>
            </div>
            <div className="flex flex-col items-center">
-              <span className="text-[7px] font-black text-[var(--accent-soft)] opacity-60 uppercase tracking-widest">Energy</span>
+              <span className="text-[7px] font-black text-[var(--accent-soft)] opacity-60 uppercase tracking-widest">NRG</span>
               <div className="text-3xl font-black italic text-[var(--accent-soft)] fe-glow-text">{player.survivalPoints}</div>
            </div>
            <div className="flex flex-col items-end">
@@ -37,6 +37,69 @@ function PlayerStatsHUD({ player, isActive }: { player: MatchPlayer; isActive: b
            </div>
         </div>
     </div>
+  );
+}
+
+function CardDetailModal({ card, isOpen, onClose, onPlay, isMyTurn }: { card: MatchCard | null; isOpen: boolean; onClose: () => void; onPlay: () => void; isMyTurn: boolean }) {
+  if (!card) return null;
+  const theme = cardTheme(card.type);
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+           {/* Backdrop */}
+           <motion.div 
+             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+             onClick={onClose}
+             className="absolute inset-0 bg-black/80 backdrop-blur-md" 
+           />
+           
+           {/* Modal */}
+           <motion.div 
+             initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }}
+             className="relative w-full max-w-sm rounded-3xl overflow-hidden bg-[var(--panel)] border border-[var(--border)] shadow-[0_0_100px_rgba(0,0,0,0.5)]"
+           >
+              {/* Card Header / Artwork Area */}
+              <div className={`h-64 relative flex items-center justify-center overflow-hidden bg-black`}>
+                 <div className="absolute inset-0 opacity-20 pointer-events-none fe-grid" />
+                 <div className="text-8xl filter drop-shadow-[0_0_20px_white]">{theme.icon}</div>
+                 <div className="absolute bottom-4 left-6 right-6 flex justify-between items-end">
+                    <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">{card.type}</span>
+                    {card.pointsDelta !== undefined && (
+                        <span className="text-2xl font-black italic text-[var(--accent)]">+{card.pointsDelta}</span>
+                    )}
+                 </div>
+              </div>
+
+              {/* Text Info */}
+              <div className="p-8 pb-10">
+                 <h2 className="text-3xl font-black italic tracking-tighter uppercase mb-4 leading-none">{card.name}</h2>
+                 <p className="text-white/60 leading-relaxed font-medium mb-8 text-sm">
+                    {card.description || "Experimental data unit with undocumented side effects."}
+                 </p>
+                 
+                 <div className="flex flex-col gap-3">
+                    {isMyTurn && (
+                       <button 
+                         onClick={onPlay}
+                         className="fe-holo-btn !py-4 text-sm w-full !bg-[var(--accent)] !text-black border-none font-black uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-transform"
+                       >
+                          Confirm Activation
+                       </button>
+                    )}
+                    <button 
+                      onClick={onClose}
+                      className="text-white/30 text-xs font-black uppercase tracking-widest py-2 hover:text-white/60 transition-colors"
+                    >
+                       Dismiss Unit
+                    </button>
+                 </div>
+              </div>
+           </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
   );
 }
 
@@ -49,6 +112,7 @@ function TabletopGameContent() {
   const [state, setState] = useState<StateEnvelope | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [activeCard, setActiveCard] = useState<MatchCard | null>(null);
 
   const userId = useMemo(() => loadLocalSettings().userId, []);
   const payload = state?.payload;
@@ -142,41 +206,25 @@ function TabletopGameContent() {
          roomCode={code} 
          gameState={payload} 
          onAction={(action) => performAction(action)} 
+         onCardDetail={(card) => setActiveCard(card)}
       />
 
       {/* PLAYER HUD (STATIC UI) */}
       <div className="absolute bottom-0 left-0 right-0 p-8 flex flex-col items-center pointer-events-none z-50">
           
-          {/* Action Status - MOVED TO TOP-CENTER AREA */}
-          <div className="fixed top-24 left-1/2 -translate-x-1/2 flex flex-col items-center z-[60] pointer-events-none">
-             <AnimatePresence mode="wait">
-                {isMyTurn ? (
-                   <motion.div 
-                     initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
-                     className="fe-hologram text-[var(--accent)] font-black text-sm uppercase tracking-[0.5em] bg-black/40 backdrop-blur-md px-8 py-3 rounded-full border border-[var(--accent)]/40 shadow-[0_0_40px_rgba(var(--accent-rgb),0.3)] mb-4"
-                   >
-                      Your Turn - Manipulate Data
-                   </motion.div>
-                ) : (
-                   <motion.div 
-                     initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                     className="text-white/40 text-[10px] uppercase tracking-[0.5em] mb-4 bg-black/20 px-4 py-1 rounded-full"
-                   >
-                      Waiting for {activePlayer?.displayName}...
-                   </motion.div>
-                )}
-             </AnimatePresence>
-             
-             {isMyTurn && (
+          {/* End Turn (Bottom Right) */}
+          {isMyTurn && (
+             <div className="fixed bottom-8 right-8 z-[70] pointer-events-auto">
                 <button 
                   onClick={() => performAction({ type: 'END_TURN' })}
                   disabled={busy}
-                  className="fe-holo-btn pointer-events-auto !py-2 !px-8 text-xs border-[var(--accent)]/40 !bg-[var(--accent)]/5 hover:!bg-[var(--accent)]/20 shadow-lg transition-all"
+                  className="fe-holo-btn !py-2 !px-6 text-[10px] border-[var(--accent)]/20 !bg-black/50 hover:!bg-[var(--accent)]/10 shadow-xl transition-all font-black uppercase tracking-widest flex items-center gap-2 group"
                 >
-                  End Protocol (Turn)
+                  <span className="opacity-40 group-hover:opacity-100 transition-opacity">NEXT_CYCLE</span>
+                  <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] animate-pulse" />
                 </button>
-             )}
-          </div>
+             </div>
+          )}
 
           <div className="w-full max-w-7xl flex items-end justify-between">
               <div className="pointer-events-auto">
@@ -193,6 +241,20 @@ function TabletopGameContent() {
               </div>
           </div>
       </div>
+
+      {/* Card Detail Modal (Z-100) */}
+      <CardDetailModal 
+        card={activeCard} 
+        isOpen={!!activeCard} 
+        onClose={() => setActiveCard(null)}
+        isMyTurn={isMyTurn && myPlayer?.hand.some(c => c.id === activeCard?.id) || false}
+        onPlay={() => {
+          if (activeCard) {
+            performAction({ type: 'PLAY_CARD', cardId: activeCard.id });
+            setActiveCard(null);
+          }
+        }}
+      />
     </main>
   );
 }

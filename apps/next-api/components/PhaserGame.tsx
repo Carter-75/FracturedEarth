@@ -8,9 +8,10 @@ interface PhaserGameProps {
   roomCode: string;
   gameState: any;
   onAction: (action: any) => void;
+  onCardDetail?: (card: any) => void;
 }
 
-export default function PhaserGame({ roomCode, gameState, onAction }: PhaserGameProps) {
+export default function PhaserGame({ roomCode, gameState, onAction, onCardDetail }: PhaserGameProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const gameRef = useRef<Game | null>(null);
   const onActionRef = useRef(onAction);
@@ -32,6 +33,11 @@ export default function PhaserGame({ roomCode, gameState, onAction }: PhaserGame
       };
 
       gameRef.current = createGame(containerRef.current!, initialData);
+
+      // Listen for events from Phaser
+      gameRef.current.events.on('OPEN_CARD_DETAIL', (card: any) => {
+        if (onCardDetail) onCardDetail(card);
+      });
     });
 
     return () => {
