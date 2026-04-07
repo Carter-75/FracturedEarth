@@ -97,12 +97,24 @@ export default function TutorialPage() {
     }
   }
 
+  if (error) {
+     return (
+       <div className="fe-scene flex flex-col items-center justify-center bg-black">
+          <div className="fe-hologram text-red-500 text-xl border border-red-500/20 p-8 rounded-3xl bg-red-500/5 backdrop-blur-xl">
+            <h2 className="text-2xl font-black italic mb-4 uppercase">Neural_Link_Failure</h2>
+            <p className="text-sm opacity-70 mb-8 lowercase tracking-widest">{error}</p>
+            <button onClick={() => sync()} className="fe-holo-btn !py-2 !px-8 text-xs">Retry_Sync</button>
+          </div>
+       </div>
+     );
+  }
+
   if (!session || !payload) {
-    return (
-      <div className="fe-scene flex flex-col items-center justify-center bg-black">
-         <div className="fe-hologram animate-pulse text-[var(--accent)] text-xl">INITIATING_NEURAL_LINK...</div>
-      </div>
-    );
+     return (
+       <div className="fe-scene flex flex-col items-center justify-center bg-black">
+          <div className="fe-hologram animate-pulse text-[var(--accent)] text-xl">INITIATING_NEURAL_LINK...</div>
+       </div>
+     );
   }
 
   // Inject tutorial step info into payload for Phaser to pick up
@@ -167,31 +179,49 @@ export default function TutorialPage() {
          <div className="fixed bottom-8 right-8 z-[70] pointer-events-auto flex flex-col items-end gap-2">
             <button 
               onClick={() => performAction({ type: 'END_TURN' })}
-              disabled={busy || step?.expectedActionType !== 'END_TURN'}
+              disabled={busy || step?.expectedActionType !== 'END_TURN' || (myPlayer && myPlayer.hand.length > 5)}
               className={`fe-holo-btn !py-2 !px-8 text-[10px] border-[var(--accent)]/20 !bg-black/50 shadow-xl transition-all font-black uppercase tracking-widest flex items-center gap-2 group ${
-                step?.expectedActionType !== 'END_TURN' ? 'opacity-10 grayscale pointer-events-none' : 'hover:!bg-[var(--accent)]/10 border-[var(--accent)]'
+                (step?.expectedActionType !== 'END_TURN' || (myPlayer && myPlayer.hand.length > 5)) ? 'opacity-10 grayscale pointer-events-none' : 'hover:!bg-[var(--accent)]/10 border-[var(--accent)]'
               }`}
             >
               <span className="opacity-40 group-hover:opacity-100 transition-opacity">NEXT_CYCLE</span>
               <div className={`w-1.5 h-1.5 rounded-full bg-[var(--accent)] ${busy || step?.expectedActionType !== 'END_TURN' ? '' : 'animate-pulse'}`} />
             </button>
+            {(myPlayer && myPlayer.hand.length > 5) && (
+              <span className="text-[8px] text-rose-500 font-bold uppercase tracking-widest animate-pulse">Hand Limit Exceeded (5)</span>
+            )}
          </div>
       )}
 
-      {/* Card Detail Modal */}
+      {/* Card Detail Modal (Premium) */}
       <AnimatePresence>
         {activeCard && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setActiveCard(null)} className="absolute inset-0 bg-black/80 backdrop-blur-md" />
-                <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative w-full max-w-sm rounded-[var(--radius)] overflow-hidden bg-[var(--panel)] border border-[var(--border)] p-8">
-                    <h3 className="text-3xl font-black italic uppercase mb-2">{activeCard.name}</h3>
-                    <p className="text-white/60 mb-8 uppercase text-xs tracking-tighter">{activeCard.description}</p>
-                    {step?.expectedCardId === activeCard.id && (
-                        <button onClick={() => performAction({ type: 'PLAY_CARD', cardId: activeCard.id })} className="w-full fe-holo-btn !bg-[var(--accent)] !text-black !py-4 font-black">CONFIRM_DEPLOYMENT</button>
-                    )}
-                    <button onClick={() => setActiveCard(null)} className="w-full text-white/20 text-[10px] mt-4 uppercase font-black hover:text-white/40">Close Preview</button>
-                </motion.div>
-            </div>
+           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setActiveCard(null)} className="absolute inset-0 bg-black/80 backdrop-blur-md" />
+              <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} className="relative w-full max-w-sm rounded-3xl overflow-hidden bg-[var(--panel)] border border-[var(--border)] shadow-[0_0_100px_rgba(0,0,0,0.5)]">
+                 <div className="h-64 relative flex items-center justify-center bg-black">
+                    <div className="absolute inset-0 opacity-20 pointer-events-none fe-grid" />
+                    <div className="text-8xl filter drop-shadow-[0_0_20px_white]">💠</div>
+                    <div className="absolute bottom-4 left-6 right-6 flex justify-between items-end">
+                       <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">{activeCard.type}</span>
+                    </div>
+                 </div>
+                 <div className="p-8 pb-10">
+                    <h2 className="text-3xl font-black italic tracking-tighter uppercase mb-2 leading-none">{activeCard.name}</h2>
+                    <p className="text-white/60 leading-relaxed font-medium mb-8 text-sm">{activeCard.description}</p>
+                    <div className="flex flex-col gap-3">
+                       {step?.expectedCardId === activeCard.id ? (
+                          <button onClick={() => performAction({ type: 'PLAY_CARD', cardId: activeCard.id })} className="fe-holo-btn !py-4 text-sm w-full !bg-[var(--accent)] !text-black border-none font-black uppercase tracking-widest hover:scale-[1.02] transition-transform">Confirm Activation</button>
+                       ) : (
+                          <div className="text-center p-4 rounded-xl border border-white/5 bg-white/5">
+                             <span className="text-[10px] font-black text-white/20 uppercase tracking-widest">Protocol Restriction: Incorrect Unit for Current Phase</span>
+                          </div>
+                       )}
+                       <button onClick={() => setActiveCard(null)} className="text-white/30 text-xs font-black uppercase tracking-widest py-2 hover:text-white/60 transition-colors">Dismiss Unit</button>
+                    </div>
+                 </div>
+              </motion.div>
+           </div>
         )}
       </AnimatePresence>
 

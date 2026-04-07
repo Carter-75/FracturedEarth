@@ -347,9 +347,10 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string, 
                 const others = next.players.filter(op => op.id !== p.id && op.health > 0);
                 if (others.length > 0) {
                     const newTarget = others[Math.floor(innerRng() * others.length)];
-                    newTarget.survivalPoints += amt;
-                    p.survivalPoints -= amt;
-                    break;
+                    const stolen = Math.min(newTarget.survivalPoints, amt);
+                    newTarget.survivalPoints -= stolen;
+                    active.survivalPoints += stolen;
+                    return;
                 }
             }
 
@@ -357,13 +358,13 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string, 
             if (amt > 0 && (p.twistEffect === 'prevent_negative' || p.triggers.some(t => t.kind === 'NEGATE_NEXT_NEGATIVE_EFFECT' || t.kind === 'PREVENT_NEXT_POINT_LOSS'))) {
                 p.triggers = p.triggers.filter(t => t.kind !== 'NEGATE_NEXT_NEGATIVE_EFFECT' && t.kind !== 'PREVENT_NEXT_POINT_LOSS');
                 p.twistEffect = undefined;
-                break;
+                return;
             }
 
             p.survivalPoints -= amt;
             active.survivalPoints += amt;
             break;
-         }
+          }
             
          case 'MODIFY_MAX_HAND':
             p.maxHandModifier = (p.maxHandModifier ?? 0) + params.amount;
@@ -491,8 +492,11 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string, 
             break;
          }
          case 'REPEAT_LAST_SURVIVAL': {
-            const lastSurv = state.turnHistory.filter(c => c.type === 'SURVIVAL' && c.id !== card.id).pop();
-            if (lastSurv) resolveEffect(next, lastSurv, targetId, innerRng);
+            const lastSurv = next.turnHistory.filter(c => c.type === 'SURVIVAL' && c.id !== card.id).pop();
+            if (lastSurv) {
+                // IMPORTANT: We must assign the return value of resolveEffect to next
+                next = resolveEffect(next, lastSurv, targetId, innerRng);
+            }
             break;
          }
          case 'UNDO_LAST_TURN': {
@@ -581,8 +585,10 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string, 
               continue;
           }
           if (type === 'REPEAT_LAST_SURVIVAL') {
-             const lastSurv = state.turnHistory.filter(c => c.type === 'SURVIVAL' && c.id !== card.id).pop();
-             if (lastSurv) resolveEffect(next, lastSurv, targetId, innerRng);
+             const lastSurv = next.turnHistory.filter(c => c.type === 'SURVIVAL' && c.id !== card.id).pop();
+             if (lastSurv) {
+                 next = resolveEffect(next, lastSurv, targetId, innerRng);
+             }
              continue;
           }
           if (type === 'CHANCE') {

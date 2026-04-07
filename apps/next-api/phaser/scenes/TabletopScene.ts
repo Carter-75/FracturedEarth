@@ -74,28 +74,60 @@ export class TabletopScene extends Phaser.Scene {
       // Lock interaction
       this.input.enabled = false;
 
+      // Start from the state BEFORE the actions to simulate progression
+      // Actually, this.gameState should already be the state at the end of the previous turn.
+      
       for (const event of events) {
           const { action, actorId, card, cardName } = event;
           
           if (action === 'THINKING') {
-              // Pulse the opponent HUD or just wait
               await this.sleep(600);
           } else if (action === 'DRAW') {
-              // Animate a card from deck to the bot's position
               await this.animateBotDraw(actorId);
+              // Decrement deck count visually if possible
+              if (this.gameState) {
+                  this.gameState.drawPile.pop();
+                  this.renderDecks();
+              }
           } else if (action === 'PLAY') {
-              // Animate card from bot to center
               if (card) {
                   await this.animateBotPlay(actorId, card);
+                  
+                  // Incremental update for visual feedback
+                  if (this.gameState) {
+                      this.gameState.topCard = card;
+                      const actor = this.gameState.players.find(p => p.id === actorId);
+                      if (actor) {
+                          const cIdx = actor.hand.findIndex(ch => ch.id === card.id);
+                          if (cIdx !== -1) actor.hand.splice(cIdx, 1);
+                      }
+                      
+                      const isPersistent = card.type === 'POWER' || card.type === 'ADAPT';
+                      if (!isPersistent) {
+                          this.gameState.discardPile = [...this.gameState.discardPile, card];
+                          this.gameState.turnPile = [...this.gameState.turnPile, card];
+                      } else {
+                          // Pin it to the actor's power pile
+                          if (actor) {
+                              actor.powers = [...actor.powers, card];
+                          }
+                      }
+                      
+                      this.renderPlayPile();
+                      this.renderDecks();
+                      this.renderHand();
+                      this.renderOpponents();
+                      this.renderPowerPile();
+                  }
               }
           } else if (action === 'END_TURN') {
-              await this.sleep(400); // Brief pause
+              await this.sleep(400);
           }
       }
 
       this.isReplaying = false;
       this.input.enabled = true;
-      this.updateBoard(finalState);
+      this.updateBoard(finalState); // Final sync
   }
 
   private animateBotDraw(actorId: string): Promise<void> {

@@ -829,13 +829,6 @@
       "description": "+3 Points; discard 1 to draw 1.",
       "primitives": [
       {
-        "type": "MODIFY_POINTS",
-        "params": {
-          "amount": 3,
-          "target": "self"
-        }
-      },
-      {
         "type": "DISCARD_AND_DRAW",
         "params": {
           "discardAmount": 1,
@@ -2446,6 +2439,44 @@
           ]
         }
       ]
+    },
+    {
+      "id": "disaster_solar_flare",
+      "name": "Solar Flare",
+      "type": "DISASTER",
+      "description": "Heat-based disaster. All others lose 2 Points; drawer loses 3 if epicenter.",
+      "disasterKind": "WILDFIRE",
+      "primitives": [
+        {
+          "type": "IF_UNBLOCKED",
+          "params": { "target": "all_opponents" },
+          "then": [
+            {
+              "type": "MODIFY_POINTS",
+              "params": { "amount": -2, "target": "target_player" }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "disaster_kinetic_impact",
+      "name": "Kinetic Impact",
+      "type": "DISASTER",
+      "description": "Kinetic-based disaster. All targets lose 3 Points.",
+      "disasterKind": "EARTHQUAKE",
+      "primitives": [
+        {
+          "type": "IF_UNBLOCKED",
+          "params": { "target": "all" },
+          "then": [
+            {
+              "type": "MODIFY_POINTS",
+              "params": { "amount": -3, "target": "target_player" }
+            }
+          ]
+        }
+      ]
     }
   ],
   "POWER": [
@@ -2615,6 +2646,23 @@
           "params": {
             "buffId": "block_next_disaster",
             "kind": "fire",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "power_thermal_shield",
+      "name": "Thermal Shield",
+      "type": "POWER",
+      "description": "Tutorial: Blocks Heat-based disasters indefinitely.",
+      "primitives": [
+        {
+          "type": "ADD_TRIGGER",
+          "params": {
+            "triggerKind": "NEGATE_NEXT_DISASTER",
+            "kind": "HEATING_01",
+            "duration": "permanent",
             "target": "self"
           }
         }

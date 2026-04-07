@@ -123,24 +123,59 @@ export const TUTORIAL_SCRIPT: TutorialStep[] = [
         { type: 'END_TURN' } as any
     ]
   },
-  // ROUND 5: TWIST
+  // ROUND 5: TWIST (Cycle 05)
   {
     id: 14,
     title: 'Cycle 05: Data Corruption',
-    description: 'Procure a unit. Be prepared for immediate system shifts.',
+    description: 'Procure a unit. Twist cards like Blessing of Unity trigger immediately upon procurement, shifting the state for all participants.',
     expectedActionType: 'DRAW_CARD',
-    // Blessing of Unity will auto-trigger on draw
   },
-  // ROUND 6: CATACLYSM
   {
     id: 15,
-    title: 'Cycle 06: The End State',
-    description: 'A global catastrophic event is approaching. Procure the final unit.',
+    title: 'Cycle 06: Resource Management',
+    description: 'The Nexus AI is attempting to drain your resources. End your turn. Watch how the AI forces a discard.',
+    expectedActionType: 'END_TURN',
+    botActions: [
+        { type: 'DRAW_CARD' } as any,
+        { type: 'PLAY_CARD', cardId: 'chaos_scavenger_raid' } as any,
+        { type: 'END_TURN' } as any
+    ]
+  },
+  // ROUND 7: REDIRECTION
+  {
+    id: 16,
+    title: 'Cycle 07: Tactical Redirection',
+    description: 'Draw a unit. You have procured a Redirection protocol. This will permit you to move negative effects to an opponent.',
+    expectedActionType: 'DRAW_CARD',
+  },
+  {
+    id: 17,
+    title: 'Active Defense: Redirect',
+    description: 'Deploy the Energy Field. The next time the AI attempts to steal points or health, the effect will be redirected back to them.',
+    expectedActionType: 'PLAY_CARD',
+    expectedCardId: 'survival_energy_field',
+  },
+  {
+    id: 18,
+    title: 'Cycle Termination',
+    description: 'End the cycle.',
+    expectedActionType: 'END_TURN',
+    botActions: [
+        { type: 'DRAW_CARD' } as any,
+        { type: 'PLAY_CARD', cardId: 'chaos_orbital_strike' } as any, // This should be redirected!
+        { type: 'END_TURN' } as any
+    ]
+  },
+  // ROUND 9: CATACLYSM
+  {
+    id: 19,
+    title: 'Cycle 09: Global Instability',
+    description: 'A global catastrophic event is approaching. Procure the final data packet to stabilize the sector.',
     expectedActionType: 'DRAW_CARD',
     // The Apocalypse will auto-trigger
   },
   {
-    id: 16,
+    id: 20,
     title: 'Final Authority',
     description: 'The simulation has concluded. You have successfully navigated 10 cycles of resource warfare. Finalize protocol for planetary authority.',
     expectedActionType: 'SET_WINNER',
@@ -199,16 +234,23 @@ export async function buildInitialMatch(humanUserId: string): Promise<MatchPaylo
 
   // Let's refine the initial hands and deck for 100% parity with script
   human.hand = [findCard('survival_hydroponic_bay')];
-  bot.hand = [findCard('disaster_solar_flare')];
+  bot.hand = [
+      findCard('disaster_solar_flare'),
+      findCard('disaster_kinetic_impact'),
+      findCard('chaos_scavenger_raid'),
+      findCard('chaos_orbital_strike'),
+  ];
   
   const scriptedDraws = [
-      findCard('power_thermal_shield'),      // Step 3
-      findCard('adapt_kinetic_field'),       // Step 6
-      findCard('chaos_orbital_strike'),      // Step 8 (should be in hand? No, let's draw it)
-      findCard('ascended_phoenix_rebirth'),  // Step 10
-      findCard('survival_energy_siphon'),    // (in hand after draw?)
-      findCard('twist_blessing_of_unity'),   // Step 14
-      findCard('cataclysm_the_apocalypse'),  // Step 15
+      findCard('power_thermal_shield'),      // Round 2
+      findCard('survival_biodome'),          // Round 3
+      findCard('adapt_kinetic_field'),       // Round 4
+      findCard('chaos_orbital_strike'),      // Round 5 (wait, already in bot hand? no, let's give player some)
+      findCard('ascended_phoenix_rebirth'),  // Round 6
+      findCard('twist_blessing_of_unity'),   // Round 7
+      findCard('survival_energy_field'),      // Round 8
+      findCard('survival_energy_siphon'),    // Round 9
+      findCard('cataclysm_the_apocalypse'),  // Round 10
   ];
 
   return {
