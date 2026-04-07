@@ -5,12 +5,12 @@ import { SessionProvider } from 'next-auth/react';
 import { THEME_PRESETS } from '@/lib/gameConfig';
 import { loadLocalSettings, type LocalUserSettings } from '@/lib/localProfile';
 import { initializeNativeBridge } from '@/lib/nativeBridge';
-import { addLog } from '@/lib/logDiagnostics';
-
+import { initializeNeuralLogging, addLog } from '@/lib/logDiagnostics';
 import NeuralDiagnostics from '@/components/NeuralDiagnostics';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   useEffect(() => {
+    initializeNeuralLogging();
     const applyTheme = (settings?: LocalUserSettings) => {
       const next = settings ?? loadLocalSettings();
       const preset = THEME_PRESETS[next.theme];

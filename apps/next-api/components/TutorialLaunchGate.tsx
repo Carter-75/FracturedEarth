@@ -9,13 +9,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 export function TutorialLaunchGate() {
   const pathname = usePathname();
   const [visible, setVisible] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
 
   useEffect(() => {
+    setHasMounted(true);
     const hiddenPath = pathname.startsWith('/tutorial') || pathname.startsWith('/api') || pathname.startsWith('/tabletop');
     setVisible(!hiddenPath && !isTutorialDone());
   }, [pathname]);
 
-  if (!visible) return null;
+  if (!hasMounted || !visible) return null;
 
   return (
     <AnimatePresence>

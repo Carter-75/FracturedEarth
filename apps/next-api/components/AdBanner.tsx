@@ -9,9 +9,11 @@ import { useSession, signIn, signOut } from 'next-auth/react';
 
 export function AdBanner() {
   const [adFree, setAdFree] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
   const { data: session, status } = useSession();
 
   useEffect(() => {
+    setHasMounted(true);
     const settings = localStorage.getItem('fe:user-settings:v1');
     let isAdFree = false;
     if (settings) {
@@ -52,6 +54,7 @@ export function AdBanner() {
     };
   }, []);
 
+  if (!hasMounted) return null;
   if (adFree && status !== 'unauthenticated') return null;
 
   const isNative = Capacitor.isNativePlatform();

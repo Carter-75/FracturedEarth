@@ -7,8 +7,10 @@ import { loadMatchHistory, loadRoomPin, clearRoomPin, type LocalMatchOutcome, ty
 export default function HomePage() {
   const [history, setHistory] = useState<LocalMatchOutcome[]>([]);
   const [activePin, setActivePin] = useState<LocalRoomPin | null>(null);
+  const [hasMounted, setHasMounted] = useState(false);
 
   useEffect(() => {
+    setHasMounted(true);
     setHistory(loadMatchHistory());
     
     let isValidating = false;
@@ -115,7 +117,7 @@ export default function HomePage() {
                     <div className="flex flex-col">
                       <span className="text-[var(--fg)] font-bold text-sm uppercase tracking-wider">{outcome.roomCode}</span>
                       <span className="text-[var(--fg)] opacity-30 text-[9px] uppercase tracking-widest">
-                        {new Date(outcome.playedAtEpochMs).toLocaleDateString()} • {outcome.winnerDisplayName}
+                        {hasMounted ? new Date(outcome.playedAtEpochMs).toLocaleDateString() : ''} • {outcome.winnerDisplayName}
                       </span>
                     </div>
                   </div>

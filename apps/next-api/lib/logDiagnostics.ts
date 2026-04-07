@@ -12,10 +12,9 @@ type LogObserver = (logs: LogEntry[]) => void;
 let logs: LogEntry[] = [];
 let observers: LogObserver[] = [];
 
-// Avoid SSR issues
-const isBrowser = typeof window !== 'undefined';
-
-if (isBrowser) {
+export function initializeNeuralLogging() {
+  if (typeof window === 'undefined') return;
+  
   const originalError = console.error;
   const originalWarn = console.warn;
 

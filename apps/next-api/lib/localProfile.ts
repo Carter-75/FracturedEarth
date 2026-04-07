@@ -33,10 +33,13 @@ const HISTORY_KEY = 'fe:match-history:v1';
 const ROOM_PIN_KEY = 'fe:room-pin:v1';
 const TUTORIAL_DONE_KEY = 'fe:tutorial-done:v1';
 
-const generateGuestId = () => `guest_${Math.random().toString(36).substring(2, 11)}`;
+const generateGuestId = () => {
+  if (typeof window === 'undefined') return 'guest_ssr_placeholder';
+  return `guest_${Math.random().toString(36).substring(2, 11)}`;
+};
 
 const defaultSettings: LocalUserSettings = {
-  userId: generateGuestId(),
+  userId: 'guest_pending',
   displayName: 'Guest Player',
   emoji: '🌍',
   theme: 'Obsidian',
@@ -48,9 +51,9 @@ export function loadLocalSettings(): LocalUserSettings {
   const raw = window.localStorage.getItem(SETTINGS_KEY);
   
   if (!raw) {
-    // Persistent initial generation
-    saveLocalSettings(defaultSettings);
-    return defaultSettings;
+    const updated = { ...defaultSettings, userId: generateGuestId() };
+    saveLocalSettings(updated);
+    return updated;
   }
 
   try {

@@ -8,9 +8,11 @@ export default function NeuralDiagnostics() {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(true);
+  const [hasMounted, setHasMounted] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    setHasMounted(true);
     return subscribeToLogs(setLogs);
   }, []);
 
@@ -19,6 +21,8 @@ export default function NeuralDiagnostics() {
       scrollRef.current.scrollTop = 0;
     }
   }, [logs]);
+
+  if (!hasMounted) return null;
 
   if (!isOpen) {
     return (
@@ -79,7 +83,7 @@ export default function NeuralDiagnostics() {
                         {log.level}
                       </span>
                       <span className="text-[8px] opacity-20 font-mono">
-                        {new Date(log.timestamp).toLocaleTimeString()}
+                        {hasMounted ? new Date(log.timestamp).toLocaleTimeString() : ''}
                       </span>
                     </div>
                     <p className="text-[10px] font-medium text-[var(--fg)] opacity-70 leading-relaxed font-mono break-all">

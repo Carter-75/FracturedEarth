@@ -7,10 +7,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 export function SectorPassPopup() {
   const [visible, setVisible] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
 
   const pathname = usePathname();
 
   useEffect(() => {
+    setHasMounted(true);
     // Show only once per day on session start
     const lastPrompt = localStorage.getItem('fe:last-sub-prompt');
     const isAdFree = localStorage.getItem('fe:user-settings:v1')?.includes('"adFree":true');
@@ -22,6 +24,8 @@ export function SectorPassPopup() {
       return () => clearTimeout(timer);
     }
   }, [pathname]);
+
+  if (!hasMounted) return null;
 
   function handleDismiss() {
     setVisible(false);
