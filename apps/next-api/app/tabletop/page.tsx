@@ -122,8 +122,15 @@ function TabletopGameContent() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [activeCard, setActiveCard] = useState<MatchCard | null>(null);
+  const [hasMounted, setHasMounted] = useState(false);
+  const [local, setLocal] = useState<{ userId: string } | null>(null);
 
-  const userId = useMemo(() => loadLocalSettings().userId, []);
+  useEffect(() => {
+     setHasMounted(true);
+     setLocal(loadLocalSettings());
+  }, []);
+
+  const userId = local?.userId || '';
   const payload = state?.payload;
   const myPlayer = payload?.players.find(p => p.id === userId);
   const activePlayer = payload?.players[payload?.activePlayerIndex ?? 0];
@@ -131,6 +138,7 @@ function TabletopGameContent() {
   const opponents = payload?.players.filter(p => p.id !== userId) || [];
 
   const sync = React.useCallback(async () => {
+    if (!hasMounted) return;
     try {
       const res = await apiFetch(`/api/rooms/${code}/state`, { cache: 'no-store' });
       if (res.status === 404) {
@@ -147,30 +155,30 @@ function TabletopGameContent() {
   useEffect(() => {
     if (!code) return;
     sync();
-    const timer = setInterval(sync, 2000);
+    const timer = setInterval(sync, 1000);
     return () => clearInterval(timer);
   }, [code, sync]);
 
   useEffect(() => {
-     if (myPlayer && code) {
+     if (myPlayer && code && local) {
         saveRoomPin({ 
            code, 
-           userId, 
+           userId: local.userId, 
            displayName: myPlayer.displayName, 
            emoji: myPlayer.emoji, 
            ttlMs: 60000 
         });
      }
-  }, [myPlayer, code, userId]);
+  }, [myPlayer, code, local]);
 
   async function performAction(action: Partial<MatchAction>) {
-    if (!state) return;
+    if (!state || !local) return;
     setBusy(true);
     try {
       const res = await apiFetch(`/api/rooms/${code}/action`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, action, expectedRevision: state.revision }),
+        body: JSON.stringify({ userId: local.userId, action, expectedRevision: state.revision }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
@@ -192,7 +200,12 @@ function TabletopGameContent() {
      );
   }
 
-  if (!state) return null;
+  if (!hasMounted || !state) return (
+     <div className="fe-scene flex flex-col items-center justify-center bg-black">
+        <div className="w-12 h-12 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin mb-4" />
+        <div className="fe-hologram animate-pulse text-[var(--accent)]">ESTABLISHING_NEURAL_LINK...</div>
+     </div>
+  );
 
   return (
     <main className="fe-scene overflow-hidden relative cursor-default bg-black">

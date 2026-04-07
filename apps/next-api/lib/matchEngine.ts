@@ -10,6 +10,7 @@ import {
   CardType,
   DisasterKind
 } from "../types/game";
+import { AIBrain } from "./aiBrain";
 import { 
   MAX_HAND_SIZE, 
   WINNING_POINTS, 
@@ -28,7 +29,7 @@ export function canPlayCard(state: MatchPayload, card: MatchCard): boolean {
   return true;
 }
 
-const pseudoRandom = (seed: number): () => number => {
+export const pseudoRandom = (seed: number): () => number => {
   let x = seed || 123456789;
   return () => {
     x ^= x << 13;
@@ -63,7 +64,7 @@ function evaluateWinner(state: MatchPayload): string | undefined {
   return undefined;
 }
 
-function getPlayerMaxHand(player: MatchPlayer): number {
+export function getPlayerMaxHand(player: MatchPlayer): number {
   let bonus = player.maxHandModifier || 0;
   if (player.triggers.some(t => t.kind === 'HAND_LIMIT_TEMP_1')) {
       bonus += 1;
@@ -719,7 +720,7 @@ function playCardImmediate(state: MatchPayload, card: MatchCard, targetId?: stri
   return resolveEffect(next, card, targetId, rng);
 }
 
-function advanceTurn(state: MatchPayload): MatchPayload {
+export function advanceTurn(state: MatchPayload): MatchPayload {
   const dir = state.turnDirection || 1;
   let nextIndex = (state.activePlayerIndex + dir + state.players.length) % state.players.length;
   
@@ -772,7 +773,7 @@ function advanceTurn(state: MatchPayload): MatchPayload {
 }
 
 
-function playCard(
+export function playCard(
   state: MatchPayload,
   cardId: string,
   targetPlayerId?: string,
@@ -860,41 +861,75 @@ function runBotTurnsUntilHuman(state: MatchPayload, rng: () => number): {
   while (!next.winnerId && turnSafetyCounter < 20) {
     turnSafetyCounter++;
     const activeIndex = next.activePlayerIndex;
-    const active = next.players[activeIndex];
+    let active = next.players[activeIndex];
     if (!active.isBot) break;
 
-    replay.push({
-      actorId: active.id,
-      actorName: active.displayName,
-      action: "THINKING",
-    });
-
+    // 1. Initial Draw (No artificial thinking)
     next = drawForActive(next, replay, rng);
+    
+    // Refresh active reference after draw
+    active = next.players[activeIndex];
 
-    for (let i = 0; i < 3; i++) {
-        if (next.winnerId) break;
-        const action = chooseBotAction(next);
-        if (!action) break;
-
-        const currentActive = next.players[next.activePlayerIndex];
-        const fullCard = currentActive.hand.find(c => c.id === action.cardId);
-
-        replay.push({
-          actorId: currentActive.id,
-          actorName: currentActive.displayName,
-          action: "PLAY",
-          cardName: action.cardName,
-          card: fullCard,
-          targetPlayerId: action.targetPlayerId,
+    // 2. MOVE PHASE (Iterative)
+    let movePhaseCount = 0;
+    while (movePhaseCount < 3 && !next.winnerId) {
+        const brain = new AIBrain(next, active.id);
+        const best = brain.chooseBestAction();
+        
+        if (!best || best.score <= 0) break; 
+        
+        const card = active.hand.find(c => c.id === best.cardId)!;
+        
+        replay.push({ 
+           actorId: active.id, 
+           actorName: active.displayName, 
+           action: "PLAY", 
+           cardName: card.name, 
+           card: card, 
+           targetPlayerId: best.targetPlayerId 
         });
 
-        next = playCard(next, action.cardId, action.targetPlayerId, rng);
+        next = playCard(next, card.id, best.targetPlayerId, rng);
+        active = next.players[activeIndex]; // Refresh
+        movePhaseCount++;
     }
 
+    // 3. DISCARD PHASE
+    const maxHand = getPlayerMaxHand(active);
+    let discardSafety = 0;
+    while (active.hand.length > maxHand && discardSafety < 10) {
+        discardSafety++;
+        const brain = new AIBrain(next, active.id);
+        const worst = brain.chooseBestDiscard();
+        const card = active.hand.find(c => c.id === worst.cardId)!;
+
+        replay.push({
+           actorId: active.id,
+           actorName: active.displayName,
+           action: "DISCARD",
+           cardName: card.name,
+           card: card
+        });
+
+        // Apply Discard logic
+        const idx = active.hand.findIndex(c => c.id === card.id);
+        const nextActive = { ...active, hand: active.hand.filter((_, i) => i !== idx) };
+        const nextPlayers = [...next.players];
+        nextPlayers[activeIndex] = nextActive;
+        next = {
+            ...next,
+            players: nextPlayers,
+            discardPile: [...next.discardPile, card],
+            topCard: card
+        };
+        active = next.players[activeIndex];
+    }
+
+    // 4. End Turn
     if (!next.winnerId) {
         replay.push({
-          actorId: next.players[next.activePlayerIndex].id,
-          actorName: next.players[next.activePlayerIndex].displayName,
+          actorId: active.id,
+          actorName: active.displayName,
           action: "END_TURN",
         });
         next = advanceTurn(next);

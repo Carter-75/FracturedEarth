@@ -51,14 +51,7 @@ export default function PhaserGame({ roomCode, gameState, onAction, onCardDetail
   // Sync state updates to Phaser
   useEffect(() => {
     if (gameRef.current && gameState) {
-      if (gameState.botTurnReplay && gameState.botTurnReplay.length > 0) {
-        gameRef.current.events.emit('PROCESS_REPLAY', {
-          events: gameState.botTurnReplay,
-          finalState: gameState
-        });
-      } else {
-        gameRef.current.events.emit('UPDATE_STATE', gameState);
-      }
+      gameRef.current.events.emit('UPDATE_STATE', gameState);
     }
   }, [gameState]);
 

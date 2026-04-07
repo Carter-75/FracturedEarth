@@ -15,6 +15,7 @@ export class TabletopScene extends Phaser.Scene {
   private userId: string = '';
   private tutorialStep: any = null;
   private isReplaying: boolean = false;
+  private processedRevision: number = -1;
   private replayQueue: any[] = [];
 
   constructor() {
@@ -43,9 +44,7 @@ export class TabletopScene extends Phaser.Scene {
       if (!this.isReplaying) this.updateBoard(gameState);
     });
 
-    this.game.events.on('PROCESS_REPLAY', ({ events, finalState }: any) => {
-      this.playActionReplay(events, finalState);
-    });
+    // PROCESS_REPLAY removed in favor of Live Reactive Polling
 
     this.game.events.on('UPDATE_TUTORIAL_STEP', (step: any) => {
       this.tutorialStep = step;
@@ -55,8 +54,42 @@ export class TabletopScene extends Phaser.Scene {
     // --- REMOVED DRAG-TO-PLAY ---
   }
 
-  private updateBoard(state: MatchPayload) {
+  private async updateBoard(state: MatchPayload) {
     if (!state) return;
+    
+    // DIFFING LOGIC for Real-Time Reactions
+    if (this.gameState && state.revision !== this.processedRevision) {
+        const prev = this.gameState;
+        const activeIdx = state.activePlayerIndex;
+        const activePlayer = state.players[activeIdx];
+        const prevActive = prev.players.find(p => p.id === activePlayer.id);
+
+        // 1. Detect DRAW (for anyone, including bots)
+        if (activePlayer.hand.length > (prevActive?.hand.length || 0)) {
+            await this.animateBotDraw(activePlayer.id);
+        }
+
+        // 2. Detect PLAY (new top card or turn pile growth)
+        if (state.topCard && (!prev.topCard || state.topCard.id !== prev.topCard.id)) {
+            const isPersistent = state.topCard.type === 'POWER' || state.topCard.type === 'ADAPT';
+            // Only animate as a "play" if it wasn't just a discard (which we handle below)
+            const wasJustDiscarded = state.discardPile.length > prev.discardPile.length && state.topCard?.id === state.discardPile[state.discardPile.length-1]?.id;
+            
+            if (!wasJustDiscarded) {
+               await this.animateBotPlay(activePlayer.id, state.topCard);
+            }
+        }
+
+        // 3. Detect DISCARD
+        if (state.discardPile.length > prev.discardPile.length) {
+            const newDiscard = state.discardPile[state.discardPile.length - 1];
+            await this.animateBotDiscard(activePlayer.id, newDiscard);
+        }
+        
+    }
+    
+    this.processedRevision = state.revision || -1;
+
     const isNewDraw = !!(this.gameState && state.players.find(p => p.id === this.userId)?.hand.length! > this.gameState.players.find(p => p.id === this.userId)?.hand.length!);
     
     this.gameState = state;
@@ -67,68 +100,7 @@ export class TabletopScene extends Phaser.Scene {
     this.renderPowerPile();
   }
 
-  private async playActionReplay(events: any[], finalState: MatchPayload) {
-      if (this.isReplaying) return;
-      this.isReplaying = true;
-
-      // Lock interaction
-      this.input.enabled = false;
-
-      // Start from the state BEFORE the actions to simulate progression
-      // Actually, this.gameState should already be the state at the end of the previous turn.
-      
-      for (const event of events) {
-          const { action, actorId, card, cardName } = event;
-          
-          if (action === 'THINKING') {
-              await this.sleep(600);
-          } else if (action === 'DRAW') {
-              await this.animateBotDraw(actorId);
-              // Decrement deck count visually if possible
-              if (this.gameState) {
-                  this.gameState.drawPile.pop();
-                  this.renderDecks();
-              }
-          } else if (action === 'PLAY') {
-              if (card) {
-                  await this.animateBotPlay(actorId, card);
-                  
-                  // Incremental update for visual feedback
-                  if (this.gameState) {
-                      this.gameState.topCard = card;
-                      const actor = this.gameState.players.find(p => p.id === actorId);
-                      if (actor) {
-                          const cIdx = actor.hand.findIndex(ch => ch.id === card.id);
-                          if (cIdx !== -1) actor.hand.splice(cIdx, 1);
-                      }
-                      
-                      const isPersistent = card.type === 'POWER' || card.type === 'ADAPT';
-                      if (!isPersistent) {
-                          this.gameState.discardPile = [...this.gameState.discardPile, card];
-                          this.gameState.turnPile = [...this.gameState.turnPile, card];
-                      } else {
-                          // Pin it to the actor's power pile
-                          if (actor) {
-                              actor.powers = [...actor.powers, card];
-                          }
-                      }
-                      
-                      this.renderPlayPile();
-                      this.renderDecks();
-                      this.renderHand();
-                      this.renderOpponents();
-                      this.renderPowerPile();
-                  }
-              }
-          } else if (action === 'END_TURN') {
-              await this.sleep(400);
-          }
-      }
-
-      this.isReplaying = false;
-      this.input.enabled = true;
-      this.updateBoard(finalState); // Final sync
-  }
+  // Legacy replay system removed in favor of Live Reactive Polling
 
   private animateBotDraw(actorId: string): Promise<void> {
       return new Promise(resolve => {
@@ -150,6 +122,33 @@ export class TabletopScene extends Phaser.Scene {
               onComplete: () => {
                   temp.destroy();
                   resolve();
+              }
+          });
+      });
+  }
+
+  private animateBotDiscard(actorId: string, card: any): Promise<void> {
+      return new Promise(resolve => {
+          const centerX = this.cameras.main.width / 2;
+          const centerY = this.cameras.main.height / 2;
+          
+          const temp = new CardSprite(this, centerX, 50, card);
+          temp.setScale(0.5);
+          temp.setAlpha(0);
+
+          this.tweens.add({
+              targets: temp,
+              x: centerX - 80,
+              y: centerY,
+              alpha: 1,
+              scale: 0.7,
+              duration: 600,
+              ease: 'Power2.easeOut',
+              onComplete: () => {
+                  this.time.delayedCall(400, () => {
+                      temp.destroy();
+                      resolve();
+                  });
               }
           });
       });

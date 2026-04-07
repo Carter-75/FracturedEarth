@@ -14,6 +14,7 @@ export async function POST(req: NextRequest, { params }: { params: { code: strin
 
     return NextResponse.json(stateEnvelope);
   } catch (e: any) {
+    console.error('Room Action Error:', e);
     return NextResponse.json({ error: e.message }, { status: 400 });
   }
 }

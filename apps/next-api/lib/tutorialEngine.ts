@@ -284,7 +284,7 @@ export async function advanceTutorial(
 
   // Special handling for SET_WINNER step
   if (step.expectedActionType === 'SET_WINNER') {
-    return { state: { ...current, winnerId: current.players[0].id }, nextStepRecommended: true };
+    return { state: { ...current, winnerId: current.players[0].id, revision: (current.revision || 0) + 1 }, nextStepRecommended: true };
   }
 
   // Validate action type

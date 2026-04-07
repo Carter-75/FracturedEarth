@@ -34,9 +34,16 @@ export default function TutorialPage() {
   const [activeCard, setActiveCard] = useState<MatchCard | null>(null);
   const [showAd, setShowAd] = useState(false);
 
-  const local = useMemo(() => loadLocalSettings(), []);
+  const [hasMounted, setHasMounted] = useState(false);
+  const [local, setLocal] = useState<{ userId: string; displayName: string; emoji: string } | null>(null);
+
+  useEffect(() => {
+     setHasMounted(true);
+     setLocal(loadLocalSettings());
+  }, []);
 
   const sync = React.useCallback(async () => {
+    if (!local) return;
     // Initial start
     setBusy(true);
     try {
@@ -62,8 +69,8 @@ export default function TutorialPage() {
 
   const payload = session?.match;
   const activePlayer = payload?.players[payload.activePlayerIndex];
-  const isMyTurn = activePlayer?.id === local.userId;
-  const myPlayer = payload?.players.find((p: any) => p.id === local.userId);
+  const isMyTurn = activePlayer?.id === local?.userId;
+  const myPlayer = payload?.players.find((p: any) => p.id === local?.userId);
 
   async function performAction(action: any) {
     if (!session) return;
@@ -75,7 +82,7 @@ export default function TutorialPage() {
         body: JSON.stringify({ 
             session, 
             action, 
-            actorUserId: local.userId,
+            actorUserId: local?.userId,
             expectedRevision: 0 // Mock revision for tutorial
         }),
       });
@@ -109,7 +116,7 @@ export default function TutorialPage() {
      );
   }
 
-  if (!session || !payload) {
+  if (!hasMounted || !session || !payload) {
      return (
        <div className="fe-scene flex flex-col items-center justify-center bg-black">
           <div className="fe-hologram animate-pulse text-[var(--accent)] text-xl">INITIATING_NEURAL_LINK...</div>

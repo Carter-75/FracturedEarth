@@ -96,12 +96,14 @@ export interface MatchPayload {
   isPaused?: boolean;
   disconnectedUserId?: string;
   previousState?: any;
+  revision?: number;
+  lastBotActionEpochMs?: number;
 }
 
 export interface BotTurnEvent {
   actorId: string;
   actorName: string;
-  action: "THINKING" | "DRAW" | "PLAY" | "END_TURN";
+  action: "THINKING" | "DRAW" | "PLAY" | "DISCARD" | "END_TURN";
   cardName?: string;
   card?: MatchCard;
   targetPlayerId?: string;
