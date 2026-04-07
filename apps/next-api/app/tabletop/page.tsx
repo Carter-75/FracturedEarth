@@ -6,8 +6,9 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { apiFetch } from '@/lib/api';
 import { loadLocalSettings, saveRoomPin, clearRoomPin } from '@/lib/localProfile';
-import { MatchPayload, StateEnvelope, MatchAction } from '@/types/game';
+import { MatchAction, StateEnvelope } from '@/types/game';
 import { MatchCard, MatchPlayer, cardTheme } from '@/lib/tabletopShared';
+import { MAX_HAND_SIZE, MAX_ACTIONS_PER_TURN } from '@/lib/gameConfig';
 import PhaserGame from '@/components/PhaserGame';
 
 // --- UI COMPONENTS (STATIC) ---
@@ -40,7 +41,7 @@ function PlayerStatsHUD({ player, isActive }: { player: MatchPlayer; isActive: b
   );
 }
 
-function CardDetailModal({ card, isOpen, onClose, onPlay, isMyTurn }: { card: MatchCard | null; isOpen: boolean; onClose: () => void; onPlay: () => void; isMyTurn: boolean }) {
+function CardDetailModal({ card, isOpen, onClose, onPlay, onDiscard, isMyTurn }: { card: MatchCard | null; isOpen: boolean; onClose: () => void; onPlay: () => void; onDiscard: () => void; isMyTurn: boolean }) {
   if (!card) return null;
   const theme = cardTheme(card.type);
 
@@ -80,14 +81,22 @@ function CardDetailModal({ card, isOpen, onClose, onPlay, isMyTurn }: { card: Ma
                  </p>
                  
                  <div className="flex flex-col gap-3">
-                    {isMyTurn && (
-                       <button 
-                         onClick={onPlay}
-                         className="fe-holo-btn !py-4 text-sm w-full !bg-[var(--accent)] !text-black border-none font-black uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-transform"
-                       >
-                          Confirm Activation
-                       </button>
-                    )}
+                     {isMyTurn && (
+                        <>
+                           <button 
+                             onClick={onPlay}
+                             className="fe-holo-btn !py-4 text-sm w-full !bg-[var(--accent)] !text-black border-none font-black uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-transform"
+                           >
+                              Confirm Activation
+                           </button>
+                           <button 
+                             onClick={onDiscard}
+                             className="fe-holo-btn !py-2 text-[10px] w-full border-white/10 !bg-white/5 text-white/40 hover:text-rose-400 hover:border-rose-500/50 transition-all uppercase font-black tracking-widest"
+                           >
+                              Discard Unit
+                           </button>
+                        </>
+                     )}
                     <button 
                       onClick={onClose}
                       className="text-white/30 text-xs font-black uppercase tracking-widest py-2 hover:text-white/60 transition-colors"
@@ -213,18 +222,20 @@ function TabletopGameContent() {
       <div className="absolute bottom-0 left-0 right-0 p-8 flex flex-col items-center pointer-events-none z-50">
           
           {/* End Turn (Bottom Right) */}
-          {isMyTurn && (
-             <div className="fixed bottom-8 right-8 z-[70] pointer-events-auto">
+           {isMyTurn && (
+             <div className="fixed bottom-8 right-8 z-[70] pointer-events-auto flex flex-col items-end gap-2">
                 <button 
                   onClick={() => performAction({ type: 'END_TURN' })}
-                  disabled={busy}
-                  className="fe-holo-btn !py-2 !px-6 text-[10px] border-[var(--accent)]/20 !bg-black/50 hover:!bg-[var(--accent)]/10 shadow-xl transition-all font-black uppercase tracking-widest flex items-center gap-2 group"
+                  disabled={busy || (myPlayer && myPlayer.hand.length > MAX_HAND_SIZE)}
+                  className={`fe-holo-btn !py-2 !px-6 text-[10px] border-[var(--accent)]/20 !bg-black/50 shadow-xl transition-all font-black uppercase tracking-widest flex items-center gap-2 group ${
+                    (myPlayer && myPlayer.hand.length > MAX_HAND_SIZE) ? 'opacity-20 grayscale pointer-events-none' : 'hover:!bg-[var(--accent)]/10'
+                  }`}
                 >
                   <span className="opacity-40 group-hover:opacity-100 transition-opacity">NEXT_CYCLE</span>
-                  <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] animate-pulse" />
+                  <div className={`w-1.5 h-1.5 rounded-full bg-[var(--accent)] ${busy ? 'animate-spin' : 'animate-pulse'}`} />
                 </button>
              </div>
-          )}
+           )}
 
           <div className="w-full max-w-7xl flex items-end justify-between">
               <div className="pointer-events-auto">
@@ -251,6 +262,12 @@ function TabletopGameContent() {
         onPlay={() => {
           if (activeCard) {
             performAction({ type: 'PLAY_CARD', cardId: activeCard.id });
+            setActiveCard(null);
+          }
+        }}
+        onDiscard={() => {
+          if (activeCard) {
+            performAction({ type: 'DISCARD_CARD', cardId: activeCard.id });
             setActiveCard(null);
           }
         }}
