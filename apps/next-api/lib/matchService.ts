@@ -92,14 +92,15 @@ export async function getMatchState(roomCode: string): Promise<StateEnvelope | n
   // If it's a bot's turn, we act as the "Heartbeat"
   // Logic: 1.0s delay between single moves to make it "feel" real-time
   if (activePlayer?.isBot && !payload.winnerId && (now - lastAction > 1000)) {
-     const rng = pseudoRandom(now);
-     
-     if (!payload.hasDrawnThisTurn) {
-        // 1. Draw Move
-        payload = drawForActive(payload, [], rng);
-     } else {
-        const brain = new AIBrain(payload, activePlayer.id);
-        const move = brain.chooseBestAction();
+    try {
+      const rng = pseudoRandom(now);
+      
+      if (!payload.hasDrawnThisTurn) {
+         // 1. Draw Move
+         payload = drawForActive(payload, [], rng);
+      } else {
+         const brain = new AIBrain(payload, activePlayer.id);
+         const move = brain.chooseBestAction();
          if (move && move.score > 0 && payload.cardsPlayedThisTurn < 3) {
             // 2. Real-Time Play Move
             payload = playCard(payload, move.cardId!, move.targetPlayerId, rng);
@@ -127,15 +128,19 @@ export async function getMatchState(roomCode: string): Promise<StateEnvelope | n
                payload.lastBotActionEpochMs = now;
             }
          }
-     }
-     
-     // Update persistent state for this incremental bot move
-     payload.lastBotActionEpochMs = now;
-     gameStateDoc.payload = payload;
-     gameStateDoc.revision += 1;
-     gameStateDoc.updatedAtEpochMs = now;
-     gameStateDoc.updatedByUserId = 'SYSTEM_AI';
-     await gameStateDoc.save();
+      }
+      
+      // Update persistent state for this incremental bot move
+      payload.lastBotActionEpochMs = now;
+      gameStateDoc.payload = payload;
+      gameStateDoc.revision += 1;
+      gameStateDoc.updatedAtEpochMs = now;
+      gameStateDoc.updatedByUserId = 'SYSTEM_AI';
+      await gameStateDoc.save();
+    } catch (e: any) {
+       console.error('[AI_HEARTBEAT_CRASH]', e);
+       // We ignore the crash and still return the last valid payload
+    }
   }
 
   let isPaused = false;

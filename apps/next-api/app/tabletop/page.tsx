@@ -146,12 +146,18 @@ function TabletopGameContent() {
         setError('ROOM_NOT_FOUND_OR_CLOSED');
         return;
       }
-      if (!res.ok) return;
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ error: 'Unknown Network Error' }));
+        setError(errorData.error || `HTTP Error ${res.status}`);
+        return;
+      }
       const stateSnapshot = await res.json();
       setState(stateSnapshot);
       setError(null);
-    } catch (e) {}
-  }, [code]);
+    } catch (e: any) {
+      setError(e.message || 'Fatal Connection Error');
+    }
+  }, [code, hasMounted]);
 
   useEffect(() => {
     if (!code) return;
@@ -201,12 +207,26 @@ function TabletopGameContent() {
      );
   }
 
-  if (!hasMounted || !state) return (
-     <div className="fe-scene flex flex-col items-center justify-center bg-black">
-        <div className="w-12 h-12 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin mb-4" />
-        <div className="fe-hologram animate-pulse text-[var(--accent)]">ESTABLISHING_NEURAL_LINK...</div>
-     </div>
-  );
+   if (!hasMounted || !state) return (
+      <div className="fe-scene flex flex-col items-center justify-center bg-black p-8 text-center">
+         {error ? (
+           <div className="max-w-md animate-in fade-in zoom-in duration-500">
+             <h1 className="text-4xl font-black text-rose-500 mb-4 fe-flicker">LINK_ERROR</h1>
+             <p className="text-rose-500/60 mb-8 lowercase tracking-widest font-mono text-sm">{error}</p>
+             <div className="flex flex-col gap-4">
+                <button onClick={() => sync()} className="fe-holo-btn">Attempt Reconnection</button>
+                <Link href="/lan" className="text-white/20 text-xs uppercase tracking-widest hover:text-[var(--accent)] transition-colors">Abort Neural Link</Link>
+             </div>
+           </div>
+         ) : (
+           <>
+             <div className="w-12 h-12 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin mb-4" />
+             <div className="fe-hologram animate-pulse text-[var(--accent)]">ESTABLISHING_NEURAL_LINK...</div>
+             <p className="mt-8 text-white/10 text-[10px] uppercase tracking-[0.5em] animate-pulse">Syncing_Sector_Data</p>
+           </>
+         )}
+      </div>
+   );
 
   return (
     <main className="fe-scene overflow-hidden relative cursor-default bg-black">
