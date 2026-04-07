@@ -52,4 +52,14 @@ export class CardBackSprite extends Phaser.GameObjects.Container {
   public clearTint() {
     this.backImage.clearTint();
   }
+
+  public setLocked(locked: boolean) {
+      if (locked) {
+          this.setAlpha(0.3);
+          this.backImage.setTint(0x444444);
+      } else {
+          this.setAlpha(1);
+          this.backImage.clearTint();
+      }
+  }
 }

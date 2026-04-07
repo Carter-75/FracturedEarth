@@ -13,6 +13,9 @@ export class TabletopScene extends Phaser.Scene {
   private gameState: MatchPayload | null = null;
   private onAction: ((action: any) => void) | null = null;
   private userId: string = '';
+  private tutorialStep: any = null;
+  private isReplaying: boolean = false;
+  private replayQueue: any[] = [];
 
   constructor() {
     super('TabletopScene');
@@ -37,13 +40,23 @@ export class TabletopScene extends Phaser.Scene {
     });
 
     this.game.events.on('UPDATE_STATE', (gameState: MatchPayload) => {
-      this.updateBoard(gameState);
+      if (!this.isReplaying) this.updateBoard(gameState);
+    });
+
+    this.game.events.on('PROCESS_REPLAY', ({ events, finalState }: any) => {
+      this.playActionReplay(events, finalState);
+    });
+
+    this.game.events.on('UPDATE_TUTORIAL_STEP', (step: any) => {
+      this.tutorialStep = step;
+      if (!this.isReplaying) this.updateBoard(this.gameState!);
     });
 
     // --- REMOVED DRAG-TO-PLAY ---
   }
 
   private updateBoard(state: MatchPayload) {
+    if (!state) return;
     const isNewDraw = !!(this.gameState && state.players.find(p => p.id === this.userId)?.hand.length! > this.gameState.players.find(p => p.id === this.userId)?.hand.length!);
     
     this.gameState = state;
@@ -52,6 +65,97 @@ export class TabletopScene extends Phaser.Scene {
     this.renderDecks();
     this.renderOpponents();
     this.renderPowerPile();
+  }
+
+  private async playActionReplay(events: any[], finalState: MatchPayload) {
+      if (this.isReplaying) return;
+      this.isReplaying = true;
+
+      // Lock interaction
+      this.input.enabled = false;
+
+      for (const event of events) {
+          const { action, actorId, card, cardName } = event;
+          
+          if (action === 'THINKING') {
+              // Pulse the opponent HUD or just wait
+              await this.sleep(600);
+          } else if (action === 'DRAW') {
+              // Animate a card from deck to the bot's position
+              await this.animateBotDraw(actorId);
+          } else if (action === 'PLAY') {
+              // Animate card from bot to center
+              if (card) {
+                  await this.animateBotPlay(actorId, card);
+              }
+          } else if (action === 'END_TURN') {
+              await this.sleep(400); // Brief pause
+          }
+      }
+
+      this.isReplaying = false;
+      this.input.enabled = true;
+      this.updateBoard(finalState);
+  }
+
+  private animateBotDraw(actorId: string): Promise<void> {
+      return new Promise(resolve => {
+          const drawPile = this.decks.find(d => d.name === 'drawPile');
+          if (!drawPile) return resolve();
+
+          const temp = new CardBackSprite(this, drawPile.x, drawPile.y);
+          temp.setScale(0.7);
+          
+          // Find target opponent position
+          // This is a simplified "move to edge" for now
+          this.tweens.add({
+              targets: temp,
+              x: this.cameras.main.width / 2,
+              y: 50,
+              alpha: 0,
+              duration: 500,
+              ease: 'Power2',
+              onComplete: () => {
+                  temp.destroy();
+                  resolve();
+              }
+          });
+      });
+  }
+
+  private animateBotPlay(actorId: string, card: any): Promise<void> {
+      return new Promise(resolve => {
+          const temp = new CardSprite(this, this.cameras.main.width / 2, 50, card);
+          temp.setScale(0.5);
+          temp.setAlpha(0);
+
+          this.tweens.add({
+              targets: temp,
+              y: this.cameras.main.height / 2,
+              alpha: 1,
+              scale: 1,
+              duration: 600,
+              ease: 'Back.easeOut',
+              onComplete: () => {
+                  this.time.delayedCall(800, () => {
+                      this.tweens.add({
+                          targets: temp,
+                          y: -200,
+                          alpha: 0,
+                          duration: 400,
+                          onComplete: () => {
+                              temp.destroy();
+                              resolve();
+                          }
+                      });
+                  });
+              }
+          });
+      });
+  }
+
+  private sleep(ms: number) {
+      return new Promise(resolve => this.time.delayedCall(ms, resolve));
   }
 
   private renderHand(animateNew: boolean = false) {
@@ -110,13 +214,31 @@ export class TabletopScene extends Phaser.Scene {
           });
        }
 
-       sprite.setDepth(i + 100);
-       
-       // Click-to-Detail Interaction (No more dragging)
-       sprite.on('pointerdown', () => {
-          this.game.events.emit('OPEN_CARD_DETAIL', card);
-       });
-    });
+        sprite.setDepth(i + 100);
+        
+        // --- TUTORIAL LOCKDOWN ---
+        if (this.tutorialStep) {
+            const isExpectedAction = this.tutorialStep.expectedActionType === 'PLAY_CARD';
+            const isExpectedCard = this.tutorialStep.expectedCardId === card.id;
+            
+            if (isExpectedAction && isExpectedCard) {
+                sprite.setLocked(false);
+                sprite.setHighlighted(true);
+            } else {
+                sprite.setLocked(true);
+                sprite.setHighlighted(false);
+            }
+        } else {
+            // Standard state
+            sprite.setLocked(false);
+            sprite.setHighlighted(false);
+        }
+
+        // Click-to-Detail Interaction (No more dragging)
+        sprite.on('pointerdown', () => {
+           this.game.events.emit('OPEN_CARD_DETAIL', card);
+        });
+     });
   }
 
   private renderPlayPile() {
@@ -199,15 +321,23 @@ export class TabletopScene extends Phaser.Scene {
         
         // Interaction (Only on my turn and if I haven't drawn yet)
         if (isMyTurn && !this.gameState?.hasDrawnThisTurn) {
+            // --- TUTORIAL LOCKDOWN ---
+            const drawAllowed = this.tutorialStep ? this.tutorialStep.expectedActionType === 'DRAW_CARD' : true;
+
             drawPile.setSize(100, 150);
             drawPile.setInteractive({ useHandCursor: true });
-            drawPile.on('pointerdown', () => {
-                if (this.onAction) this.onAction({ type: 'DRAW_CARD' });
-            });
             
-            // Hover effect
-            drawPile.on('pointerover', () => { drawPile.setScale(1.05); });
-            drawPile.on('pointerout', () => { drawPile.setScale(1); });
+            if (drawAllowed) {
+                drawPile.on('pointerdown', () => {
+                    if (this.onAction) this.onAction({ type: 'DRAW_CARD' });
+                });
+                // Hover effect
+                drawPile.on('pointerover', () => { drawPile.setScale(1.05); });
+                drawPile.on('pointerout', () => { drawPile.setScale(1); });
+            } else {
+                drawPile.setAlpha(0.3);
+                // Child elements are already tinted in loop
+            }
         }
     } else {
         // Empty frame

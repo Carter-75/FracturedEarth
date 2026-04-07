@@ -111,4 +111,48 @@ export class CardSprite extends Phaser.GameObjects.Container {
         this.frame.lineStyle(2, hexColor, 0.3);
      }
   }
+
+  public setLocked(locked: boolean) {
+      if (locked) {
+          this.setAlpha(0.4);
+          if (this.background) this.background.setTint(0x444444);
+          this.nameText.setTint(0x888888);
+          this.iconText.setTint(0x888888);
+          this.disableInteractive();
+      } else {
+          this.setAlpha(1);
+          if (this.background) this.background.clearTint();
+          this.nameText.clearTint();
+          this.iconText.clearTint();
+          this.setInteractive({ useHandCursor: true });
+      }
+  }
+
+  public setHighlighted(highlighted: boolean) {
+      if (highlighted) {
+          this.scene.tweens.add({
+              targets: this,
+              scaleX: 1.15,
+              scaleY: 1.15,
+              duration: 800,
+              yoyo: true,
+              repeat: -1,
+              ease: 'Sine.easeInOut'
+          });
+          this.frame.clear();
+          this.frame.lineStyle(4, 0xffcc00, 1);
+          const width = 140;
+          const height = 210;
+          this.frame.strokeRoundedRect(-width/2, -height/2, width, height, 12);
+      } else {
+          this.scene.tweens.killTweensOf(this);
+          this.setScale(1);
+          this.frame.clear();
+          const hexColor = this.getThemeHex(this.cardData.type);
+          this.frame.lineStyle(2, hexColor, 0.3);
+          const width = 140;
+          const height = 210;
+          this.frame.strokeRoundedRect(-width/2, -height/2, width, height, 12);
+      }
+  }
 }

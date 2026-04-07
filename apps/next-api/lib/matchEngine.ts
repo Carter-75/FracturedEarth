@@ -92,21 +92,21 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string, 
   const innerRng = rng || pseudoRandom(Date.now());
 
   // Helper to interpret targets
-  const getTargetIndices = (targetStr: string): number[] => {
-     if (targetStr === 'self') return [activeIndex];
+  const getTargetIndices = (targetStr: string, activeIdx: number): number[] => {
+     if (targetStr === 'self') return [activeIdx];
      if (targetStr === 'target_player' || targetStr === 'target_opponent') {
          const found = next.players.findIndex(p => p.id === targetId);
          return found >= 0 ? [found] : [];
      }
      if (targetStr === 'all') return next.players.map((_, i) => i);
-     if (targetStr === 'all_opponents') return next.players.map((_, i) => i).filter(i => i !== activeIndex);
+     if (targetStr === 'all_opponents') return next.players.map((_, i) => i).filter(i => i !== activeIdx);
      if (targetStr === 'random_opponent') {
-         const opps = next.players.map((_, i) => i).filter(i => i !== activeIndex && next.players[i].health > 0);
+         const opps = next.players.map((_, i) => i).filter(i => i !== activeIdx && next.players[i].health > 0);
          if (opps.length === 0) return [];
          return [opps[Math.floor(innerRng() * opps.length)]];
      }
      if (targetStr === 'inherited') {
-         return targetId ? getTargetIndices('target_player') : [activeIndex];
+         return targetId ? [next.players.findIndex(p => p.id === targetId)] : [activeIdx];
      }
      return [];
   };
@@ -286,27 +286,24 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string, 
                next.discardPile.push(dropped);
             }
             break;
-         case 'DISCARD_AND_DRAW':
+          case 'DISCARD_AND_DRAW':
             if (p.hand.length >= params.discardAmount) {
                const discarded = p.hand.slice(0, params.discardAmount);
                p.hand = p.hand.slice(params.discardAmount);
                next.discardPile = [...next.discardPile, ...discarded];
                for(let i=0; i<params.drawAmount; i++) {
-                  const swapIdx = next.activePlayerIndex;
-                  next.activePlayerIndex = targetIndex;
-                  next = drawForActive(next, undefined, innerRng);
-                  next.activePlayerIndex = swapIdx;
+                  next = drawForActive(next, undefined, innerRng, targetIndex);
                }
             }
             break;
             
-         case 'SWAP_HANDS':
+          case 'SWAP_HANDS':
             if (params.targetB === 'discard_pile') {
                const tempH = [...p.hand];
                p.hand = [...next.discardPile];
                next.discardPile = tempH;
             } else if (params.targetB === 'random_opponent' || params.targetB === 'target_player') {
-               const bIdxs = getTargetIndices(params.targetB);
+               const bIdxs = getTargetIndices(params.targetB, activeIndex);
                if (bIdxs.length > 0) {
                    const b = next.players[bIdxs[0]];
                    const tempH = [...p.hand];
@@ -319,10 +316,7 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string, 
             next.discardPile = [...next.discardPile, ...p.hand];
             p.hand = [];
             for (let i = 0; i < 5; i++) {
-                const swapIdx = next.activePlayerIndex;
-                next.activePlayerIndex = targetIndex;
-                next = drawForActive(next, undefined, innerRng);
-                next.activePlayerIndex = swapIdx;
+                next = drawForActive(next, undefined, innerRng, targetIndex);
             }
             break;
          case 'SHUFFLE_HAND_INTO_DECK':
@@ -347,7 +341,19 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string, 
           case 'STEAL_POINTS': {
             let amt = Math.min(p.survivalPoints, params.amount);
             
-            // Redirection / Negation Check for Point Loss
+            // Redirection Check
+            if (amt > 0 && p.triggers.some(t => t.kind === 'REDIRECT_NEXT_NEGATIVE')) {
+                p.triggers = p.triggers.filter(t => t.kind !== 'REDIRECT_NEXT_NEGATIVE');
+                const others = next.players.filter(op => op.id !== p.id && op.health > 0);
+                if (others.length > 0) {
+                    const newTarget = others[Math.floor(innerRng() * others.length)];
+                    newTarget.survivalPoints += amt;
+                    p.survivalPoints -= amt;
+                    break;
+                }
+            }
+
+            // Negation Check
             if (amt > 0 && (p.twistEffect === 'prevent_negative' || p.triggers.some(t => t.kind === 'NEGATE_NEXT_NEGATIVE_EFFECT' || t.kind === 'PREVENT_NEXT_POINT_LOSS'))) {
                 p.triggers = p.triggers.filter(t => t.kind !== 'NEGATE_NEXT_NEGATIVE_EFFECT' && t.kind !== 'PREVENT_NEXT_POINT_LOSS');
                 p.twistEffect = undefined;
@@ -431,7 +437,7 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string, 
             }
             break;
           case 'SWAP_PINNED_POWERS': {
-            const bIdxs = getTargetIndices(params.targetB);
+            const bIdxs = getTargetIndices(params.targetB, activeIndex);
             if (bIdxs.length > 0) {
                const b = next.players[bIdxs[0]];
                const tmp = [...p.powers];
@@ -445,13 +451,10 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string, 
           case 'ENSURE_HAND_SIZE': {
             while (p.hand.length < params.amount) {
                if (isTruncated) break;
-               const swapIdx = next.activePlayerIndex;
-               next.activePlayerIndex = targetIndex;
-               next = drawForActive(next, undefined, innerRng);
+               next = drawForActive(next, undefined, innerRng, targetIndex);
                if (next.topCard?.type === 'TWIST' || next.topCard?.type === 'CATACLYSM') {
                    isTruncated = true;
                }
-               next.activePlayerIndex = swapIdx;
                if (next.drawPile.length === 0 && next.discardPile.length === 0) break;
             }
             break;
@@ -513,7 +516,7 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string, 
 
           // Resolving Conditionals
           if (type === 'IF_UNBLOCKED') {
-             const tIdxs = getTargetIndices(params.target === 'inherited' ? 'target_player' : params.target);
+             const tIdxs = getTargetIndices(params.target === 'inherited' ? 'target_player' : params.target, activeIndex);
              const dKind = card.disasterKind;
              // Check if target is shielded
              const unblockedTargets = tIdxs.filter(i => {
@@ -537,7 +540,7 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string, 
           }
 
           if (type === 'IF_HEALTH') {
-              const tIdxs = getTargetIndices(params.target);
+              const tIdxs = getTargetIndices(params.target, activeIndex);
               let conditionMet = false;
               for (const ti of tIdxs) {
                   const p = next.players[ti];
@@ -592,7 +595,7 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string, 
           if (params.overrideTargetIndex !== undefined) {
                executeAtomic(type, params, params.overrideTargetIndex);
           } else {
-               const targets = getTargetIndices(params.target);
+               const targets = getTargetIndices(params.target, activeIndex);
                for (const ti of targets) {
                    if (isTruncated) break;
                    executeAtomic(type, params, ti);
@@ -605,19 +608,28 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string, 
   return next;
 }
 
-export function drawForActive(state: MatchPayload, replayOutput?: BotTurnEvent[], rng?: () => number): MatchPayload {
-  let next = { ...state };
-  const active = { ...next.players[next.activePlayerIndex], hand: [...next.players[next.activePlayerIndex].hand] };
+export function drawForActive(
+  state: MatchPayload,
+  replayOutput?: BotTurnEvent[],
+  rng?: () => number,
+  overridePlayerIndex?: number
+): MatchPayload {
+  const innerRng = rng || pseudoRandom(Date.now());
+  const activeIdx = overridePlayerIndex !== undefined ? overridePlayerIndex : state.activePlayerIndex;
+  
+  // Clone state and the specific player to avoid mutation side-effects
+  let next = { ...state, players: [...state.players] };
+  const active = { ...next.players[activeIdx], hand: [...next.players[activeIdx].hand], triggers: [...next.players[activeIdx].triggers] };
 
-  if (active.triggers.some(t => t.kind === 'PREVENT_OPPONENT_DRAW_1')) {
-      active.triggers = active.triggers.filter(t => t.kind !== 'PREVENT_OPPONENT_DRAW_1');
-      next.players[next.activePlayerIndex] = active;
-      return next;
-  }
-
+  // --- SKIP DRAW CHECKS ---
   if (active.triggers.some(t => t.kind === 'SKIP_NEXT_DRAW')) {
       active.triggers = active.triggers.filter(t => t.kind !== 'SKIP_NEXT_DRAW');
-      next.players[next.activePlayerIndex] = active;
+      next.players[activeIdx] = active;
+      return next;
+  }
+  if (active.triggers.some(t => t.kind === 'PREVENT_OPPONENT_DRAW_1')) {
+      active.triggers = active.triggers.filter(t => t.kind !== 'PREVENT_OPPONENT_DRAW_1');
+      next.players[activeIdx] = active;
       return next;
   }
 
@@ -626,8 +638,6 @@ export function drawForActive(state: MatchPayload, replayOutput?: BotTurnEvent[]
 
   if (drawPile.length === 0) {
     if (discardPile.length === 0) return next;
-    // Use the provided rng or fallback to pseudoRandom(Date.now()) only if not provided
-    const innerRng = rng || pseudoRandom(Date.now());
     drawPile = shuffle(discardPile, innerRng);
     discardPile = [];
   }
@@ -667,7 +677,7 @@ export function drawForActive(state: MatchPayload, replayOutput?: BotTurnEvent[]
   }
 
   active.hand.push(card);
-  next.players[next.activePlayerIndex] = active;
+  next.players[activeIdx] = active;
   next.drawPile = remainingDrawPile;
   next.discardPile = discardPile;
   next.hasDrawnThisTurn = true;
