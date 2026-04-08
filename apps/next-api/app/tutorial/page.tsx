@@ -177,6 +177,7 @@ export default function TutorialPage() {
       <PhaserGame 
          roomCode="TUTORIAL" 
          gameState={enrichedPayload} 
+         userId="TUTORIAL_USER"
          onAction={(action) => performAction(action)} 
          onCardDetail={(card) => setActiveCard(card)}
       />

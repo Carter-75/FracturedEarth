@@ -58,7 +58,7 @@ export default function PhaserGame({ roomCode, gameState, userId, onAction, onCa
     if (gameRef.current && gameState) {
       gameRef.current.events.emit('UPDATE_STATE', gameState);
     }
-  }, [gameState]);
+  }, [gameState, userId, onCardDetail]);
  
   useEffect(() => {
     const tutorialStep = (gameState as any)?.tutorialStep;
