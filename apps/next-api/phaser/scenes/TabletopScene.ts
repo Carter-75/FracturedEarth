@@ -66,7 +66,7 @@ export class TabletopScene extends Phaser.Scene {
 
         // 1. Detect DRAW (for anyone, including bots)
         if (activePlayer.hand.length > (prevActive?.hand.length || 0)) {
-            await this.animateBotDraw(activePlayer.id);
+            await this.animateDraw(activePlayer.id);
         }
 
         // 2. Detect PLAY (new top card or turn pile growth)
@@ -102,21 +102,23 @@ export class TabletopScene extends Phaser.Scene {
 
   // Legacy replay system removed in favor of Live Reactive Polling
 
-  private animateBotDraw(actorId: string): Promise<void> {
+  private animateDraw(actorId: string): Promise<void> {
       return new Promise(resolve => {
+          const isMe = actorId === this.userId;
           const drawPile = this.decks.find(d => d.name === 'drawPile');
           if (!drawPile) return resolve();
 
           const temp = new CardBackSprite(this, drawPile.x, drawPile.y);
           temp.setScale(0.7);
           
-          // Find target opponent position
-          // This is a simplified "move to edge" for now
+          let targetX = this.cameras.main.width / 2;
+          let targetY = isMe ? this.cameras.main.height - 50 : 50;
+
           this.tweens.add({
               targets: temp,
-              x: this.cameras.main.width / 2,
-              y: 50,
-              alpha: 0,
+              x: targetX,
+              y: targetY,
+              alpha: isMe ? 1 : 0, // Fade out if going to bot, keep if going to hand
               duration: 500,
               ease: 'Power2',
               onComplete: () => {
@@ -206,7 +208,10 @@ export class TabletopScene extends Phaser.Scene {
     const height = this.cameras.main.height;
     const startX = width / 2;
     const startY = height - 120;
-    const spacing = 70;
+    
+    // Dynamic spacing: if hand is large, squash cards together
+    const baseSpacing = 70;
+    const spacing = me.hand.length > 5 ? (baseSpacing * 5) / me.hand.length : baseSpacing;
     const totalWidth = (me.hand.length - 1) * spacing;
 
     me.hand.forEach((card, i) => {
@@ -218,9 +223,10 @@ export class TabletopScene extends Phaser.Scene {
        
        if (!sprite) {
           // New card (drawn)
-          const spawnX = animateNew ? width - 120 : targetX;
+          const spawnX = animateNew ? width / 2 : targetX;
           const spawnY = animateNew ? height / 2 : targetY;
           sprite = new CardSprite(this, spawnX, spawnY, card);
+          sprite.setAlpha(0); // Fade in
           this.hand.push(sprite);
 
           if (animateNew) {
@@ -229,9 +235,12 @@ export class TabletopScene extends Phaser.Scene {
                 x: targetX,
                 y: targetY,
                 angle: targetAngle,
+                alpha: 1,
                 duration: 600,
                 ease: 'Power2.easeOut'
             });
+          } else {
+             sprite.setAlpha(1);
           }
        } else {
           // Existing card (re-position)
