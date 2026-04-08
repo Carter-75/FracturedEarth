@@ -7,11 +7,12 @@ import { loadLocalSettings } from '@/lib/localProfile';
 interface PhaserGameProps {
   roomCode: string;
   gameState: any;
+  userId: string;
   onAction: (action: any) => void;
   onCardDetail?: (card: any) => void;
 }
  
-export default function PhaserGame({ roomCode, gameState, onAction, onCardDetail }: PhaserGameProps) {
+export default function PhaserGame({ roomCode, gameState, userId, onAction, onCardDetail }: PhaserGameProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const gameRef = useRef<Game | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -29,11 +30,10 @@ export default function PhaserGame({ roomCode, gameState, onAction, onCardDetail
     import('@/phaser/config').then(({ createGame }) => {
       if (gameRef.current) return;
       
-      const userId = loadLocalSettings().userId;
       const initialData = { 
         roomCode, 
         gameState, 
-        userId,
+        userId, // Use the prop passed from React
         onAction: (a: any) => onActionRef.current(a)
       };
  

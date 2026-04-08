@@ -245,11 +245,12 @@ function TabletopGameContent() {
       </div>
 
       {/* PHASER ENGINE (Z-20) */}
-      <PhaserGame 
-         roomCode={code} 
-         gameState={payload} 
-         onAction={(action) => performAction(action)} 
-         onCardDetail={(card) => setActiveCard(card)}
+      <PhaserGame
+        roomCode={code}
+        gameState={payload}
+        userId={userId}
+        onAction={(action) => performAction(action)}
+        onCardDetail={(card) => setActiveCard(card)}
       />
 
       {/* PLAYER HUD (STATIC UI) */}

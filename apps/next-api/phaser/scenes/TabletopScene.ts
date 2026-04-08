@@ -15,7 +15,9 @@ export class TabletopScene extends Phaser.Scene {
   private userId: string = '';
   private tutorialStep: any = null;
   private isReplaying: boolean = false;
+  private isAnimating: boolean = false;
   private processedRevision: number = -1;
+  private opponentPos: Map<string, { x: number, y: number }> = new Map();
   private replayQueue: any[] = [];
 
   constructor() {
@@ -58,34 +60,37 @@ export class TabletopScene extends Phaser.Scene {
     if (!state) return;
     
     // DIFFING LOGIC for Real-Time Reactions
-    if (this.gameState && state.revision !== this.processedRevision) {
-        const prev = this.gameState;
-        const activeIdx = state.activePlayerIndex;
-        const activePlayer = state.players[activeIdx];
-        const prevActive = prev.players.find(p => p.id === activePlayer.id);
-
-        // 1. Detect DRAW (for anyone, including bots)
-        if (activePlayer.hand.length > (prevActive?.hand.length || 0)) {
-            await this.animateDraw(activePlayer.id);
-        }
-
-        // 2. Detect PLAY (new top card or turn pile growth)
-        if (state.topCard && (!prev.topCard || state.topCard.id !== prev.topCard.id)) {
-            const isPersistent = state.topCard.type === 'POWER' || state.topCard.type === 'ADAPT';
-            // Only animate as a "play" if it wasn't just a discard (which we handle below)
-            const wasJustDiscarded = state.discardPile.length > prev.discardPile.length && state.topCard?.id === state.discardPile[state.discardPile.length-1]?.id;
-            
-            if (!wasJustDiscarded) {
-               await this.animateBotPlay(activePlayer.id, state.topCard);
-            }
-        }
-
-        // 3. Detect DISCARD
-        if (state.discardPile.length > prev.discardPile.length) {
-            const newDiscard = state.discardPile[state.discardPile.length - 1];
-            await this.animateBotDiscard(activePlayer.id, newDiscard);
-        }
+    if (this.gameState && state.revision !== this.processedRevision && !this.isAnimating) {
+        this.isAnimating = true;
         
+        try {
+            const prev = this.gameState;
+            const activeIdx = state.activePlayerIndex;
+            const activePlayer = state.players[activeIdx];
+            const prevActive = prev.players.find(p => p.id === activePlayer.id);
+
+            // 1. Detect DRAW (for anyone, including bots)
+            if (activePlayer.hand.length > (prevActive?.hand.length || 0)) {
+                await this.animateDraw(activePlayer.id);
+            }
+
+            // 2. Detect PLAY (new top card or turn pile growth)
+            if (state.topCard && (!prev.topCard || state.topCard.id !== prev.topCard.id)) {
+                const wasJustDiscarded = state.discardPile.length > prev.discardPile.length && state.topCard?.id === state.discardPile[state.discardPile.length-1]?.id;
+                
+                if (!wasJustDiscarded) {
+                await this.animateBotPlay(activePlayer.id, state.topCard);
+                }
+            }
+
+            // 3. Detect DISCARD
+            if (state.discardPile.length > prev.discardPile.length) {
+                const newDiscard = state.discardPile[state.discardPile.length - 1];
+                await this.animateBotDiscard(activePlayer.id, newDiscard);
+            }
+        } finally {
+            this.isAnimating = false;
+        }
     }
     
     this.processedRevision = state.revision || -1;
@@ -111,8 +116,9 @@ export class TabletopScene extends Phaser.Scene {
           const temp = new CardBackSprite(this, drawPile.x, drawPile.y);
           temp.setScale(0.7);
           
-          let targetX = this.cameras.main.width / 2;
-          let targetY = isMe ? this.cameras.main.height - 50 : 50;
+          const botPos = this.opponentPos.get(actorId);
+          let targetX = isMe ? this.cameras.main.width / 2 : (botPos?.x || this.cameras.main.width / 2);
+          let targetY = isMe ? this.cameras.main.height - 50 : (botPos?.y || 50);
 
           this.tweens.add({
               targets: temp,
@@ -131,10 +137,14 @@ export class TabletopScene extends Phaser.Scene {
 
   private animateBotDiscard(actorId: string, card: any): Promise<void> {
       return new Promise(resolve => {
+          const botPos = this.opponentPos.get(actorId);
+          const startX = botPos?.x || this.cameras.main.width / 2;
+          const startY = botPos?.y || 50;
+          
           const centerX = this.cameras.main.width / 2;
           const centerY = this.cameras.main.height / 2;
           
-          const temp = new CardSprite(this, centerX, 50, card);
+          const temp = new CardSprite(this, startX, startY, card);
           temp.setScale(0.5);
           temp.setAlpha(0);
 
@@ -158,12 +168,18 @@ export class TabletopScene extends Phaser.Scene {
 
   private animateBotPlay(actorId: string, card: any): Promise<void> {
       return new Promise(resolve => {
-          const temp = new CardSprite(this, this.cameras.main.width / 2, 50, card);
+          const botPos = this.opponentPos.get(actorId);
+          const startX = botPos?.x || this.cameras.main.width / 2;
+          const startY = botPos?.y || 50;
+
+          const temp = new CardSprite(this, startX, startY, card);
           temp.setScale(0.5);
           temp.setAlpha(0);
+          temp.setDepth(2000); // Top layer
 
           this.tweens.add({
               targets: temp,
+              x: this.cameras.main.width / 2, // Animate to center
               y: this.cameras.main.height / 2,
               alpha: 1,
               scale: 1,
@@ -424,6 +440,9 @@ export class TabletopScene extends Phaser.Scene {
     others.forEach((player, oppIndex) => {
         const startX = opponentSpacing * (oppIndex + 1);
         const startY = 80;
+        
+        this.opponentPos.set(player.id, { x: startX, y: startY });
+        
         const cardSpacing = 20;
         const totalW = (player.hand.length - 1) * cardSpacing;
 
