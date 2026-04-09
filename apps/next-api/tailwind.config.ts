@@ -26,6 +26,7 @@ module.exports = {
       },
       fontFamily: {
         sans: ['var(--font-geometric)', 'system-ui', 'sans-serif'],
+        display: ['var(--font-display)', 'serif'],
       },
       spacing: {
         'grid-1': 'var(--sp-1)',
