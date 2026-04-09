@@ -57,9 +57,9 @@ jobs:
       - name: Setup & Sync Mobile Assets
         shell: bash
         run: |
-          cd apps/angular-mobile
           npm install --legacy-peer-deps
-          npm run build
+          npm run build --workspace=angular-mobile
+          cd apps/angular-mobile
           npx cap sync android
 
       - name: Grant execute permissions
