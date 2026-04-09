@@ -28,8 +28,7 @@ export default function NeuralDiagnostics() {
     return (
       <button 
         onClick={() => setIsOpen(true)}
-        className="fixed right-4 z-[9999] fe-hologram p-2 px-4 border border-[var(--accent)]/30 rounded-lg bg-black/40 backdrop-blur-md text-[10px] font-black tracking-[0.3em] uppercase hover:bg-[var(--accent)]/20 transition-all opacity-40 hover:opacity-100"
-        style={{ top: 'calc(var(--header-height, 60px) + 1rem)' }}
+        className="fixed left-4 bottom-4 z-[9999] fe-hologram p-2 px-4 border border-[var(--accent)]/30 rounded-lg bg-black/40 backdrop-blur-md text-[10px] font-black tracking-[0.3em] uppercase hover:bg-[var(--accent)]/20 transition-all opacity-40 hover:opacity-100"
       >
         Neural_Diag_{logs.length > 0 ? `(${logs.length})` : 'OK'}
       </button>

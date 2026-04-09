@@ -47,7 +47,16 @@ export class TabletopScene extends Phaser.Scene {
     });
 
     this.game.events.on('SYNC_USER_ID', (userId: string) => {
-      if (userId) this.userId = userId;
+      if (userId && this.userId !== userId) {
+        this.userId = userId;
+        if (this.gameState) {
+            this.renderHand(false);
+            this.renderPlayPile();
+            this.renderDecks();
+            this.renderOpponents();
+            this.renderPowerPile();
+        }
+      }
     });
 
     // PROCESS_REPLAY removed in favor of Live Reactive Polling

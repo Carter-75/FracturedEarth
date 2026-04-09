@@ -127,6 +127,7 @@ function TabletopGameContent() {
   const [activeCard, setActiveCard] = useState<MatchCard | null>(null);
   const [hasMounted, setHasMounted] = useState(false);
   const [local, setLocal] = useState<{ userId: string } | null>(null);
+  const [showAbortConfirm, setShowAbortConfirm] = useState(false);
 
   useEffect(() => {
      setHasMounted(true);
@@ -139,6 +140,13 @@ function TabletopGameContent() {
   const activePlayer = payload?.players[payload?.activePlayerIndex ?? 0];
   const isMyTurn = activePlayer?.id === userId;
   const opponents = payload?.players.filter(p => p.id !== userId) || [];
+
+  // Security: If the pin was cleared (e.g. they aborted), prevent browser-back re-entry.
+  useEffect(() => {
+     if (hasMounted && !loadLocalSettings()?.roomPin) {
+        router.replace('/');
+     }
+  }, [hasMounted, router]);
 
   const sync = React.useCallback(async () => {
     if (!hasMounted) return;
@@ -242,7 +250,7 @@ function TabletopGameContent() {
              <h1 className="text-4xl font-black italic tracking-tighter text-[var(--fg)] fe-flicker uppercase">Sector_{code}</h1>
           </div>
           <div className="flex gap-4 pointer-events-auto">
-             <Link href="/lan" className="fe-holo-btn !py-2 !px-4 text-xs opacity-50 hover:opacity-100">Abort Link</Link>
+             <button onClick={() => setShowAbortConfirm(true)} className="fe-holo-btn !py-2 !px-4 text-xs text-rose-500 border-rose-500/20 bg-rose-500/5 opacity-50 hover:opacity-100 hover:bg-rose-500/10 transition-all">Abort Link</button>
           </div>
       </div>
 
@@ -254,6 +262,36 @@ function TabletopGameContent() {
         onAction={(action) => performAction(action)}
         onCardDetail={(card) => setActiveCard(card)}
       />
+
+      {/* ABORT CONFIRMATION MODAL */}
+      <AnimatePresence>
+        {showAbortConfirm && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+             <motion.div 
+               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} 
+               onClick={() => setShowAbortConfirm(false)} 
+               className="absolute inset-0 bg-black/80 backdrop-blur-md" 
+             />
+             <motion.div 
+               initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} 
+               className="relative z-10 fe-scene p-8 border border-rose-500/50 rounded-2xl bg-black/90 max-w-sm w-full flex flex-col items-center gap-6 shadow-[0_0_50px_rgba(244,63,94,0.1)]"
+             >
+                <div className="w-12 h-12 border border-rose-500 rounded-full flex items-center justify-center text-rose-500 animate-pulse text-2xl font-black">!</div>
+                <div className="text-center">
+                   <h3 className="text-xl font-black text-rose-500 uppercase tracking-widest mb-2">Warning</h3>
+                   <p className="text-xs text-[var(--fg)] opacity-60">Aborting the neural link will sever your connection to this sector. Are you certain?</p>
+                </div>
+                <div className="flex gap-4 w-full">
+                   <button onClick={() => setShowAbortConfirm(false)} className="flex-1 fe-holo-btn !py-3 text-xs opacity-60 hover:opacity-100">Cancel</button>
+                   <button onClick={() => {
+                       clearRoomPin();
+                       router.replace('/');
+                   }} className="flex-1 fe-holo-btn !py-3 text-xs !bg-rose-500/10 !border-rose-500/50 !text-rose-500 hover:!bg-rose-500/20">Confirm Abort</button>
+                </div>
+             </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* PLAYER HUD (STATIC UI) */}
       <div className="absolute bottom-0 left-0 right-0 p-8 flex flex-col items-center pointer-events-none z-50">
