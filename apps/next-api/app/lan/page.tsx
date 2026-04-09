@@ -4,6 +4,7 @@ import React, { Suspense, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { apiFetch } from '@/lib/api';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { EMOJI_OPTIONS } from '@/lib/gameConfig';
 import { InterstitialAd } from '@/components/InterstitialAd';
@@ -185,7 +186,7 @@ function LanContent() {
     <main className="fe-scene bg-black min-h-screen overflow-y-auto flex flex-col items-center">
       {/* Cinematic Environment */}
       <div className="absolute inset-0 z-0 h-full">
-         <img src="/assets/type-bgs/adapt.png" className="w-full h-full object-cover opacity-20 blur-2xl scale-125" alt="" />
+         <Image src="/assets/type-bgs/adapt.png" fill className="object-cover opacity-20 blur-2xl scale-125" alt="" unoptimized />
          <div className="fe-vignette h-full" />
          <div className="fe-scanline h-full" />
          <div className="fe-grid h-full" />

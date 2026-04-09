@@ -7,6 +7,7 @@ export interface LocalUserSettings {
   theme: ThemeName;
   soundEnabled: boolean;
   adFree?: boolean;
+  roomPin?: LocalRoomPin | null;
 }
 
 export interface LocalMatchOutcome {

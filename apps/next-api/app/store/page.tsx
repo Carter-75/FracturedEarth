@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 import { Purchases } from '@revenuecat/purchases-capacitor';
 import { loadLocalSettings, saveLocalSettings } from '@/lib/localProfile';
 
@@ -85,7 +86,7 @@ export default function StorePage() {
   return (
     <main className="fe-scene bg-black overflow-y-auto flex flex-col items-center py-20 px-6">
       <div className="absolute inset-0 z-0 text-white/50">
-         <img src="/assets/type-bgs/ascended.png" className="w-full h-full object-cover opacity-20 blur-3xl scale-125" alt="" />
+         <Image src="/assets/type-bgs/ascended.png" fill className="object-cover opacity-20 blur-3xl scale-125" alt="" unoptimized />
          <div className="fe-vignette" />
          <div className="fe-grid opacity-10" />
       </div>

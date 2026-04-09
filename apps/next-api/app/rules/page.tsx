@@ -1,11 +1,12 @@
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function RulesPage() {
   return (
     <main className="relative min-h-screen bg-black overflow-y-auto overflow-x-hidden">
       {/* Immersive Background */}
       <div className="fixed inset-0 z-0 h-full">
-         <img src="/assets/type-bgs/ascended.png" className="w-full h-full object-cover opacity-10 blur-3xl scale-125" alt="" />
+         <Image src="/assets/type-bgs/ascended.png" fill className="object-cover opacity-10 blur-3xl scale-125" alt="" unoptimized />
          <div className="fe-vignette h-full" />
          <div className="fe-scanline h-full" />
          <div className="fe-grid h-full" />

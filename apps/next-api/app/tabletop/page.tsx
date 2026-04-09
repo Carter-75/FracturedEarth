@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { apiFetch } from '@/lib/api';
-import { loadLocalSettings, saveRoomPin, clearRoomPin } from '@/lib/localProfile';
+import { loadLocalSettings, saveRoomPin, clearRoomPin, loadRoomPin } from '@/lib/localProfile';
 import { MatchAction, StateEnvelope } from '@/types/game';
 import { MatchCard, MatchPlayer, cardTheme } from '@/lib/tabletopShared';
 import { MAX_HAND_SIZE, MAX_ACTIONS_PER_TURN } from '@/lib/gameConfig';
@@ -143,7 +143,7 @@ function TabletopGameContent() {
 
   // Security: If the pin was cleared (e.g. they aborted), prevent browser-back re-entry.
   useEffect(() => {
-     if (hasMounted && !loadLocalSettings()?.roomPin) {
+     if (hasMounted && !loadRoomPin()) {
         router.replace('/');
      }
   }, [hasMounted, router]);

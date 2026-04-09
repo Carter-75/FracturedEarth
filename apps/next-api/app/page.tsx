@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { loadMatchHistory, loadRoomPin, clearRoomPin, type LocalMatchOutcome, type LocalRoomPin } from '@/lib/localProfile';
 
@@ -59,7 +60,7 @@ export default function HomePage() {
     <main className="fe-scene bg-black overflow-y-auto !justify-start md:!justify-center !items-start pb-20">
       {/* Immersive Background */}
       <div className="absolute inset-0 z-0">
-         <img src="/assets/type-bgs/chaos.png" className="w-full h-full object-cover opacity-40 scale-105 blur-sm" alt="" />
+         <Image src="/assets/type-bgs/chaos.png" fill className="object-cover opacity-40 scale-105 blur-sm" alt="" unoptimized />
          <div className="fe-vignette" />
          <div className="fe-scanline" />
          <div className="fe-grid" />

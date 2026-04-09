@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 import { MatchCard, cardTheme } from '@/lib/tabletopShared';
 
 interface PhysicalCardProps {
@@ -21,7 +22,7 @@ export default function PhysicalCard({ card, onClick, isSelected, className, sty
       className={`fe-card-physical ${isSelected ? 'border-[var(--accent)] shadow-[0_0_30px_rgba(var(--accent-rgb),0.5)] z-[200]' : ''} ${className || ''}`}
     >
       {/* Background Graphic */}
-      <img src={theme.bg} alt="" className="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-screen pointer-events-none" />
+      <Image src={theme.bg} alt="" fill className="object-cover opacity-60 mix-blend-screen pointer-events-none" unoptimized />
       <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black opacity-80 pointer-events-none" />
       
       {/* Tactical Glow */}

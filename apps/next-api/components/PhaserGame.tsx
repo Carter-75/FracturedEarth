@@ -18,6 +18,10 @@ export default function PhaserGame({ roomCode, gameState, userId, onAction, onCa
   const [mounted, setMounted] = useState(false);
   const onActionRef = useRef(onAction);
   onActionRef.current = onAction;
+  const onCardDetailRef = useRef(onCardDetail);
+  onCardDetailRef.current = onCardDetail;
+  const initialGameStateRef = useRef(gameState);
+  const initialUserIdRef = useRef(userId);
  
   useEffect(() => {
     setMounted(true);
@@ -32,8 +36,8 @@ export default function PhaserGame({ roomCode, gameState, userId, onAction, onCa
       
       const initialData = { 
         roomCode, 
-        gameState, 
-        userId, // Use the prop passed from React
+        gameState: initialGameStateRef.current, 
+        userId: initialUserIdRef.current, // Use the prop passed from React
         onAction: (a: any) => onActionRef.current(a)
       };
  
@@ -41,7 +45,7 @@ export default function PhaserGame({ roomCode, gameState, userId, onAction, onCa
  
       // Listen for events from Phaser
       gameRef.current.events.on('OPEN_CARD_DETAIL', (card: any) => {
-        if (onCardDetail) onCardDetail(card);
+        if (onCardDetailRef.current) onCardDetailRef.current(card);
       });
     });
  
@@ -58,7 +62,7 @@ export default function PhaserGame({ roomCode, gameState, userId, onAction, onCa
     if (gameRef.current && gameState) {
       gameRef.current.events.emit('UPDATE_STATE', gameState);
     }
-  }, [gameState, onCardDetail]);
+  }, [gameState]);
  
   useEffect(() => {
     if (gameRef.current && userId) {

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { apiFetch } from '@/lib/api';
 
 type LeaderboardEntry = {
@@ -34,7 +35,7 @@ export default function LeaderboardPage() {
     <main className="fe-scene bg-black overflow-y-auto !items-start !justify-start md:!items-center md:!justify-center">
       {/* Cinematic Background Layer */}
       <div className="absolute inset-0 z-0 h-full fixed">
-         <img src="/assets/type-bgs/chaos.png" className="w-full h-full object-cover opacity-10 blur-3xl scale-125" alt="" />
+         <Image src="/assets/type-bgs/chaos.png" fill className="object-cover opacity-10 blur-3xl scale-125" alt="" unoptimized />
          <div className="fe-vignette h-full" />
          <div className="fe-scanline h-full" />
          <div className="fe-grid h-full opacity-20" />
