@@ -46,6 +46,10 @@ export class TabletopScene extends Phaser.Scene {
       if (!this.isReplaying) this.updateBoard(gameState);
     });
 
+    this.game.events.on('SYNC_USER_ID', (userId: string) => {
+      if (userId) this.userId = userId;
+    });
+
     // PROCESS_REPLAY removed in favor of Live Reactive Polling
 
     this.game.events.on('UPDATE_TUTORIAL_STEP', (step: any) => {
@@ -71,7 +75,16 @@ export class TabletopScene extends Phaser.Scene {
 
             // 1. Detect DRAW (for anyone, including bots)
             if (activePlayer.hand.length > (prevActive?.hand.length || 0)) {
-                await this.animateDraw(activePlayer.id);
+                let tx = undefined;
+                let ty = undefined;
+                
+                if (activePlayer.id === this.userId) {
+                    const pos = this.getCardHandPos(activePlayer.hand.length - 1, activePlayer.hand.length);
+                    tx = pos.x;
+                    ty = pos.y;
+                }
+                
+                await this.animateDraw(activePlayer.id, tx, ty);
             }
 
             // 2. Detect PLAY (new top card or turn pile growth)
@@ -107,7 +120,7 @@ export class TabletopScene extends Phaser.Scene {
 
   // Legacy replay system removed in favor of Live Reactive Polling
 
-  private animateDraw(actorId: string): Promise<void> {
+  private animateDraw(actorId: string, customX?: number, customY?: number): Promise<void> {
       return new Promise(resolve => {
           const isMe = actorId === this.userId;
           const drawPile = this.decks.find(d => d.name === 'drawPile');
@@ -117,14 +130,14 @@ export class TabletopScene extends Phaser.Scene {
           temp.setScale(0.7);
           
           const botPos = this.opponentPos.get(actorId);
-          let targetX = isMe ? this.cameras.main.width / 2 : (botPos?.x || this.cameras.main.width / 2);
-          let targetY = isMe ? this.cameras.main.height - 50 : (botPos?.y || 50);
+          let targetX = customX ?? (isMe ? this.cameras.main.width / 2 : (botPos?.x || this.cameras.main.width / 2));
+          let targetY = customY ?? (isMe ? this.cameras.main.height - 120 : (botPos?.y || 50));
 
           this.tweens.add({
               targets: temp,
               x: targetX,
               y: targetY,
-              alpha: isMe ? 1 : 0, // Fade out if going to bot, keep if going to hand
+              alpha: isMe ? 1 : 0, 
               duration: 500,
               ease: 'Power2',
               onComplete: () => {
@@ -203,6 +216,23 @@ export class TabletopScene extends Phaser.Scene {
       });
   }
 
+  private getCardHandPos(index: number, total: number) {
+    const width = this.cameras.main.width;
+    const height = this.cameras.main.height;
+    const startX = width / 2;
+    const startY = height - 120;
+    
+    const baseSpacing = 70;
+    const spacing = total > 5 ? (baseSpacing * 5) / total : baseSpacing;
+    const totalWidth = (total - 1) * spacing;
+
+    return {
+       x: startX - (totalWidth / 2) + (index * spacing),
+       y: startY + Math.abs(index - (total - 1) / 2) * 8,
+       angle: (index - (total - 1) / 2) * 5
+    };
+  }
+
   private sleep(ms: number) {
       return new Promise(resolve => this.time.delayedCall(ms, resolve));
   }
@@ -220,39 +250,24 @@ export class TabletopScene extends Phaser.Scene {
         return true;
     });
 
-    const width = this.cameras.main.width;
-    const height = this.cameras.main.height;
-    const startX = width / 2;
-    const startY = height - 120;
-    
-    // Dynamic spacing: if hand is large, squash cards together
-    const baseSpacing = 70;
-    const spacing = me.hand.length > 5 ? (baseSpacing * 5) / me.hand.length : baseSpacing;
-    const totalWidth = (me.hand.length - 1) * spacing;
-
     me.hand.forEach((card, i) => {
-       const targetX = startX - (totalWidth / 2) + (i * spacing);
-       const targetAngle = (i - (me.hand.length - 1) / 2) * 5;
-       const targetY = startY + Math.abs(i - (me.hand.length - 1) / 2) * 8;
+       const { x: targetX, y: targetY, angle: targetAngle } = this.getCardHandPos(i, me.hand.length);
 
        let sprite = this.hand.find(s => s.cardData.id === card.id);
        
        if (!sprite) {
           // New card (drawn)
-          const spawnX = animateNew ? width / 2 : targetX;
-          const spawnY = animateNew ? height / 2 : targetY;
-          sprite = new CardSprite(this, spawnX, spawnY, card);
-          sprite.setAlpha(0); // Fade in
+          // Align spawn point with where animateDraw finished for a seamless transition
+          sprite = new CardSprite(this, targetX, targetY, card);
+          sprite.setAlpha(0); 
+          sprite.setAngle(targetAngle);
           this.hand.push(sprite);
 
           if (animateNew) {
             this.tweens.add({
                 targets: sprite,
-                x: targetX,
-                y: targetY,
-                angle: targetAngle,
                 alpha: 1,
-                duration: 600,
+                duration: 300,
                 ease: 'Power2.easeOut'
             });
           } else {

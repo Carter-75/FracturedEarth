@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
@@ -116,6 +117,7 @@ function CardDetailModal({ card, isOpen, onClose, onPlay, onDiscard, isMyTurn }:
 // --- MAIN PAGE ---
 
 function TabletopGameContent() {
+  const { data: session } = useSession();
   const search = useSearchParams();
   const router = useRouter();
   const code = search.get('code')?.toUpperCase() || '';
@@ -131,7 +133,7 @@ function TabletopGameContent() {
      setLocal(loadLocalSettings());
   }, []);
 
-  const userId = local?.userId || '';
+  const userId = (session?.user as any)?.id || local?.userId || '';
   const payload = state?.payload;
   const myPlayer = payload?.players.find(p => p.id === userId);
   const activePlayer = payload?.players[payload?.activePlayerIndex ?? 0];
@@ -257,25 +259,30 @@ function TabletopGameContent() {
       <div className="absolute bottom-0 left-0 right-0 p-8 flex flex-col items-center pointer-events-none z-50">
           
           {/* End Turn (Bottom Right) */}
-            {isMyTurn && (
-              <div className="fixed bottom-8 right-8 z-[70] pointer-events-auto flex flex-col items-end gap-2">
-                 <button 
-                   onClick={() => performAction({ type: 'END_TURN' })}
-                   disabled={busy || (myPlayer && myPlayer.hand.length > 5)}
-                   className={`fe-holo-btn !py-2 !px-6 text-[10px] border-[var(--accent)]/20 !bg-black/50 shadow-xl transition-all font-black uppercase tracking-widest flex items-center gap-2 group ${
-                     (myPlayer && myPlayer.hand.length > 5) ? 'opacity-20 grayscale cursor-not-allowed' : 'hover:!bg-[var(--accent)]/10'
-                   }`}
-                 >
-                   <span className="opacity-40 group-hover:opacity-100 transition-opacity">
-                     {(myPlayer && myPlayer.hand.length > 5) ? 'REDUCE_HAND_SIZE' : 'NEXT_CYCLE'}
-                   </span>
-                   <div className={`w-1.5 h-1.5 rounded-full bg-[var(--accent)] ${busy ? 'animate-spin' : 'animate-pulse'}`} />
-                 </button>
-                 {(myPlayer && myPlayer.hand.length > 5) && (
-                   <span className="text-[8px] text-rose-500 font-bold uppercase tracking-widest animate-pulse px-2">Hand_Limit_Exceeded (5)</span>
-                 )}
-              </div>
-            )}
+            {isMyTurn && myPlayer && (() => {
+               const maxHand = (MAX_HAND_SIZE + (myPlayer.maxHandModifier || 0) + (myPlayer.triggers.some(t => t.kind === 'HAND_LIMIT_TEMP_1') ? 1 : 0));
+               const isOverHandLimit = myPlayer.hand.length > maxHand;
+               
+               return (
+                <div className="fixed bottom-8 right-8 z-[70] pointer-events-auto flex flex-col items-end gap-2">
+                   <button 
+                     onClick={() => performAction({ type: 'END_TURN' })}
+                     disabled={busy || isOverHandLimit}
+                     className={`fe-holo-btn !py-2 !px-6 text-[10px] border-[var(--accent)]/20 !bg-black/50 shadow-xl transition-all font-black uppercase tracking-widest flex items-center gap-2 group ${
+                       isOverHandLimit ? 'opacity-20 grayscale cursor-not-allowed' : 'hover:!bg-[var(--accent)]/10'
+                     }`}
+                   >
+                     <span className="opacity-40 group-hover:opacity-100 transition-opacity">
+                       {isOverHandLimit ? 'REDUCE_HAND_SIZE' : 'NEXT_CYCLE'}
+                     </span>
+                     <div className={`w-1.5 h-1.5 rounded-full bg-[var(--accent)] ${busy ? 'animate-spin' : 'animate-pulse'}`} />
+                   </button>
+                   {isOverHandLimit && (
+                     <span className="text-[8px] text-rose-500 font-bold uppercase tracking-widest animate-pulse px-2">Hand_Limit_Exceeded ({maxHand})</span>
+                   )}
+                </div>
+               );
+            })()}
 
           <div className="w-full max-w-7xl flex items-end justify-between">
               <div className="pointer-events-auto">

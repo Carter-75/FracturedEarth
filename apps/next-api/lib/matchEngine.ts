@@ -72,6 +72,36 @@ export function getPlayerMaxHand(player: MatchPlayer): number {
   return MAX_HAND_SIZE + bonus;
 }
 
+/**
+ * Consumes a trigger of a given kind from the player.
+ * If the trigger was attached to a POWER/ADAPT card with 'next_event' duration,
+ * the card is also consumed (moved to discard).
+ */
+export function consumeTrigger(
+  next: MatchPayload,
+  playerIdx: number,
+  kind: TriggerKind
+): boolean {
+  const pl = next.players[playerIdx];
+  const triggerIdx = pl.triggers.findIndex(t => t.kind === kind);
+  if (triggerIdx === -1) return false;
+
+  const trigger = pl.triggers[triggerIdx];
+  pl.triggers = pl.triggers.filter((_, i) => i !== triggerIdx);
+
+  // If source card is a POWER/ADAPT and duration is 'next_event', consume it
+  if (trigger.sourceCardId && trigger.duration === 'next_event') {
+    const cardIdx = pl.powers.findIndex(c => c.id === trigger.sourceCardId);
+    if (cardIdx !== -1) {
+      const consumedCard = pl.powers[cardIdx];
+      pl.powers = pl.powers.filter((_, i) => i !== cardIdx);
+      next.discardPile.push(consumedCard);
+      next.topCard = consumedCard; 
+    }
+  }
+  return true;
+}
+
 function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string, rng?: () => number): MatchPayload {
   const activeIndex = state.activePlayerIndex;
   
@@ -118,12 +148,12 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string, 
   const activeP = next.players[activeIndex];
   if (card.type === 'POWER' && activeP.triggers.some(t => t.kind === 'TEMP_DOUBLE_POWER_EFFECT')) {
       multiplier = 2;
-      activeP.triggers = activeP.triggers.filter(t => t.kind !== 'TEMP_DOUBLE_POWER_EFFECT');
+      consumeTrigger(next, activeIndex, 'TEMP_DOUBLE_POWER_EFFECT');
   }
 
   // --- NEGATE CATACLYSM LOGIC ---
   if (card.type === 'CATACLYSM' && activeP.triggers.some(t => t.kind === 'NEGATE_NEXT_CATAC_EFFECT')) {
-      activeP.triggers = activeP.triggers.filter(t => t.kind !== 'NEGATE_NEXT_CATAC_EFFECT');
+      consumeTrigger(next, activeIndex, 'NEGATE_NEXT_CATAC_EFFECT');
       return next;
   }
 
@@ -135,9 +165,9 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string, 
   let isTruncated = false;
 
   const executeAtomic = (type: string, params: any, targetIndex: number = activeIndex) => {
-      if (isTruncated) return;
-      const p = next.players[targetIndex];
-      const active = next.players[activeIndex];
+    if (isTruncated) return;
+    const p = next.players[targetIndex];
+    const active = next.players[activeIndex];
       
       switch (type) {
           case 'MODIFY_POINTS': {
@@ -150,7 +180,8 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string, 
                                          (isNegative && p.triggers.some(t => t.kind === 'REDIRECT_NEXT_NEGATIVE'));
 
             if (isNegative && hasTargetRedirection) {
-                p.triggers = p.triggers.filter(t => t.kind !== 'REDIRECT_NEXT_DISASTER' && t.kind !== 'REDIRECT_NEXT_NEGATIVE');
+                consumeTrigger(next, targetIndex, 'REDIRECT_NEXT_DISASTER');
+                consumeTrigger(next, targetIndex, 'REDIRECT_NEXT_NEGATIVE');
                 const others = next.players.filter(op => op.id !== p.id && op.health > 0);
                 if (others.length > 0) {
                     const newTarget = others[Math.floor(innerRng() * others.length)];
@@ -162,7 +193,7 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string, 
 
             if (finalAmount < 0 && (p.twistEffect === 'prevent_negative' || p.triggers.some(t => t.kind === 'NEGATE_NEXT_NEGATIVE_EFFECT'))) {
                 p.twistEffect = undefined;
-                p.triggers = p.triggers.filter(t => t.kind !== 'NEGATE_NEXT_NEGATIVE_EFFECT');
+                consumeTrigger(next, targetIndex, 'NEGATE_NEXT_NEGATIVE_EFFECT');
                 return;
             }
             if (finalAmount < 0 && card?.type === 'DISASTER' && p.triggers.some(t => t.kind === 'REDUCE_INCOMING_DISASTER_1')) {
@@ -170,10 +201,10 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string, 
             }
             if (finalAmount > 0 && p.triggers.some(t => t.kind === 'DOUBLE_NEXT_POINTS')) {
                 finalAmount *= 2;
-                p.triggers = p.triggers.filter(t => t.kind !== 'DOUBLE_NEXT_POINTS');
+                consumeTrigger(next, targetIndex, 'DOUBLE_NEXT_POINTS');
             }
             if (finalAmount < 0 && p.triggers.some(t => t.kind === 'PREVENT_NEXT_POINT_LOSS')) {
-                p.triggers = p.triggers.filter(t => t.kind !== 'PREVENT_NEXT_POINT_LOSS');
+                consumeTrigger(next, targetIndex, 'PREVENT_NEXT_POINT_LOSS');
                 return;
             }
 
@@ -206,7 +237,8 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string, 
                                            (isNegativeH && p.triggers.some(t => t.kind === 'REDIRECT_NEXT_NEGATIVE'));
 
             if (isNegativeH && hasTargetRedirectionH) {
-                p.triggers = p.triggers.filter(t => t.kind !== 'REDIRECT_NEXT_DISASTER' && t.kind !== 'REDIRECT_NEXT_NEGATIVE');
+                consumeTrigger(next, targetIndex, 'REDIRECT_NEXT_DISASTER');
+                consumeTrigger(next, targetIndex, 'REDIRECT_NEXT_NEGATIVE');
                 const others = next.players.filter(op => op.id !== p.id && op.health > 0);
                 if (others.length > 0) {
                     const newTarget = others[Math.floor(innerRng() * others.length)];
@@ -218,7 +250,7 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string, 
 
             if (finalAmountH < 0 && (p.twistEffect === 'prevent_negative' || p.triggers.some(t => t.kind === 'NEGATE_NEXT_NEGATIVE_EFFECT'))) {
                 p.twistEffect = undefined;
-                p.triggers = p.triggers.filter(t => t.kind !== 'NEGATE_NEXT_NEGATIVE_EFFECT');
+                consumeTrigger(next, targetIndex, 'NEGATE_NEXT_NEGATIVE_EFFECT');
                 break;
             }
             if (finalAmountH < 0 && card?.type === 'DISASTER' && p.triggers.some(t => t.kind === 'REDUCE_INCOMING_DISASTER_1')) {
@@ -228,11 +260,11 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string, 
                 break;
             }
             if (finalAmountH < 0 && p.triggers.some(t => t.kind === 'NEGATE_NEXT_NEGATIVE_EFFECT')) {
-                p.triggers = p.triggers.filter(t => t.kind !== 'NEGATE_NEXT_NEGATIVE_EFFECT');
+                consumeTrigger(next, targetIndex, 'NEGATE_NEXT_NEGATIVE_EFFECT');
                 break;
             }
             if (finalAmountH < 0 && card?.type === 'DISASTER' && p.triggers.some(t => t.kind === 'NEGATE_NEXT_DISASTER')) {
-                p.triggers = p.triggers.filter(t => t.kind !== 'NEGATE_NEXT_DISASTER');
+                consumeTrigger(next, targetIndex, 'NEGATE_NEXT_DISASTER');
                 break;
             }
 
@@ -345,7 +377,7 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string, 
             
             // Redirection Check
             if (amt > 0 && p.triggers.some(t => t.kind === 'REDIRECT_NEXT_NEGATIVE')) {
-                p.triggers = p.triggers.filter(t => t.kind !== 'REDIRECT_NEXT_NEGATIVE');
+                consumeTrigger(next, targetIndex, 'REDIRECT_NEXT_NEGATIVE');
                 const others = next.players.filter(op => op.id !== p.id && op.health > 0);
                 if (others.length > 0) {
                     const newTarget = others[Math.floor(innerRng() * others.length)];
@@ -358,7 +390,8 @@ function resolveEffect(state: MatchPayload, card: MatchCard, targetId?: string, 
 
             // Negation Check
             if (amt > 0 && (p.twistEffect === 'prevent_negative' || p.triggers.some(t => t.kind === 'NEGATE_NEXT_NEGATIVE_EFFECT' || t.kind === 'PREVENT_NEXT_POINT_LOSS'))) {
-                p.triggers = p.triggers.filter(t => t.kind !== 'NEGATE_NEXT_NEGATIVE_EFFECT' && t.kind !== 'PREVENT_NEXT_POINT_LOSS');
+                consumeTrigger(next, targetIndex, 'NEGATE_NEXT_NEGATIVE_EFFECT');
+                consumeTrigger(next, targetIndex, 'PREVENT_NEXT_POINT_LOSS');
                 p.twistEffect = undefined;
                 return;
             }
@@ -626,13 +659,13 @@ export function drawForActive(
 
   // --- SKIP DRAW CHECKS ---
   if (active.triggers.some(t => t.kind === 'SKIP_NEXT_DRAW')) {
-      active.triggers = active.triggers.filter(t => t.kind !== 'SKIP_NEXT_DRAW');
-      next.players[activeIdx] = active;
+      const pIdx = overridePlayerIndex !== undefined ? overridePlayerIndex : state.activePlayerIndex;
+      consumeTrigger(next, pIdx, 'SKIP_NEXT_DRAW');
       return next;
   }
   if (active.triggers.some(t => t.kind === 'PREVENT_OPPONENT_DRAW_1')) {
-      active.triggers = active.triggers.filter(t => t.kind !== 'PREVENT_OPPONENT_DRAW_1');
-      next.players[activeIdx] = active;
+      const pIdx = overridePlayerIndex !== undefined ? overridePlayerIndex : state.activePlayerIndex;
+      consumeTrigger(next, pIdx, 'PREVENT_OPPONENT_DRAW_1');
       return next;
   }
 
@@ -1083,8 +1116,9 @@ export async function applyMatchAction(input: {
       if (!state.hasDrawnThisTurn) {
         throw new Error("You must draw before ending turn");
       }
-      if (active.hand.length > 5) {
-        throw new Error(`Must discard cards. You have more than 5 cards in hand.`);
+      const maxHand = getPlayerMaxHand(active);
+      if (active.hand.length > maxHand) {
+        throw new Error(`Must discard cards. You have more than ${maxHand} cards in hand.`);
       }
       // Just advance turn and let the matchService's heartbeat take over
       const next = advanceTurn(state);
