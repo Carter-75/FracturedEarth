@@ -23,12 +23,10 @@ export default function HomePage() {
         return;
       }
 
-      // If we already have a pin in state, don't re-validate every 5s unless it's gone
       if (activePin?.code === pin.code && !isValidating) {
         return;
       }
 
-      // Initial validation or new pin detected
       if (!isValidating) {
         isValidating = true;
         try {
@@ -43,7 +41,6 @@ export default function HomePage() {
           }
         } catch (e) {
           console.error('[Session] Validation check failed', e);
-          // On network error, we keep the pin for 1min local grace period (existing behavior)
           setActivePin(pin);
         } finally {
           isValidating = false;
@@ -57,72 +54,81 @@ export default function HomePage() {
   }, [activePin?.code]);
 
   return (
-    <main className="fe-scene bg-black overflow-y-auto !justify-start md:!justify-center !items-start pb-20">
-      {/* Immersive Background */}
-      <div className="absolute inset-0 z-0">
-         <Image src="/assets/type-bgs/chaos.png" fill className="object-cover opacity-40 scale-105 blur-sm" alt="" unoptimized />
-         <div className="fe-vignette" />
-         <div className="fe-scanline" />
-         <div className="fe-grid" />
+    <main className="relative min-h-screen flex flex-col items-center justify-center p-6 text-center">
+      {/* Cinematic Background Layer */}
+      <div className="fe-main-bg">
+        <Image 
+          src="/assets/type-bgs/chaos.png" 
+          fill 
+          className="object-cover opacity-20 filter brightness-50 scale-105" 
+          alt="Fractured Earth Background" 
+          priority
+          unoptimized
+        />
+        <div className="fe-scanline" />
       </div>
 
-      <section className="relative z-10 w-full max-w-4xl mx-auto px-6 pt-24 pb-12 flex flex-col items-center justify-center min-h-screen text-center">
-        <div className="fe-flicker mb-8 md:mb-12">
-           <div className="fe-hologram text-[var(--accent)] opacity-60 mb-4 font-black text-[10px] md:text-xs">Local Area Network Active</div>
-           <h1 className="text-[15vw] md:text-[8rem] font-black italic tracking-tighter text-[var(--fg)] leading-[0.9] md:leading-none">
-             FRACTURED<br/>
-             <span className="text-[var(--accent)]">EARTH</span>
-           </h1>
+      <section className="relative z-10 w-full max-w-2xl flex flex-col items-center">
+        {/* Header Section */}
+        <div className="animate-flicker mb-12">
+          <div className="fe-hologram text-accent/60 text-[10px] tracking-[0.5em] mb-4">Neural_Link_Status: Active</div>
+          <h1 className="text-6xl sm:text-8xl font-black italic tracking-tighter text-fg leading-[0.85] mb-2 uppercase">
+            Fractured<br/>
+            <span className="text-accent drop-shadow-[0_0_20px_rgba(245,158,11,0.3)]">Earth</span>
+          </h1>
+          <div className="h-px w-24 bg-accent/20 mx-auto mt-6" />
         </div>
 
-        <p className="max-w-2xl text-base md:text-2xl text-[var(--fg)] opacity-50 font-light tracking-tight mb-12 md:mb-16 px-4 leading-relaxed">
-          Experience the definitive strategic survival engine. Secure your sector and manage your resources in pure cinematic reality.
+        <p className="text-fg-muted font-light tracking-tight mb-16 leading-relaxed max-w-lg text-sm sm:text-base px-4">
+          Definitive strategic survival engine. Secure your sector and manage resources in pure cinematic reality.
         </p>
 
-        <div className="flex flex-col sm:flex-row gap-4 md:gap-6 w-full max-w-2xl mt-8 px-4">
-           {activePin ? (
-             <Link 
-               href={`/tabletop?code=${activePin.code}&userId=${encodeURIComponent(activePin.userId)}`} 
-               className="fe-holo-btn flex-1 flex justify-center items-center !py-4 md:!py-5 text-base md:!text-lg !text-[var(--accent)] !bg-[var(--accent)]/10 !border-[var(--accent)] animate-pulse"
-             >
-               Resume Session
-             </Link>
-           ) : (
-             <Link href="/lan" className="fe-holo-btn flex-1 flex justify-center items-center !py-4 md:!py-5 text-base md:!text-lg !text-[var(--fg)] !bg-[var(--accent)]/10 !border-[var(--accent)]/30 hover:!bg-[var(--accent)]/20">
-               Start Protocol
-             </Link>
-           )}
-           <Link href="/tutorial" className="fe-holo-btn flex-1 flex justify-center items-center !py-4 md:!py-5 text-base md:!text-lg">
-             Training
-           </Link>
-           <Link href="/rules" className="fe-holo-btn flex-1 flex justify-center items-center !py-4 md:!py-5 text-base md:!text-lg !border-[var(--accent-soft)]/50 !text-[var(--accent-soft)]">
-             NeuralAtlas
-           </Link>
+        {/* Action Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full px-4 mb-20">
+          {activePin ? (
+            <Link 
+              href={`/tabletop?code=${activePin.code}&userId=${encodeURIComponent(activePin.userId)}`} 
+              className="fe-btn fe-btn-primary animate-pulse py-5 text-sm"
+            >
+              Resume Session
+            </Link>
+          ) : (
+            <Link href="/lan" className="fe-btn py-5 text-sm hover:!bg-accent/5">
+              Start Protocol
+            </Link>
+          )}
+          <Link href="/tutorial" className="fe-btn py-5 text-sm group">
+            <span className="group-hover:text-accent-alt transition-colors">Training_Sim</span>
+          </Link>
+          <Link href="/rules" className="fe-btn sm:col-span-2 py-4 text-[10px] opacity-60 hover:opacity-100">
+            Neural_Atlas_Databank
+          </Link>
         </div>
 
-        {/* Match History Section */}
+        {/* Match Archive */}
         {history.length > 0 && (
-          <div className="mt-24 w-full max-w-2xl px-4 text-left">
-            <h3 className="fe-hologram text-[var(--fg)] opacity-20 text-[10px] mb-6 flex items-center gap-4">
-              <span className="w-8 h-[1px] bg-white/10" />
+          <div className="w-full text-left px-4 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
+            <h3 className="fe-hologram text-fg-muted/30 text-[9px] mb-8 flex items-center gap-6">
+              <span className="h-px flex-1 bg-white/5" />
               Neural_Archive_Log
-              <span className="w-full h-[1px] bg-white/10" />
+              <span className="h-px w-8 bg-white/5" />
             </h3>
+            
             <div className="space-y-3">
-              {history.slice(0, 5).map((outcome) => (
-                <div key={outcome.id} className="bg-white/5 border border-white/5 rounded-xl p-4 flex items-center justify-between group hover:bg-white/10 transition-all">
-                  <div className="flex items-center gap-4">
-                    <span className="text-2xl opacity-50 group-hover:opacity-100 transition-opacity">
-                      {outcome.didWin ? '🏆' : '💀'}
-                    </span>
+              {history.slice(0, 3).map((outcome) => (
+                <div key={outcome.id} className="fe-card group flex items-center justify-between !py-4 !px-6 bg-surface/40 hover:!bg-surface-raised/60">
+                  <div className="flex items-center gap-5">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${outcome.didWin ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger'}`}>
+                      {outcome.didWin ? '●' : '×'}
+                    </div>
                     <div className="flex flex-col">
-                      <span className="text-[var(--fg)] font-bold text-sm uppercase tracking-wider">{outcome.roomCode}</span>
-                      <span className="text-[var(--fg)] opacity-30 text-[9px] uppercase tracking-widest">
+                      <span className="text-fg font-bold text-xs uppercase tracking-widest leading-none mb-1">{outcome.roomCode}</span>
+                      <span className="text-fg-subtle text-[8px] uppercase tracking-widest">
                         {hasMounted ? new Date(outcome.playedAtEpochMs).toLocaleDateString() : ''} • {outcome.winnerDisplayName}
                       </span>
                     </div>
                   </div>
-                  <div className={`fe-hologram text-[10px] ${outcome.didWin ? 'text-[var(--accent)]' : 'text-rose-500'} font-black italic`}>
+                  <div className={`text-[10px] font-black tracking-widest ${outcome.didWin ? 'text-accent' : 'text-danger/60'}`}>
                     {outcome.didWin ? 'ASCENDED' : 'FALLEN'}
                   </div>
                 </div>
@@ -131,14 +137,14 @@ export default function HomePage() {
           </div>
         )}
         
-        <Link href="/settings" className="mt-16 text-[var(--fg)] opacity-20 hover:opacity-60 text-xs tracking-[0.5em] transition-all uppercase mb-12">
-          Access_Settings
+        <Link href="/settings" className="mt-20 text-fg-subtle/40 hover:text-accent/60 text-[9px] tracking-[0.6em] transition-all uppercase mb-12">
+          System_Settings
         </Link>
       </section>
 
-      {/* Floating Decorative Mesh */}
-      <div className="absolute bottom-[-10%] left-[-5%] w-[40%] h-[40%] border border-white/5 rounded-full blur-3xl bg-[var(--accent)]/5 pointer-events-none" />
-      <div className="absolute top-[10%] right-[-5%] w-[30%] h-[30%] border border-white/5 rounded-full blur-3xl bg-[var(--accent-soft)]/5 pointer-events-none" />
+      {/* Subtle Background Accents */}
+      <div className="absolute top-[20%] left-[-10%] w-[50%] h-[50%] bg-accent/5 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-[10%] right-[-10%] w-[40%] h-[40%] bg-accent-alt/5 blur-[120px] rounded-full pointer-events-none" />
     </main>
   );
 }

@@ -2,214 +2,184 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --bg: #020408;
-  --fg: #f8fafc;
-  --accent: #f59e0b;
-  --accent-soft: #38bdf8;
-  --panel: rgba(10, 15, 25, 0.8);
-  --panel-alt: rgba(15, 20, 35, 0.9);
-  --border: rgba(255, 255, 255, 0.1);
-  --muted: #64748b;
-  
-  /* Brand/Theme Overrides */
-  --radius: 2rem;
-  --font-display: var(--font-display);
-  --font-body: var(--font-body);
-  --text-transform: uppercase;
-  --glow-color: var(--accent);
-  --neon-glow: 0 0 15px rgba(var(--accent-rgb), var(--glow-strength, 0.4));
-  
-  /* Fluid Game Units - Scaled to the smallest dimension (vmin) */
-  --card-w: clamp(4rem, 15vmin, 12rem);
-  --card-h: calc(var(--card-w) * 1.4);
-  --opp-offset: clamp(-150px, -25vh, -400px);
-  --hand-spread: clamp(30px, 8vmin, 80px);
-}
-
-/* Media overrides are now mostly handled by vmin/clamp, but we can refine for large screens */
-@media (min-width: 1440px) {
-  :root {
-    --card-w: 12rem;
-    --hand-spread: 100px;
-  }
-}
-
 @layer base {
-  body {
-    @apply bg-[var(--bg)] text-[var(--fg)] overflow-hidden select-none transition-colors duration-500;
-    font-family: var(--font-body), sans-serif;
-    background-image: 
-      radial-gradient(circle at 50% -20%, rgba(var(--accent-rgb), 0.15), transparent 60%),
-      radial-gradient(circle at 50% 120%, rgba(var(--accent-rgb), 0.1), transparent 60%);
+  :root {
+    /* 4-point Grid & Spacing System */
+    --sp-1: 4px;
+    --sp-2: 8px;
+    --sp-3: 12px;
+    --sp-4: 16px;
+    --sp-6: 24px;
+    --sp-8: 32px;
+    --sp-10: 40px;
+    --sp-12: 48px;
+    --sp-16: 64px;
+    --sp-20: 80px;
+
+    /* Luxury Color System - Precision Gray & Technical Accents */
+    --bg-base: #020305;
+    --bg-surface: #0a0b0e;
+    --bg-surface-raised: #14161a;
+    --bg-surface-elevated: #1e2126;
+    
+    --fg-main: #f8fafc;
+    --fg-muted: #94a3b8;
+    --fg-subtle: #475569;
+    
+    --accent-primary: #f59e0b; /* Amber Technical */
+    --accent-secondary: #0ea5e9; /* Sky Blue */
+    --border-subtle: rgba(255, 255, 255, 0.04);
+    --border-active: rgba(245, 158, 11, 0.3);
+    
+    /* Semantic Colors */
+    --color-success: #10b981;
+    --color-danger: #ef4444;
+    --color-warning: #f59e0b;
+    --color-info: #3b82f6;
+
+    /* Global Tokens */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-full: 9999px;
+    
+    --header-height: clamp(56px, 8vh, 72px);
+    
+    /* Safe Area Insets (Capacitor + Browser Fallback) */
+    --sat: env(safe-area-inset-top, 0px);
+    --sar: env(safe-area-inset-right, 0px);
+    --sab: env(safe-area-inset-bottom, 0px);
+    --sal: env(safe-area-inset-left, 0px);
+
+    /* Fluid Game Units */
+    --card-w: clamp(140px, 20vw, 180px);
+    --card-h: calc(var(--card-w) * 1.44);
+    
+    /* Typography */
+    --font-primary: var(--font-geometric);
   }
-  
-  h1, h2, h3, .fe-hologram {
-    font-family: var(--font-display), sans-serif;
-    text-transform: var(--text-transform);
+
+  * {
+    @apply border-border-subtle;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-[var(--bg-base)] text-[var(--fg-main)] overflow-hidden select-none;
+    font-family: var(--font-primary), system-ui, sans-serif;
+    touch-action: pan-x pan-y;
+  }
+
+  /* Optimized Background with Depth Layers */
+  .fe-main-bg {
+    @apply fixed inset-0 z-0 pointer-events-none;
+    background: 
+      radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.05), transparent 70%),
+      radial-gradient(circle at 0% 100%, rgba(14, 165, 233, 0.05), transparent 70%),
+      var(--bg-base);
   }
 }
 
 @layer components {
+  /* Layout Root with Safe Area Handling */
+  .fe-layout-root {
+    @apply relative w-full h-full flex flex-col overflow-hidden;
+    padding-top: var(--sat);
+    padding-right: var(--sar);
+    padding-bottom: var(--sab);
+    padding-left: var(--sal);
+  }
+
+  .fe-content-scroll {
+    @apply flex-1 overflow-y-auto overflow-x-hidden;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .fe-content-scroll::-webkit-scrollbar { display: none; }
+
+  /* Precision Technical Button */
+  .fe-btn {
+    @apply relative px-6 py-3 flex items-center justify-center gap-3 transition-all duration-200 uppercase font-bold tracking-widest text-[10px] sm:text-xs overflow-hidden;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    background: var(--bg-surface);
+  }
+
+  .fe-btn:not(:disabled) {
+    @apply hover:bg-[var(--bg-surface-raised)] hover:border-[var(--border-active)] active:scale-[0.98];
+  }
+
+  .fe-btn:disabled {
+    @apply opacity-30 grayscale cursor-not-allowed;
+  }
+
+  .fe-btn-primary {
+    @apply border-[var(--accent-primary)]/40 text-[var(--accent-primary)];
+    background: rgba(245, 158, 11, 0.03);
+  }
   
-/* --- Cinematic Global Components --- */
-  .fe-modal-overlay {
-    @apply fixed inset-0 z-[2000] bg-black/60 backdrop-blur-2xl flex items-center justify-center p-4 md:p-6;
+  .fe-btn-primary:hover {
+    @apply bg-[var(--accent-primary)]/10;
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.1);
   }
 
-  .fe-modal-content {
-    background-color: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    @apply w-full max-w-xl p-6 md:p-12 shadow-2xl relative overflow-hidden max-h-[90vh] overflow-y-auto transition-all duration-500;
-    box-shadow: 0 0 100px rgba(0, 0, 0, 0.8), inset 0 0 30px rgba(255, 255, 255, 0.02);
-  }
-
-  .fe-modal-content::after {
-    content: ''; @apply absolute top-0 left-0 w-full h-1;
-    background: linear-gradient(to right, transparent, var(--accent), transparent);
-    opacity: 0.5;
-  }
-  
-  /* Responsive Utility for Layout Padding */
-  .fe-layout-content {
-    @apply flex-1 flex flex-col overflow-hidden relative;
-    padding-top: var(--header-height, 60px);
-  }
-
-  /* Utility for hiding on low-height mobile (Landscape) */
-  @media (max-height: 600px) {
-    .fe-mobile-hiding-h {
-      @apply hidden opacity-0 pointer-events-none;
-    }
-  }
-
-  .fe-glow-text {
-    text-shadow: 0 0 15px var(--glow-color);
-  }
-
-.fe-blur-bg {
-  @apply absolute inset-0 opacity-20 blur-[80px] pointer-events-none;
-}
-
-  /* Physical Scene */
-  .fe-scene {
-    @apply relative w-full h-full overflow-hidden flex items-center justify-center;
-    perspective: 2000px;
-    background-color: var(--bg);
-  }
-
-  .fe-table {
-    background-color: var(--bg);
-    border: 8px solid var(--border);
-    border-radius: var(--radius);
-    @apply absolute left-1/2 top-1/2 w-[250vw] h-[250vh] md:w-[150vw] md:h-[120vh] transition-all duration-700;
-    transform: translate(-50%, -50%) rotateX(65deg) scale(0.85);
+  /* Luxury Card/Panel Styling */
+  .fe-card {
+    @apply p-6 bg-[var(--bg-surface)] border border-[var(--border-subtle)] transition-all duration-300;
+    border-radius: var(--radius-md);
     box-shadow: 
-      0 100px 300px rgba(0,0,0,0.9),
-      inset 0 0 100px rgba(0,0,0,0.9),
-      inset 0 0 20px rgba(var(--accent-rgb), 0.1);
-    transform-style: preserve-3d;
+      0 10px 30px -10px rgba(0,0,0,0.5),
+      inset 0 1px 1px rgba(255,255,255,0.02);
   }
 
-  @media (min-width: 768px) {
-    .fe-table {
-      transform: translate(-50%, -50%) rotateX(60deg) scale(1);
-    }
+  .fe-card:hover {
+    @apply bg-[var(--bg-surface-raised)];
+    border-color: rgba(255, 255, 255, 0.08);
   }
 
-  /* Cinematic Effects */
-  .fe-scanline {
-    @apply absolute inset-0 pointer-events-none z-[1000];
-    opacity: var(--scanline-opacity, 0.03);
-    background: linear-gradient(to bottom, transparent 50%, var(--fg) 50%);
-    background-size: 100% 4px;
-  }
-
-  .fe-vignette {
-    @apply absolute inset-0 pointer-events-none z-[999];
-    background: radial-gradient(circle, transparent 40%, rgba(0,0,0,0.8) 100%);
-  }
-
-  /* Physical Cards */
-  .fe-card-physical {
-    background-color: var(--panel-alt);
-    border: 1px solid var(--border);
-    border-radius: calc(var(--radius) / 2.5);
-    @apply relative overflow-hidden transition-all duration-300;
-    width: var(--card-w);
-    height: var(--card-h);
-    box-shadow: 
-      -5px 10px 20px rgba(0,0,0,0.6),
-      inset 0 1px 0 rgba(255,255,255,0.1);
-  }
-
-  .fe-card-physical:hover {
-    border-color: var(--accent);
-    box-shadow: -10px 20px 40px rgba(0,0,0,0.8);
-  }
-
-  /* Holographic UI */
+  /* Holographic Elements */
   .fe-hologram {
-    @apply font-black tracking-[0.3em] uppercase text-xs;
-    text-shadow: 0 0 10px currentColor;
-    letter-spacing: 0.3em;
+    @apply relative font-black tracking-[0.2em] uppercase;
+    text-shadow: 0 0 12px currentColor;
   }
 
-  .fe-holo-btn {
-    border: 1px solid var(--border);
-    border-radius: 9999px;
-    @apply px-8 py-3 bg-white/5 backdrop-blur-md fe-hologram text-white/60 hover:text-white hover:bg-white/10 hover:border-[var(--accent)] transition-all active:scale-95 duration-300;
-    box-shadow: 0 0 20px rgba(var(--accent-rgb), 0.1);
+  /* Physical Game Props */
+  .fe-tabletop-surface {
+    @apply absolute left-1/2 top-1/2 w-[200vw] h-[200vh] transition-all duration-1000;
+    transform: translate(-50%, -50%) rotateX(60deg) translateZ(-100px);
+    background: 
+      linear-gradient(rgba(245, 158, 11, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(245, 158, 11, 0.05) 1px, transparent 1px),
+      linear-gradient(rgba(255, 255, 255, 0.02) 2px, transparent 2px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.02) 2px, transparent 2px);
+    background-size: 40px 40px, 40px 40px, 200px 200px, 200px 200px;
+    background-color: var(--bg-base);
   }
 
-  /* Mesh Grid */
-  .fe-grid {
-    @apply absolute inset-0 pointer-events-none opacity-[0.05];
-    background-image: 
-      linear-gradient(rgba(var(--accent-rgb), 0.5) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(var(--accent-rgb), 0.5) 1px, transparent 1px);
-    background-size: 50px 50px;
+  .fe-scanline {
+    @apply fixed inset-0 pointer-events-none z-[9999];
+    background: linear-gradient(to bottom, transparent 50%, rgba(255,255,255,0.01) 50%);
+    background-size: 100% 4px;
+    opacity: 0.6;
   }
 }
 
-/* Custom Animations */
-@keyframes float {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-10px) rotate(1deg); }
+/* Luxury Animations */
+@keyframes flicker {
+  0%, 19.999%, 22%, 62.999%, 64%, 64.999%, 70%, 100% { opacity: 1; transform: scale(1); }
+  20%, 21.999%, 63%, 63.999%, 65%, 69.999% { opacity: 0.8; transform: scale(1.01); }
 }
 
-.animate-float {
-  animation: float 6s ease-in-out infinite;
+.animate-flicker {
+  animation: flicker 6s infinite;
 }
 
-@keyframes holographic-flicker {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  98% { opacity: 0.8; transform: scale(1.002); }
-  99% { opacity: 1; transform: scale(0.998); }
+@keyframes pulse-soft {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.6; }
 }
 
-.fe-flicker {
-  animation: holographic-flicker 4s infinite;
+.animate-pulse-soft {
+  animation: pulse-soft 4s ease-in-out infinite;
 }
 
-
-/* Custom Animations */
-@keyframes float {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-10px) rotate(1deg); }
-}
-
-.animate-float {
-  animation: float 6s ease-in-out infinite;
-}
-
-@keyframes holographic-flicker {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  98% { opacity: 0.8; transform: scale(1.002); }
-  99% { opacity: 1; transform: scale(0.998); }
-}
-
-.fe-flicker {
-  animation: holographic-flicker 4s infinite;
-}

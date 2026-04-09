@@ -37,33 +37,36 @@ export function SectorPassPopup() {
       {visible && (
         <motion.div
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          className="fe-modal-overlay"
+          className="fixed inset-0 z-[5000] bg-black/90 backdrop-blur-xl flex items-center justify-center p-6"
         >
           <motion.div
-            initial={{ scale: 0.9, y: 30 }} animate={{ scale: 1, y: 0 }}
-            className="fe-modal-content max-w-md"
+            initial={{ scale: 0.95, y: 30, opacity: 0 }} animate={{ scale: 1, y: 0, opacity: 1 }}
+            className="fe-card max-w-sm !p-0 overflow-hidden !bg-surface-raised !border-white/10 shadow-2xl relative"
           >
-            <div className="fe-blur-bg bg-sky-500/10" />
+             <div className="h-40 bg-accent-alt/10 relative flex items-center justify-center">
+                <div className="absolute inset-0 fe-scanline opacity-20" />
+                <div className="text-6xl animate-pulse">🛰️</div>
+             </div>
 
-            <div className="relative z-10 text-center">
-              <div className="fe-hologram text-sky-400 mb-2 uppercase font-black text-[9px] md:text-[10px]">Priority Transmission</div>
-              <h2 className="text-2xl md:text-3xl font-black italic tracking-tighter text-white uppercase mb-4">Secure Your Sector</h2>
-              <p className="text-white/40 leading-relaxed font-light mb-8 text-xs md:text-sm">
+            <div className="p-8 text-center relative z-10">
+              <div className="fe-hologram text-accent-alt/60 mb-2 uppercase font-black text-[9px] tracking-[0.4em]">Interstellar_Comm</div>
+              <h2 className="text-2xl font-black italic tracking-tighter text-fg uppercase mb-4 leading-none">Secure Your Sector</h2>
+              <p className="text-fg-muted leading-relaxed font-medium mb-8 text-xs">
                 Upgrade to the **Sector Pass** to eliminate sponsor interruptions and unlock premium planetary themes.
               </p>
 
-              <div className="space-y-3">
+              <div className="flex flex-col gap-3">
                 <Link
                   href="/store" onClick={() => setVisible(false)}
-                  className="fe-holo-btn w-full !bg-sky-500/10 !border-sky-500 !text-white !py-3 md:!py-4 text-sm md:text-base"
+                  className="fe-btn fe-btn-primary !border-accent-alt/30 !text-accent-alt !py-4"
                 >
-                  View Packages
+                  View_Packages
                 </Link>
                 <button
                   onClick={handleDismiss}
-                  className="text-[9px] md:text-[10px] fe-hologram text-white/20 hover:text-white transition-all uppercase tracking-[0.3em]"
+                  className="text-[9px] font-black text-fg-subtle/40 hover:text-fg-muted transition-all uppercase tracking-[0.4em] py-3 underline underline-offset-8 decoration-white/5"
                 >
-                  Continue as Candidate
+                  Continue_As_Candidate
                 </button>
               </div>
             </div>

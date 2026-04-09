@@ -1,17 +1,18 @@
-
-import type { Metadata } from 'next';
-import { Cinzel, Spectral } from 'next/font/google';
+import type { Metadata, Viewport } from 'next';
+import { Outfit } from 'next/font/google';
 import './globals.css';
 import { Providers } from '@/components/Providers';
 import { TutorialLaunchGate } from '@/components/TutorialLaunchGate';
 import { AdBanner } from '@/components/AdBanner';
 import { SectorPassPopup } from '@/components/SectorPassPopup';
 import { Analytics } from '@vercel/analytics/next';
-import { initializeNativeBridge } from '@/lib/nativeBridge';
 import React from 'react';
 
-const cinzel = Cinzel({ subsets: ['latin'], variable: '--font-display', weight: ['600', '700', '800'] });
-const spectral = Spectral({ subsets: ['latin'], variable: '--font-body', weight: ['400', '500', '600', '700'] });
+const outfit = Outfit({ 
+  subsets: ['latin'], 
+  variable: '--font-geometric',
+  weight: ['300', '400', '500', '600', '700', '800', '900'] 
+});
 
 export const metadata: Metadata = {
   title: 'Fractured Earth',
@@ -20,17 +21,20 @@ export const metadata: Metadata = {
     icon: '/icon.svg',
     shortcut: '/icon.svg',
   },
-  openGraph: {
-    title: 'Fractured Earth',
-    description: 'A chaos survival card game',
-    type: 'website',
-  },
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
+  themeColor: '#020305',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-
   return (
-    <html lang="en" className={`${cinzel.variable} ${spectral.variable}`}>
+    <html lang="en" className={`${outfit.variable} dark`}>
       <head>
         {(process.env.NEXT_PUBLIC_ADSENSE_BANNER_ID && 
           process.env.NEXT_PUBLIC_ADSENSE_BANNER_ID !== 'ca-pub-0000000000000000') && (
@@ -43,11 +47,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <Providers>
-          <AdBanner />
-          <TutorialLaunchGate />
-          <SectorPassPopup />
-          <div className="fe-layout-content h-screen">
-            {children}
+          <div className="fe-layout-root">
+            <AdBanner />
+            <TutorialLaunchGate />
+            <SectorPassPopup />
+            <div className="fe-content-scroll">
+              {children}
+            </div>
           </div>
         </Providers>
         <Analytics />

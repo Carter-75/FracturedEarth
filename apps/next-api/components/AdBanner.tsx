@@ -24,7 +24,8 @@ export function AdBanner() {
     }
     setAdFree(isAdFree);
     
-    document.documentElement.style.setProperty('--header-height', isAdFree ? '0px' : '60px');
+    // Header height is already handled in globals.css/layout.root for safe areas
+    // but we can toggle visibility here if needed.
 
     // Show real AdMob banner if on native app
     const adId = NativeBridge.getAdUnitId('banner');
@@ -60,12 +61,12 @@ export function AdBanner() {
   const isNative = Capacitor.isNativePlatform();
 
   return (
-    <div className="fixed top-0 left-0 right-0 h-[60px] z-[1000] bg-black/80 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-2 md:px-4 overflow-hidden group">
-        {/* Cinematic Grid + Scanline for the banner area */}
-        <div className="absolute inset-0 fe-grid opacity-20" />
+    <div className="fixed top-0 left-0 right-0 h-[var(--header-height)] z-[1000] bg-surface/60 backdrop-blur-2xl border-b border-white/5 flex items-center justify-between px-4 sm:px-6 overflow-hidden group transition-all duration-500">
+        {/* Cinematic Layering */}
         <div className="absolute inset-0 fe-scanline opacity-10" />
+        <div className="absolute inset-0 bg-gradient-to-r from-accent/5 via-transparent to-accent-alt/5 pointer-events-none" />
         
-        {/* Real Ad Content Group */}
+        {/* Ad Content Group */}
         <div className="relative flex-1 flex items-center h-full">
            {!isNative && !adFree && process.env.NEXT_PUBLIC_ADSENSE_BANNER_ID && (
              <ins className="adsbygoogle"
@@ -76,20 +77,20 @@ export function AdBanner() {
                   data-full-width-responsive="true"></ins>
            )}
            {isNative && !adFree && (
-             <div className="flex items-center space-x-2 text-[var(--fg)] opacity-20 text-[8px] uppercase tracking-tighter">
-                <span className="animate-pulse">📡</span> Connection: Secure Sector Ad Link
+             <div className="flex items-center gap-2 text-fg-subtle/30 text-[8px] uppercase tracking-tighter">
+                <span className="animate-pulse">🛰️</span> Neural_Link_Stabilizer: Active
              </div>
            )}
         </div>
 
-        {/* Persistent Link Actions */}
-        <div className="relative z-10 flex items-center gap-1 md:gap-2 pl-2 md:pl-4">
+        {/* Global Action Bar */}
+        <div className="relative z-10 flex items-center gap-2 pl-4">
           {status === 'authenticated' ? (
-            <div className="flex items-center gap-2 md:gap-4">
-              <span className="hidden lg:inline fe-hologram text-[9px] text-white/40 uppercase tracking-widest italic">{session.user?.name || 'Active_Subject'}</span>
+            <div className="flex items-center gap-3">
+              <span className="hidden sm:inline fe-hologram text-[8px] text-fg-subtle/60 uppercase italic tracking-widest">{session.user?.name}</span>
               <button 
                 onClick={() => signOut()}
-                className="fe-holo-btn !py-1 !px-2 md:!px-3 !text-[8px] md:!text-[10px] !border-rose-500/30 !text-rose-400 hover:!bg-rose-400/10 transition-all uppercase tracking-widest"
+                className="fe-btn !py-1.5 !px-3 !text-[8px] !border-danger/10 !text-danger/40 hover:!text-danger transition-all font-black"
               >
                  Exit_Link
               </button>
@@ -97,7 +98,7 @@ export function AdBanner() {
           ) : (
             <button 
               onClick={() => signIn('google')}
-              className="fe-holo-btn !py-1 !px-2 md:!px-3 !text-[8px] md:!text-[10px] !border-[var(--accent)]/50 !text-[var(--accent)] hover:!bg-[var(--accent)]/10 transition-all uppercase tracking-widest"
+              className="fe-btn !py-1.5 !px-3 !text-[8px] !border-accent/10 !text-accent/60 hover:!text-accent transition-all font-black"
             >
                Sign_In
             </button>
@@ -105,9 +106,9 @@ export function AdBanner() {
 
           <a 
             href="/store"
-            className="fe-holo-btn !py-1 !px-2 md:!px-3 !text-[8px] md:!text-[10px] !border-sky-500/50 !text-sky-400 hover:!bg-sky-400/10 transition-all uppercase tracking-widest"
+            className="fe-btn !py-1.5 !px-3 !text-[8px] !border-accent-alt/10 !text-accent-alt/60 hover:!text-accent-alt transition-all font-black"
           >
-             Sector Pass
+             Sector_Pass
           </a>
         </div>
     </div>

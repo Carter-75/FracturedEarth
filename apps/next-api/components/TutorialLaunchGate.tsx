@@ -23,36 +23,39 @@ export function TutorialLaunchGate() {
     <AnimatePresence>
       <motion.div 
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-        className="fe-modal-overlay z-[3000]"
+        className="fixed inset-0 z-[6000] bg-black/95 backdrop-blur-2xl flex items-center justify-center p-8"
       >
         <motion.div 
-          initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }}
-          className="fe-modal-content"
+          initial={{ scale: 0.95, y: 20, opacity: 0 }} animate={{ scale: 1, y: 0, opacity: 1 }}
+          className="fe-card max-w-sm !p-0 overflow-hidden !bg-surface-raised !border-white/10 shadow-2xl relative"
         >
-          <div className="fe-blur-bg bg-amber-500/10" />
+           <div className="h-40 bg-amber-500/10 relative flex items-center justify-center">
+              <div className="absolute inset-0 fe-scanline opacity-20" />
+              <div className="text-6xl animate-pulse">⚠️</div>
+           </div>
           
-          <div className="relative z-10">
-             <div className="fe-hologram text-amber-500 mb-2 text-[10px] md:text-xs">Neural Link Warning</div>
-             <h2 className="text-2xl md:text-4xl font-black italic tracking-tighter text-white uppercase mb-4 md:mb-6">Uncertified Candidate</h2>
-             <p className="text-white/50 leading-relaxed font-light mb-8 md:mb-10 text-sm md:text-lg">
+          <div className="p-8 text-center relative z-10">
+             <div className="fe-hologram text-amber-500/60 mb-2 text-[10px] uppercase font-black tracking-[0.4em]">Neural_Link_Warning</div>
+             <h2 className="text-2xl font-black italic tracking-tighter text-fg uppercase mb-4 leading-none">Uncertified Candidate</h2>
+             <p className="text-fg-muted leading-relaxed font-medium mb-10 text-xs">
                 Your neural profile lacks certification. It is recommended to initialize the **Tactical Training Protocol** before attempting live planetary control.
              </p>
 
-             <div className="flex flex-col sm:flex-row gap-4">
+             <div className="flex flex-col gap-3">
                 <Link
                   href="/tutorial"
-                  className="fe-holo-btn !bg-amber-500/10 !border-amber-500 !text-white !py-3 md:!py-4 flex-1 text-center text-sm md:text-base"
+                  className="fe-btn fe-btn-primary !border-amber-500/30 !text-amber-500 !py-4"
                 >
-                  Confirm Training
+                  Confirm_Training
                 </Link>
                 <button
                   onClick={() => {
                     setTutorialDone(true);
                     setVisible(false);
                   }}
-                  className="fe-holo-btn !py-3 md:!py-4 flex-1 text-white/30 hover:text-white transition-all text-sm md:text-base"
+                  className="text-[9px] font-black text-fg-subtle/40 hover:text-fg-muted transition-all uppercase tracking-[0.4em] py-3 underline underline-offset-8 decoration-white/5"
                 >
-                  Bypass Certification
+                  Bypass_Certification
                 </button>
              </div>
           </div>
