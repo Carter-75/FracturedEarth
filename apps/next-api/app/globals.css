@@ -117,12 +117,12 @@
   }
 
   .fe-btn-primary {
-    @apply border-[var(--accent-primary)]/40 text-[var(--accent-primary)];
+    @apply border-accent/40 text-accent;
     background: rgba(245, 158, 11, 0.03);
   }
   
   .fe-btn-primary:hover {
-    @apply bg-[var(--accent-primary)]/10;
+    @apply bg-accent/10;
     box-shadow: 0 0 20px rgba(245, 158, 11, 0.1);
   }
 
