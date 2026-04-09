@@ -185,20 +185,28 @@ function LanContent() {
   return (
     <main className="fe-scene bg-black min-h-screen overflow-y-auto flex flex-col items-center">
       {/* Cinematic Environment */}
-      <div className="absolute inset-0 z-0 h-full">
-         <Image src="/assets/type-bgs/adapt.png" fill className="object-cover opacity-20 blur-2xl scale-125" alt="" unoptimized />
-         <div className="fe-vignette h-full" />
-         <div className="fe-scanline h-full" />
-         <div className="fe-grid h-full" />
+      <div className="absolute inset-0 z-0 h-full overflow-hidden">
+         <Image 
+           src="/assets/type-bgs/adapt.png" 
+           fill 
+           className="object-cover opacity-30 filter brightness-[0.8] saturate-[1.4] blur-xl scale-125" 
+           alt="" 
+           unoptimized 
+         />
+         <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/60 z-10" />
+         <div className="fe-scanline h-full opacity-20" />
+         <div className="fe-grid h-full opacity-10" />
       </div>
 
       {/* Header Overlay */}
-      <div className="relative z-50 w-full px-[5vw] pt-[calc(var(--header-height,60px)+2rem)] text-left">
-         <div className="fe-hologram text-[var(--accent)] opacity-60 mb-2 font-bold tracking-[0.2em] text-[min(10px,2vw)]">Sector Frequency Link 1.0</div>
-         <h1 className="text-[clamp(2.5rem,10vw,5rem)] font-black italic tracking-tighter text-[var(--fg)] uppercase leading-none">SECTOR<span className="text-[var(--accent)] font-bold block">LOBBY</span></h1>
+      <div className="relative z-50 w-full px-[5vw] pt-[calc(var(--header-height,60px)+3rem)] text-left flex flex-col gap-2">
+         <div className="fe-hologram text-accent/80 mb-2 font-black tracking-[0.5em] text-[10px] sm:text-xs">Sector_Frequency_Link_v4.2</div>
+         <h1 className="fe-display-italic text-[clamp(2.5rem,10vw,6rem)] font-black italic tracking-tighter text-white uppercase leading-[0.8]">
+            Sector<span className="text-accent italic block sm:inline sm:ml-6">Lobby</span>
+         </h1>
       </div>
 
-      <div className="relative z-10 w-full max-w-[95vw] px-[5vw] grid lg:grid-cols-[1.2fr_0.8fr] gap-[5vmin] items-center pt-12 pb-24 lg:py-0">
+      <div className="relative z-10 w-full max-w-[95vw] px-[5vw] grid lg:grid-cols-[1.2fr_0.8fr] gap-[8vmin] items-center pt-8 pb-24 lg:py-0">
          
          {/* The 3D Table for Seats */}
          <div className="relative h-[60vh] flex items-center justify-center overflow-hidden lg:overflow-visible">
@@ -259,31 +267,31 @@ function LanContent() {
 
             <div className="flex flex-col gap-4 pt-6 border-t border-white/5">
                 {!room ? (
-                   <button onClick={createRoom} className="fe-holo-btn !py-6 !text-lg !border-[var(--accent)]/50 !text-[var(--accent)] !bg-[var(--accent)]/5 hover:!bg-[var(--accent)]/10 transition-all font-black">ESTABLISH SECTOR</button>
+                   <button onClick={createRoom} className="fe-btn-pill !border-accent/40 !text-accent !bg-accent/5 hover:!bg-accent/10">ESTABLISH SECTOR</button>
                 ) : (
                    <div className="space-y-4">
-                      <div className="flex items-center justify-between text-xs fe-hologram text-[var(--fg)] opacity-40 px-2 font-bold uppercase tracking-widest">
+                      <div className="flex items-center justify-between text-[10px] fe-hologram text-white/40 px-2 font-black uppercase tracking-widest">
                          <span>Players: {activeMembers.length}/4</span>
                          <span className="text-emerald-500">Linked</span>
                       </div>
                       {canStart ? (
-                         <button onClick={startRoom} className="fe-holo-btn !py-6 !text-lg !bg-emerald-500/10 !border-emerald-500 !text-emerald-400 animate-pulse transition-all font-black">INITIATE PROTOCOL</button>
+                         <button onClick={startRoom} className="fe-btn-pill !border-emerald-500/40 !text-emerald-400 !bg-emerald-500/5 animate-pulse">INITIATE PROTOCOL</button>
                       ) : (
-                         <div className="fe-holo-btn !py-6 !text-lg !bg-white/5 !border-white/10 !text-[var(--fg)] opacity-20 !cursor-not-allowed text-center uppercase font-black">Waiting for Participants</div>
+                         <div className="fe-btn-pill !opacity-20 !cursor-not-allowed text-center uppercase">Waiting for Participants</div>
                       )}
                       {amHost && activeMembers.length < 4 && (
-                         <button onClick={addBot} className="fe-holo-btn !py-4 !text-xs !text-[var(--accent-soft)] opacity-60 hover:opacity-100">Deploy Tactical Bot</button>
+                         <button onClick={addBot} className="text-[10px] font-black tracking-[0.3em] uppercase text-accent/40 hover:text-accent transition-all py-2">Deploy Tactical Bot</button>
                       )}
                    </div>
                 )}
             </div>
 
-            {error && <div className="absolute -bottom-12 left-0 right-0 text-rose-500 fe-hologram text-center text-xs animate-flicker font-black uppercase tracking-widest">{error}</div>}
+            {error && <div className="absolute -bottom-12 left-0 right-0 text-rose-500 fe-hologram text-center text-[10px] animate-flicker font-black uppercase tracking-widest">{error}</div>}
          </div>
       </div>
 
-      <div className="w-full px-[5vw] py-12 flex justify-start">
-        <Link href="/" className="fe-hologram text-[var(--fg)] opacity-20 hover:opacity-100 transition-all text-xs tracking-[0.4em] font-black uppercase">← TERMINATE SESSION</Link>
+      <div className="w-full px-[5vw] py-16 flex justify-start">
+        <Link href="/" className="fe-display-italic text-white/30 hover:text-white transition-all text-[10px] tracking-[0.5em] font-black uppercase">← DEACTIVATE TERMINAL</Link>
       </div>
 
       {showInterstitial && (

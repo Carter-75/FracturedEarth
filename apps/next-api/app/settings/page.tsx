@@ -118,13 +118,13 @@ export default function SettingsPage() {
   }
 
   return (
-    <main className="min-h-screen p-4 md:p-8 max-w-5xl mx-auto space-y-6 overflow-y-auto">
-      <div className="bg-white/5 border border-white/10 rounded-[2rem] md:rounded-3xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 flex-wrap backdrop-blur-xl">
+    <main className="min-h-screen p-4 md:p-8 max-w-5xl mx-auto space-y-6 overflow-y-auto fe-scene">
+      <div className="bg-white/5 border border-white/10 rounded-[2rem] md:rounded-3xl p-8 flex flex-col sm:flex-row items-baseline sm:items-center justify-between gap-6 flex-wrap backdrop-blur-xl">
         <div>
-          <h1 className="text-2xl md:text-3xl font-black italic uppercase tracking-tighter text-white">Player Garage</h1>
-          <p className="text-white/40 text-xs mt-1">Tune your identity, theme, and tutorial progression.</p>
+          <h1 className="fe-display-italic text-3xl md:text-5xl font-black italic uppercase tracking-tighter text-white">Player Garage</h1>
+          <p className="text-white/30 text-[10px] uppercase font-bold tracking-[0.2em] mt-2">Tune your identity, theme, and tutorial progression.</p>
         </div>
-        <Link href="/" className="fe-holo-btn text-xs w-full sm:w-auto text-center">Return Home</Link>
+        <Link href="/" className="fe-btn-pill text-xs w-full sm:w-auto text-center !bg-white/10 hover:!bg-white/20">Return_Home</Link>
       </div>
 
       <section className="bg-white/[0.03] border border-white/5 rounded-[2rem] md:rounded-3xl p-6 space-y-4 backdrop-blur-lg">

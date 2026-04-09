@@ -217,9 +217,9 @@ function TabletopGameContent() {
   if (error === 'ROOM_NOT_FOUND_OR_CLOSED') {
     return (
       <div className="fe-layout-root flex flex-col items-center justify-center bg-bg-base p-10">
-        <h1 className="text-4xl font-black text-danger mb-4 animate-flicker">LINK_SEVERED</h1>
-        <p className="text-fg-muted font-light lowercase tracking-[0.4em] mb-12">Session_Terminated</p>
-        <Link href="/lan" className="fe-btn py-4 px-10">Return_To_Base</Link>
+        <h1 className="fe-display-italic text-5xl font-black text-danger mb-4 animate-flicker">LINK_SEVERED</h1>
+        <p className="text-danger/40 font-black uppercase tracking-[0.5em] mb-12 text-[10px]">Session_Terminated_By_System</p>
+        <Link href="/lan" className="fe-btn-pill !border-danger/40 !text-danger hover:!bg-danger/10">Return_To_Base</Link>
       </div>
     );
   }
@@ -252,16 +252,16 @@ function TabletopGameContent() {
       <div className="fe-scanline" />
 
       {/* TOP HUD: Sector Info & Abort Control */}
-      <header className="absolute top-0 left-0 right-0 p-6 sm:p-8 flex justify-between items-start z-50 pointer-events-none">
-        <div className="flex flex-col gap-1">
-          <div className="fe-hologram text-accent/40 text-[8px] tracking-[0.4em]">Spatial_Grid_Active</div>
-          <h1 className="text-2xl sm:text-4xl font-black italic tracking-tighter text-fg animate-flicker uppercase leading-none">
+      <header className="absolute top-0 left-0 right-0 p-8 sm:p-12 flex justify-between items-start z-50 pointer-events-none">
+        <div className="flex flex-col gap-2">
+          <div className="fe-hologram text-accent-alt/60 text-[10px] tracking-[0.5em] mb-2">Neural_Link_Established</div>
+          <h1 className="fe-display-italic text-3xl sm:text-5xl font-black italic tracking-tighter text-white animate-flicker uppercase leading-none">
             Sector_{code}
           </h1>
         </div>
         <button 
           onClick={() => setShowAbortConfirm(true)} 
-          className="pointer-events-auto fe-btn !py-2 !px-4 !bg-danger/5 !border-danger/10 text-danger/40 hover:text-danger hover:!bg-danger/10 transition-all font-black text-[9px]"
+          className="pointer-events-auto px-6 py-2 border border-danger/30 rounded-full bg-danger/5 text-danger/60 hover:text-danger hover:bg-danger/10 transition-all font-black text-[10px] uppercase tracking-widest"
         >
           Abort_Link
         </button>
@@ -352,13 +352,12 @@ function TabletopGameContent() {
               initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} 
               className="relative z-10 fe-card !bg-surface-elevated !p-10 border-danger/20 max-w-sm w-full flex flex-col items-center text-center gap-8"
             >
-              <div className="w-16 h-16 rounded-full border border-danger/30 flex items-center justify-center text-danger text-2xl animate-pulse font-black">!</div>
               <div>
-                <h3 className="text-xl font-black text-danger uppercase tracking-widest mb-3 leading-none">Termination_Check</h3>
-                <p className="text-[10px] text-fg-muted tracking-tight leading-relaxed uppercase">Neural link stability will be lost. Sector data persistence not guaranteed. Confirm Abort?</p>
+                <h3 className="fe-display-italic text-2xl font-black text-danger uppercase tracking-widest mb-3 leading-none italic">Termination_Check</h3>
+                <p className="text-[10px] text-white/40 tracking-widest leading-relaxed uppercase font-black">Neural link stability will be lost. Sector data persistence not guaranteed. Confirm Abort?</p>
               </div>
-              <div className="flex gap-4 w-full">
-                <button onClick={() => setShowAbortConfirm(false)} className="flex-1 fe-btn opacity-60">Cancel</button>
+              <div className="flex gap-4 w-full pt-4">
+                <button onClick={() => setShowAbortConfirm(false)} className="flex-1 fe-btn !bg-transparent !border-white/10 opacity-40 hover:opacity-100">Cancel</button>
                 <button onClick={() => {
                   clearRoomPin();
                   router.replace('/');
