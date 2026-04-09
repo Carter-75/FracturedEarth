@@ -60,7 +60,7 @@ export default function HomePage() {
         <Image 
           src="/assets/type-bgs/chaos.png" 
           fill 
-          className="object-cover opacity-20 filter brightness-50 scale-105" 
+          className="object-cover opacity-20 filter brightness-75 scale-105" 
           alt="Fractured Earth Background" 
           priority
           unoptimized
@@ -70,16 +70,16 @@ export default function HomePage() {
 
       <section className="relative z-10 w-full max-w-2xl flex flex-col items-center">
         {/* Header Section */}
-        <div className="animate-flicker mb-8 sm:mb-12">
-          <div className="fe-hologram text-accent/60 text-[8px] sm:text-[10px] tracking-[0.5em] mb-4">Neural_Link_Status: Active</div>
-          <h1 className="text-5xl sm:text-7xl lg:text-8xl font-black italic tracking-tighter text-fg leading-[0.85] mb-2 uppercase">
+        <div className="animate-flicker mb-12">
+          <div className="fe-hologram text-accent/60 text-[10px] tracking-[0.5em] mb-4">Neural_Link_Status: Active</div>
+          <h1 className="text-[clamp(3.5rem,15vw,6rem)] sm:text-8xl font-black italic tracking-tighter text-fg leading-[0.85] mb-2 uppercase">
             Fractured<br/>
             <span className="text-accent drop-shadow-[0_0_20px_rgba(245,158,11,0.3)]">Earth</span>
           </h1>
           <div className="h-px w-24 bg-accent/20 mx-auto mt-6" />
         </div>
 
-        <p className="text-fg-muted font-light tracking-tight mb-12 sm:mb-16 leading-relaxed max-w-lg text-sm sm:text-base px-6">
+        <p className="text-fg-muted font-light tracking-tight mb-16 leading-relaxed max-w-lg text-sm sm:text-base px-2">
           Definitive strategic survival engine. Secure your sector and manage resources in pure cinematic reality.
         </p>
 

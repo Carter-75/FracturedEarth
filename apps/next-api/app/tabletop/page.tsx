@@ -246,13 +246,13 @@ function TabletopGameContent() {
   );
 
   return (
-    <main className="fe-layout-root bg-bg-base select-none touch-none overflow-hidden">
+    <main className="fe-layout-root bg-bg-base select-none">
       {/* Visual Depth Layers */}
-      <div className="fe-main-bg opacity-30" />
+      <div className="fe-main-bg opacity-40" />
       <div className="fe-scanline" />
 
       {/* TOP HUD: Sector Info & Abort Control */}
-      <header className="absolute top-0 left-0 right-0 p-4 sm:p-8 flex justify-between items-start z-50 pointer-events-none">
+      <header className="absolute top-0 left-0 right-0 p-6 sm:p-8 flex justify-between items-start z-50 pointer-events-none">
         <div className="flex flex-col gap-1">
           <div className="fe-hologram text-accent/40 text-[7px] sm:text-[8px] tracking-[0.4em]">Spatial_Grid_Active</div>
           <h1 className="text-xl sm:text-4xl font-black italic tracking-tighter text-fg animate-flicker uppercase leading-none">
@@ -279,7 +279,7 @@ function TabletopGameContent() {
       </div>
 
       {/* BOTTOM HUD: Player Status & Turn Control */}
-      <footer className="absolute bottom-0 left-0 right-0 p-4 sm:p-10 flex flex-col items-center gap-4 sm:gap-6 pointer-events-none z-50">
+      <footer className="absolute bottom-0 left-0 right-0 p-6 sm:p-10 flex flex-col items-center gap-6 pointer-events-none z-50">
         
         {/* Active Turn Controller */}
         {isMyTurn && myPlayer && (() => {
@@ -287,16 +287,16 @@ function TabletopGameContent() {
           const isOverHandLimit = myPlayer.hand.length > maxHand;
           
           return (
-            <div className="pointer-events-auto flex flex-col items-center gap-3 sm:gap-4 animate-in slide-in-from-bottom-6 duration-1000">
+            <div className="pointer-events-auto flex flex-col items-center gap-4 animate-in slide-in-from-bottom-6 duration-1000">
               {isOverHandLimit && (
-                <div className="bg-danger/10 border border-danger/20 rounded-full px-4 py-1.5 text-[7px] sm:text-[8px] text-danger font-black tracking-widest animate-pulse">
+                <div className="bg-danger/10 border border-danger/20 rounded-full px-4 py-1 text-[8px] text-danger font-black tracking-widest animate-pulse">
                   OVER_CAPACITY: DISCARD_REQ ({maxHand})
                 </div>
               )}
               <button 
                 onClick={() => performAction({ type: 'END_TURN' })}
                 disabled={busy || isOverHandLimit}
-                className={`fe-btn fe-btn-primary !py-4 !px-8 sm:!px-12 text-[10px] sm:text-xs font-black tracking-[0.3em] backdrop-blur-3xl shadow-2xl transition-all ${
+                className={`fe-btn fe-btn-primary !py-4 !px-12 text-xs font-black tracking-[0.3em] backdrop-blur-3xl shadow-2xl transition-all ${
                   isOverHandLimit ? 'opacity-20 cursor-not-allowed grayscale' : 'hover:scale-105 active:scale-95'
                 }`}
               >
@@ -306,12 +306,12 @@ function TabletopGameContent() {
           );
         })()}
 
-        <section className="w-full max-w-5xl flex items-end justify-between gap-2 sm:gap-4 overflow-x-auto sm:overflow-visible no-scrollbar pb-2 sm:pb-0">
+        <section className="w-full max-w-5xl flex items-end justify-between gap-4 overflow-x-auto sm:overflow-visible no-scrollbar pb-2 sm:pb-0">
           <div className="pointer-events-auto scale-90 sm:scale-100 origin-bottom-left flex-shrink-0">
             {myPlayer && <PlayerStatsHUD player={myPlayer} isActive={isMyTurn} />}
           </div>
 
-          <div className="flex gap-2 sm:gap-3 pointer-events-auto scale-85 sm:scale-90 origin-bottom-right flex-shrink-0">
+          <div className="flex gap-3 pointer-events-auto scale-75 sm:scale-90 origin-bottom-right flex-shrink-0">
             {opponents.map(opp => (
               <PlayerStatsHUD key={opp.id} player={opp} isActive={activePlayer?.id === opp.id} />
             ))}

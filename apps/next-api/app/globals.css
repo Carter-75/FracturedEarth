@@ -65,21 +65,23 @@
   }
 
   body {
-    @apply bg-bg text-fg overflow-hidden select-none;
+    @apply bg-bg text-fg select-none;
     font-family: var(--font-primary), system-ui, sans-serif;
     font-size: 16px;
     line-height: 1.5;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
-    touch-action: pan-x pan-y;
+    touch-action: pan-y;
+    overflow-x: hidden;
+    overflow-y: auto;
   }
 
   /* Optimized Background with Depth Layers */
   .fe-main-bg {
     @apply fixed inset-0 z-0 pointer-events-none;
     background: 
-      radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.05), transparent 70%),
-      radial-gradient(circle at 0% 100%, rgba(14, 165, 233, 0.05), transparent 70%),
+      radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.1), transparent 70%),
+      radial-gradient(circle at 0% 100%, rgba(14, 165, 233, 0.1), transparent 70%),
       var(--bg-base);
   }
 }
@@ -87,7 +89,7 @@
 @layer components {
   /* Layout Root with Safe Area Handling */
   .fe-layout-root {
-    @apply relative w-full h-full flex flex-col overflow-hidden;
+    @apply relative w-full h-screen flex flex-col overflow-hidden;
     padding-top: var(--sat);
     padding-right: var(--sar);
     padding-bottom: var(--sab);
@@ -133,7 +135,7 @@
 
   /* Luxury Card/Panel Styling */
   .fe-card {
-    @apply p-4 sm:p-6 bg-surface border border-border-subtle transition-all duration-300;
+    @apply p-6 bg-surface border border-border-subtle transition-all duration-300;
     border-radius: var(--radius-md);
     box-shadow: 
       0 10px 30px -10px rgba(0,0,0,0.5),
