@@ -65,7 +65,7 @@
   }
 
   body {
-    @apply bg-[var(--bg-base)] text-[var(--fg-main)] overflow-hidden select-none;
+    @apply bg-bg text-fg overflow-hidden select-none;
     font-family: var(--font-primary), system-ui, sans-serif;
     touch-action: pan-x pan-y;
   }
@@ -106,7 +106,7 @@
   }
 
   .fe-btn:not(:disabled) {
-    @apply hover:bg-[var(--bg-surface-raised)] hover:border-[var(--border-active)] active:scale-[0.98];
+    @apply hover:bg-surface-raised hover:border-border-active active:scale-[0.98];
   }
 
   .fe-btn:disabled {
@@ -114,18 +114,19 @@
   }
 
   .fe-btn-primary {
-    @apply border-[var(--accent-primary)]/40 text-[var(--accent-primary)];
+    @apply text-accent;
+    border-color: rgba(245, 158, 11, 0.4);
     background: rgba(245, 158, 11, 0.03);
   }
   
   .fe-btn-primary:hover {
-    @apply bg-[var(--accent-primary)]/10;
+    background: rgba(245, 158, 11, 0.1);
     box-shadow: 0 0 20px rgba(245, 158, 11, 0.1);
   }
 
   /* Luxury Card/Panel Styling */
   .fe-card {
-    @apply p-6 bg-[var(--bg-surface)] border border-[var(--border-subtle)] transition-all duration-300;
+    @apply p-6 bg-surface border border-border-subtle transition-all duration-300;
     border-radius: var(--radius-md);
     box-shadow: 
       0 10px 30px -10px rgba(0,0,0,0.5),
@@ -133,7 +134,7 @@
   }
 
   .fe-card:hover {
-    @apply bg-[var(--bg-surface-raised)];
+    @apply bg-surface-raised;
     border-color: rgba(255, 255, 255, 0.08);
   }
 
