@@ -297,32 +297,46 @@ function LanContent() {
 }
 
 function SeatCard({ seat, member, active, onKick, onAddBot, amHost }: { seat: SeatPosition; member: RoomMember | null; active: boolean, onKick: () => void, onAddBot: () => void, amHost: boolean }) {
-  const radiusX = seat === 'bottom' || seat === 'top' ? 0 : seat === 'left' ? -300 : 300;
-  const radiusY = seat === 'left' || seat === 'right' ? 0 : seat === 'top' ? -240 : 240;
+  // Responsive radius calculation
+  // On mobile, we reduce the spread to keep everything in view
+  const radiusX = seat === 'bottom' || seat === 'top' ? 0 : seat === 'left' ? -1 : 1;
+  const radiusY = seat === 'left' || seat === 'right' ? 0 : seat === 'top' ? -1 : 1;
+
+  const getTransform = () => {
+    // Base offsets as percentages of the viewport or parent
+    const xBase = 35; // vw
+    const yBase = 25; // vh
+    
+    // Scale down for smaller screens
+    const x = radiusX * xBase;
+    const y = radiusY * yBase;
+    
+    return `translate(calc(-50% + ${x}vw), calc(-50% + ${y}vh))`;
+  };
 
   return (
     <div 
       className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center transition-all duration-1000 ${member ? 'opacity-100 scale-100' : 'opacity-10 scale-90'}`}
-      style={{ transform: `translate(calc(-50% + ${radiusX}px), calc(-50% + ${radiusY}px))` }}
+      style={{ transform: getTransform() }}
     >
-       <div className={`group w-32 h-32 md:w-36 md:h-36 rounded-[var(--radius)] flex flex-col items-center justify-center text-4xl md:text-5xl bg-[var(--bg)] border-2 transition-all duration-500 relative ${active ? 'border-[var(--accent)] shadow-[0_0_50px_rgba(var(--accent-rgb),0.2)]' : 'border-[var(--border)] focus-within:border-[var(--accent-soft)]'}`}>
+       <div className={`group w-24 h-24 sm:w-32 sm:h-32 md:w-36 md:h-36 rounded-[var(--radius-md)] flex flex-col items-center justify-center text-3xl sm:text-4xl md:text-5xl bg-[var(--bg-surface)] border-2 transition-all duration-500 relative ${active ? 'border-accent shadow-[0_0_50px_rgba(245,158,11,0.2)]' : 'border-border-subtle focus-within:border-accent-alt'}`}>
           <div className="fe-grid absolute inset-0 opacity-10 pointer-events-none" />
           
           <span className="relative z-10 transition-transform group-hover:scale-110 duration-500">{member ? member.emoji : '?'}</span>
           
           {/* Seat Controls */}
           {member && amHost && member.userId !== 'host' && (
-             <button onClick={onKick} className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-rose-500/20 border border-rose-500/50 text-rose-500 text-lg flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all opacity-0 group-hover:opacity-100 shadow-lg">×</button>
+             <button onClick={onKick} className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-danger/20 border border-danger/50 text-danger text-lg flex items-center justify-center hover:bg-danger hover:text-fg transition-all opacity-0 group-hover:opacity-100 shadow-lg">×</button>
           )}
           {!member && amHost && (
-             <button onClick={onAddBot} className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-all bg-[var(--accent-soft)]/10 rounded-[var(--radius)]">
-                <span className="fe-hologram text-[var(--accent-soft)] text-xs font-black">+ BOT</span>
+             <button onClick={onAddBot} className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-all bg-accent-alt/10 rounded-[var(--radius-md)]">
+                <span className="fe-hologram text-accent-alt text-[10px] font-black">+ BOT</span>
              </button>
           )}
        </div>
-       <div className="mt-6 md:mt-8 text-center pointer-events-none">
-          <div className="fe-hologram text-[8px] md:text-[9px] text-[var(--accent-soft)] opacity-40 mb-1 font-black tracking-[0.2em]">{seat.toUpperCase()} TERMINAL</div>
-          <div className="text-lg md:text-xl font-black tracking-tighter text-[var(--fg)] uppercase italic leading-none">{member ? member.displayName : 'NO SIGNAL'}</div>
+       <div className="mt-4 sm:mt-6 md:mt-8 text-center pointer-events-none">
+          <div className="fe-hologram text-[7px] sm:text-[8px] md:text-[9px] text-accent-alt/60 opacity-40 mb-1 font-black tracking-[0.2em]">{seat.toUpperCase()} TERMINAL</div>
+          <div className="text-sm sm:text-lg md:text-xl font-black tracking-tighter text-fg uppercase italic leading-none">{member ? member.displayName : 'NO SIGNAL'}</div>
        </div>
     </div>
   );

@@ -216,20 +216,20 @@ function TabletopGameContent() {
 
   if (error === 'ROOM_NOT_FOUND_OR_CLOSED') {
     return (
-      <div className="fe-layout-root flex flex-col items-center justify-center bg-bg-base p-10">
-        <h1 className="text-4xl font-black text-danger mb-4 animate-flicker">LINK_SEVERED</h1>
-        <p className="text-fg-muted font-light lowercase tracking-[0.4em] mb-12">Session_Terminated</p>
+      <div className="fe-layout-root flex flex-col items-center justify-center bg-bg-base p-6 sm:p-10">
+        <h1 className="text-3xl sm:text-4xl font-black text-danger mb-4 animate-flicker">LINK_SEVERED</h1>
+        <p className="text-fg-muted font-light lowercase tracking-[0.4em] mb-12 text-xs text-center">Session_Terminated</p>
         <Link href="/lan" className="fe-btn py-4 px-10">Return_To_Base</Link>
       </div>
     );
   }
 
   if (!hasMounted || !state) return (
-    <div className="fe-layout-root flex flex-col items-center justify-center bg-bg-base p-12 text-center">
+    <div className="fe-layout-root flex flex-col items-center justify-center bg-bg-base p-6 sm:p-12 text-center">
       {error ? (
         <div className="max-w-xs animate-in fade-in zoom-in duration-500">
-          <h1 className="text-3xl font-black text-danger mb-6 animate-flicker">COMMS_BREACH</h1>
-          <p className="text-danger/40 mb-10 text-[9px] uppercase tracking-widest font-mono leading-relaxed">{error}</p>
+          <h1 className="text-2xl sm:text-3xl font-black text-danger mb-6 animate-flicker">COMMS_BREACH</h1>
+          <p className="text-danger/40 mb-10 text-[8px] sm:text-[9px] uppercase tracking-widest font-mono leading-relaxed">{error}</p>
           <div className="flex flex-col gap-4">
             <button onClick={() => sync()} className="fe-btn fe-btn-primary">Retry_Sync</button>
             <Link href="/lan" className="text-fg-subtle text-[8px] uppercase tracking-[0.5em] mt-4 hover:text-accent transition-colors">Abort_Operation</Link>
@@ -239,7 +239,7 @@ function TabletopGameContent() {
         <div className="flex flex-col items-center">
           <div className="w-16 h-px bg-accent/20 animate-pulse mb-8" />
           <div className="fe-hologram animate-flicker text-accent text-xs">ESTABLISHING_NEURAL_LINK...</div>
-          <div className="mt-12 text-fg-subtle/20 text-[8px] uppercase tracking-[0.6em] animate-pulse">Synchronizing_Spatial_Data</div>
+          <div className="mt-12 text-fg-subtle/20 text-[8px] uppercase tracking-[0.6em] animate-pulse text-center">Synchronizing_Spatial_Data</div>
         </div>
       )}
     </div>
@@ -252,16 +252,16 @@ function TabletopGameContent() {
       <div className="fe-scanline" />
 
       {/* TOP HUD: Sector Info & Abort Control */}
-      <header className="absolute top-0 left-0 right-0 p-6 sm:p-8 flex justify-between items-start z-50 pointer-events-none">
+      <header className="absolute top-0 left-0 right-0 p-4 sm:p-8 flex justify-between items-start z-50 pointer-events-none">
         <div className="flex flex-col gap-1">
-          <div className="fe-hologram text-accent/40 text-[8px] tracking-[0.4em]">Spatial_Grid_Active</div>
-          <h1 className="text-2xl sm:text-4xl font-black italic tracking-tighter text-fg animate-flicker uppercase leading-none">
+          <div className="fe-hologram text-accent/40 text-[7px] sm:text-[8px] tracking-[0.4em]">Spatial_Grid_Active</div>
+          <h1 className="text-xl sm:text-4xl font-black italic tracking-tighter text-fg animate-flicker uppercase leading-none">
             Sector_{code}
           </h1>
         </div>
         <button 
           onClick={() => setShowAbortConfirm(true)} 
-          className="pointer-events-auto fe-btn !py-2 !px-4 !bg-danger/5 !border-danger/10 text-danger/40 hover:text-danger hover:!bg-danger/10 transition-all font-black text-[9px]"
+          className="pointer-events-auto fe-btn !min-h-0 !py-2 !px-3 sm:!px-4 !bg-danger/5 !border-danger/10 text-danger/40 hover:text-danger hover:!bg-danger/10 transition-all font-black text-[8px]"
         >
           Abort_Link
         </button>
@@ -279,7 +279,7 @@ function TabletopGameContent() {
       </div>
 
       {/* BOTTOM HUD: Player Status & Turn Control */}
-      <footer className="absolute bottom-0 left-0 right-0 p-6 sm:p-10 flex flex-col items-center gap-6 pointer-events-none z-50">
+      <footer className="absolute bottom-0 left-0 right-0 p-4 sm:p-10 flex flex-col items-center gap-4 sm:gap-6 pointer-events-none z-50">
         
         {/* Active Turn Controller */}
         {isMyTurn && myPlayer && (() => {
@@ -287,16 +287,16 @@ function TabletopGameContent() {
           const isOverHandLimit = myPlayer.hand.length > maxHand;
           
           return (
-            <div className="pointer-events-auto flex flex-col items-center gap-4 animate-in slide-in-from-bottom-6 duration-1000">
+            <div className="pointer-events-auto flex flex-col items-center gap-3 sm:gap-4 animate-in slide-in-from-bottom-6 duration-1000">
               {isOverHandLimit && (
-                <div className="bg-danger/10 border border-danger/20 rounded-full px-4 py-1 text-[8px] text-danger font-black tracking-widest animate-pulse">
+                <div className="bg-danger/10 border border-danger/20 rounded-full px-4 py-1.5 text-[7px] sm:text-[8px] text-danger font-black tracking-widest animate-pulse">
                   OVER_CAPACITY: DISCARD_REQ ({maxHand})
                 </div>
               )}
               <button 
                 onClick={() => performAction({ type: 'END_TURN' })}
                 disabled={busy || isOverHandLimit}
-                className={`fe-btn fe-btn-primary !py-4 !px-12 text-xs font-black tracking-[0.3em] backdrop-blur-3xl shadow-2xl transition-all ${
+                className={`fe-btn fe-btn-primary !py-4 !px-8 sm:!px-12 text-[10px] sm:text-xs font-black tracking-[0.3em] backdrop-blur-3xl shadow-2xl transition-all ${
                   isOverHandLimit ? 'opacity-20 cursor-not-allowed grayscale' : 'hover:scale-105 active:scale-95'
                 }`}
               >
@@ -306,12 +306,12 @@ function TabletopGameContent() {
           );
         })()}
 
-        <section className="w-full max-w-5xl flex items-end justify-between gap-4">
-          <div className="pointer-events-auto scale-90 sm:scale-100 origin-bottom-left">
+        <section className="w-full max-w-5xl flex items-end justify-between gap-2 sm:gap-4 overflow-x-auto sm:overflow-visible no-scrollbar pb-2 sm:pb-0">
+          <div className="pointer-events-auto scale-90 sm:scale-100 origin-bottom-left flex-shrink-0">
             {myPlayer && <PlayerStatsHUD player={myPlayer} isActive={isMyTurn} />}
           </div>
 
-          <div className="flex gap-3 pointer-events-auto scale-75 sm:scale-90 origin-bottom-right">
+          <div className="flex gap-2 sm:gap-3 pointer-events-auto scale-85 sm:scale-90 origin-bottom-right flex-shrink-0">
             {opponents.map(opp => (
               <PlayerStatsHUD key={opp.id} player={opp} isActive={activePlayer?.id === opp.id} />
             ))}

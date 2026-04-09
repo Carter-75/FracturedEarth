@@ -118,31 +118,31 @@ export default function SettingsPage() {
   }
 
   return (
-    <main className="min-h-screen p-4 md:p-8 max-w-5xl mx-auto space-y-6 overflow-y-auto">
-      <div className="bg-white/5 border border-white/10 rounded-[2rem] md:rounded-3xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 flex-wrap backdrop-blur-xl">
+    <main className="min-h-screen p-4 sm:p-6 md:p-8 max-w-5xl mx-auto space-y-4 sm:space-y-6 overflow-y-auto">
+      <div className="bg-white/5 border border-white/10 rounded-2xl md:rounded-3xl p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 flex-wrap backdrop-blur-xl">
         <div>
-          <h1 className="text-2xl md:text-3xl font-black italic uppercase tracking-tighter text-white">Player Garage</h1>
-          <p className="text-white/40 text-xs mt-1">Tune your identity, theme, and tutorial progression.</p>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-black italic uppercase tracking-tighter text-white leading-none">Player Garage</h1>
+          <p className="text-white/40 text-[10px] mt-2">Tune your identity, theme, and tutorial progression.</p>
         </div>
-        <Link href="/" className="fe-holo-btn text-xs w-full sm:w-auto text-center">Return Home</Link>
+        <Link href="/" className="fe-holo-btn text-[10px] w-full sm:w-auto text-center !py-3">Return Home</Link>
       </div>
 
-      <section className="bg-white/[0.03] border border-white/5 rounded-[2rem] md:rounded-3xl p-6 space-y-4 backdrop-blur-lg">
-        <h2 className="text-lg font-semibold text-white">Profile And Theme</h2>
+      <section className="bg-white/[0.03] border border-white/5 rounded-2xl md:rounded-3xl p-5 sm:p-6 space-y-4 backdrop-blur-lg">
+        <h2 className="text-base sm:text-lg font-semibold text-white">Profile And Theme</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1">
-            <label className="text-[10px] uppercase font-black text-white/20 ml-1">Your Name</label>
+            <label className="text-[9px] uppercase font-black text-white/20 ml-1">Your Name</label>
             <input
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/40 focus:border-amber-500 outline-none transition-all"
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/40 focus:border-amber-500 outline-none transition-all"
               value={displayName}
               onChange={(event) => setDisplayName(event.target.value)}
               placeholder="Enter name..."
             />
           </div>
           <div className="space-y-1">
-            <label className="text-[10px] uppercase font-black text-white/20 ml-1">Avatar Signal</label>
+            <label className="text-[9px] uppercase font-black text-white/20 ml-1">Avatar Signal</label>
             <select 
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-amber-500 outline-none transition-all" 
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-base text-white focus:border-amber-500 outline-none transition-all" 
               value={emoji} 
               onChange={(event) => setEmoji(event.target.value)}
             >
@@ -152,8 +152,8 @@ export default function SettingsPage() {
             </select>
           </div>
           <div className="sm:col-span-2 space-y-3 pt-4 border-t border-white/5">
-            <label className="text-[10px] uppercase font-black text-white/20 ml-1">Interface Theme</label>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            <label className="text-[9px] uppercase font-black text-white/20 ml-1">Interface Theme</label>
+            <div className="grid grid-cols-2 min-[480px]:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
               {THEME_OPTIONS.map((candidate) => {
                 const preset = THEME_PRESETS[candidate];
                 const isActive = theme === candidate;

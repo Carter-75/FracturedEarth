@@ -67,6 +67,10 @@
   body {
     @apply bg-bg text-fg overflow-hidden select-none;
     font-family: var(--font-primary), system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
     touch-action: pan-x pan-y;
   }
 
@@ -94,19 +98,22 @@
     @apply flex-1 overflow-y-auto overflow-x-hidden;
     scrollbar-width: none;
     -ms-overflow-style: none;
+    /* Smooth scrolling on iOS */
+    -webkit-overflow-scrolling: touch;
   }
   .fe-content-scroll::-webkit-scrollbar { display: none; }
 
   /* Precision Technical Button */
   .fe-btn {
-    @apply relative px-6 py-3 flex items-center justify-center gap-3 transition-all duration-200 uppercase font-bold tracking-widest text-[10px] sm:text-xs overflow-hidden;
+    @apply relative px-6 py-4 flex items-center justify-center gap-3 transition-all duration-200 uppercase font-bold tracking-widest text-xs overflow-hidden;
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-sm);
     background: var(--bg-surface);
+    min-height: 48px; /* Mobile touch target */
   }
 
   .fe-btn:not(:disabled) {
-    @apply hover:bg-surface-raised hover:border-border-active active:scale-[0.98];
+    @apply hover:bg-surface-raised hover:border-border-active active:scale-[0.96];
   }
 
   .fe-btn:disabled {
@@ -126,7 +133,7 @@
 
   /* Luxury Card/Panel Styling */
   .fe-card {
-    @apply p-6 bg-surface border border-border-subtle transition-all duration-300;
+    @apply p-4 sm:p-6 bg-surface border border-border-subtle transition-all duration-300;
     border-radius: var(--radius-md);
     box-shadow: 
       0 10px 30px -10px rgba(0,0,0,0.5),
@@ -161,7 +168,7 @@
     @apply fixed inset-0 pointer-events-none z-[9999];
     background: linear-gradient(to bottom, transparent 50%, rgba(255,255,255,0.01) 50%);
     background-size: 100% 4px;
-    opacity: 0.6;
+    opacity: 0.4;
   }
 }
 
