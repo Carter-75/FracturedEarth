@@ -60,7 +60,7 @@ export default function HomePage() {
         <Image 
           src="/assets/type-bgs/chaos.png" 
           fill 
-          className="object-cover opacity-20 filter brightness-75 scale-105" 
+          className="object-cover opacity-20 filter brightness-50 scale-105" 
           alt="Fractured Earth Background" 
           priority
           unoptimized
@@ -70,7 +70,7 @@ export default function HomePage() {
 
       <section className="relative z-10 w-full max-w-2xl flex flex-col items-center">
         {/* Header Section */}
-        <div className="animate-flicker mb-12">
+        <div className="animate-flicker mb-12 w-full">
           <div className="fe-hologram text-accent/60 text-[10px] tracking-[0.5em] mb-4">Neural_Link_Status: Active</div>
           <h1 className="text-[clamp(3.5rem,15vw,6rem)] sm:text-8xl font-black italic tracking-tighter text-fg leading-[0.85] mb-2 uppercase">
             Fractured<br/>
@@ -79,12 +79,12 @@ export default function HomePage() {
           <div className="h-px w-24 bg-accent/20 mx-auto mt-6" />
         </div>
 
-        <p className="text-fg-muted font-light tracking-tight mb-16 leading-relaxed max-w-lg text-sm sm:text-base px-2">
+        <p className="text-fg-muted font-light tracking-tight mb-16 leading-relaxed max-w-lg text-sm sm:text-base px-4">
           Definitive strategic survival engine. Secure your sector and manage resources in pure cinematic reality.
         </p>
 
         {/* Action Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 w-full px-6 mb-16 sm:mb-20">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full px-4 mb-20">
           {activePin ? (
             <Link 
               href={`/tabletop?code=${activePin.code}&userId=${encodeURIComponent(activePin.userId)}`} 
@@ -107,7 +107,7 @@ export default function HomePage() {
 
         {/* Match Archive */}
         {history.length > 0 && (
-          <div className="w-full text-left px-6 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
+          <div className="w-full text-left px-4 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
             <h3 className="fe-hologram text-fg-muted/30 text-[9px] mb-8 flex items-center gap-6">
               <span className="h-px flex-1 bg-white/5" />
               Neural_Archive_Log

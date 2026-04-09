@@ -216,20 +216,20 @@ function TabletopGameContent() {
 
   if (error === 'ROOM_NOT_FOUND_OR_CLOSED') {
     return (
-      <div className="fe-layout-root flex flex-col items-center justify-center bg-bg-base p-6 sm:p-10">
-        <h1 className="text-3xl sm:text-4xl font-black text-danger mb-4 animate-flicker">LINK_SEVERED</h1>
-        <p className="text-fg-muted font-light lowercase tracking-[0.4em] mb-12 text-xs text-center">Session_Terminated</p>
+      <div className="fe-layout-root flex flex-col items-center justify-center bg-bg-base p-10">
+        <h1 className="text-4xl font-black text-danger mb-4 animate-flicker">LINK_SEVERED</h1>
+        <p className="text-fg-muted font-light lowercase tracking-[0.4em] mb-12">Session_Terminated</p>
         <Link href="/lan" className="fe-btn py-4 px-10">Return_To_Base</Link>
       </div>
     );
   }
 
   if (!hasMounted || !state) return (
-    <div className="fe-layout-root flex flex-col items-center justify-center bg-bg-base p-6 sm:p-12 text-center">
+    <div className="fe-layout-root flex flex-col items-center justify-center bg-bg-base p-12 text-center">
       {error ? (
         <div className="max-w-xs animate-in fade-in zoom-in duration-500">
-          <h1 className="text-2xl sm:text-3xl font-black text-danger mb-6 animate-flicker">COMMS_BREACH</h1>
-          <p className="text-danger/40 mb-10 text-[8px] sm:text-[9px] uppercase tracking-widest font-mono leading-relaxed">{error}</p>
+          <h1 className="text-3xl font-black text-danger mb-6 animate-flicker">COMMS_BREACH</h1>
+          <p className="text-danger/40 mb-10 text-[9px] uppercase tracking-widest font-mono leading-relaxed">{error}</p>
           <div className="flex flex-col gap-4">
             <button onClick={() => sync()} className="fe-btn fe-btn-primary">Retry_Sync</button>
             <Link href="/lan" className="text-fg-subtle text-[8px] uppercase tracking-[0.5em] mt-4 hover:text-accent transition-colors">Abort_Operation</Link>
@@ -239,7 +239,7 @@ function TabletopGameContent() {
         <div className="flex flex-col items-center">
           <div className="w-16 h-px bg-accent/20 animate-pulse mb-8" />
           <div className="fe-hologram animate-flicker text-accent text-xs">ESTABLISHING_NEURAL_LINK...</div>
-          <div className="mt-12 text-fg-subtle/20 text-[8px] uppercase tracking-[0.6em] animate-pulse text-center">Synchronizing_Spatial_Data</div>
+          <div className="mt-12 text-fg-subtle/20 text-[8px] uppercase tracking-[0.6em] animate-pulse">Synchronizing_Spatial_Data</div>
         </div>
       )}
     </div>
@@ -248,20 +248,20 @@ function TabletopGameContent() {
   return (
     <main className="fe-layout-root bg-bg-base select-none">
       {/* Visual Depth Layers */}
-      <div className="fe-main-bg opacity-40" />
+      <div className="fe-main-bg opacity-30" />
       <div className="fe-scanline" />
 
       {/* TOP HUD: Sector Info & Abort Control */}
       <header className="absolute top-0 left-0 right-0 p-6 sm:p-8 flex justify-between items-start z-50 pointer-events-none">
         <div className="flex flex-col gap-1">
-          <div className="fe-hologram text-accent/40 text-[7px] sm:text-[8px] tracking-[0.4em]">Spatial_Grid_Active</div>
-          <h1 className="text-xl sm:text-4xl font-black italic tracking-tighter text-fg animate-flicker uppercase leading-none">
+          <div className="fe-hologram text-accent/40 text-[8px] tracking-[0.4em]">Spatial_Grid_Active</div>
+          <h1 className="text-2xl sm:text-4xl font-black italic tracking-tighter text-fg animate-flicker uppercase leading-none">
             Sector_{code}
           </h1>
         </div>
         <button 
           onClick={() => setShowAbortConfirm(true)} 
-          className="pointer-events-auto fe-btn !min-h-0 !py-2 !px-3 sm:!px-4 !bg-danger/5 !border-danger/10 text-danger/40 hover:text-danger hover:!bg-danger/10 transition-all font-black text-[8px]"
+          className="pointer-events-auto fe-btn !py-2 !px-4 !bg-danger/5 !border-danger/10 text-danger/40 hover:text-danger hover:!bg-danger/10 transition-all font-black text-[9px]"
         >
           Abort_Link
         </button>
