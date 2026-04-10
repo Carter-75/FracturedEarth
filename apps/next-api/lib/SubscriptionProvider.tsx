@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { NativeBridge } from './nativeBridge';
 import { loadLocalSettings, saveLocalSettings } from './localProfile';
@@ -23,7 +23,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   const [isLifetime, setIsLifetime] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const updateState = (isAdFree: boolean, lifetime: boolean) => {
+  const updateState = useCallback((isAdFree: boolean, lifetime: boolean) => {
     setAdFree(isAdFree);
     setIsLifetime(lifetime);
     
@@ -35,9 +35,9 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
         isLifetime: lifetime,
         subLastCheck: Date.now() 
     });
-  };
+  }, []);
 
-  const syncWithServer = async (data: { adFree: boolean; isLifetime: boolean; entitlements?: string[] }) => {
+  const syncWithServer = useCallback(async (data: { adFree: boolean; isLifetime: boolean; entitlements?: string[] }) => {
     if (status !== 'authenticated') return;
     try {
       await apiFetch('/api/user/sync', {
@@ -49,9 +49,9 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     } catch (e) {
       console.error('SubscriptionProvider: Server sync failed', e);
     }
-  };
+  }, [status]);
 
-  const refreshEntitlements = async () => {
+  const refreshEntitlements = useCallback(async () => {
     if (NativeBridge.isNative) {
       console.log('SubscriptionProvider: Auto-restoring/Checking native entitlements...');
       try {
@@ -74,7 +74,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
         }
       } catch (e) {}
     }
-  };
+  }, [status, updateState, syncWithServer]);
 
   useEffect(() => {
     const settings = loadLocalSettings();
@@ -104,7 +104,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     if (status !== 'loading') {
        init();
     }
-  }, [status, session]);
+  }, [status, session, refreshEntitlements]);
 
   return (
     <SubscriptionContext.Provider value={{ adFree, isLifetime, loading, refreshEntitlements }}>

@@ -5,6 +5,7 @@ import { AdMob, BannerAdSize, BannerAdPosition } from '@capacitor-community/admo
 import { Capacitor } from '@capacitor/core';
 import { NativeBridge } from '@/lib/nativeBridge';
 import { useSubscription } from '@/lib/SubscriptionProvider';
+import Link from 'next/link';
 
 import { useSession, signIn, signOut } from 'next-auth/react';
 
