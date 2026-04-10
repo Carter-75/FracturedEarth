@@ -72,8 +72,8 @@ export const NativeBridge = {
   async checkAdFreeEntitlement(): Promise<{ adFree: boolean; isLifetime: boolean }> {
     if (!this.isNative) return { adFree: false, isLifetime: false };
     try {
-      const info = await Purchases.getCustomerInfo();
-      const entitlements = info.entitlements.active;
+      const { customerInfo } = await Purchases.getCustomerInfo();
+      const entitlements = customerInfo.entitlements.active;
       
       const hasLifetime = !!entitlements['eternal_protocol'] || !!entitlements['lifetime'];
       const hasStandard = !!entitlements['standard_sync'] || !!entitlements['strategic_pulse'] || !!entitlements['ad_free'];
