@@ -6,6 +6,7 @@ import { THEME_PRESETS } from '@/lib/gameConfig';
 import { loadLocalSettings, type LocalUserSettings } from '@/lib/localProfile';
 import { initializeNativeBridge } from '@/lib/nativeBridge';
 import { initializeNeuralLogging, addLog } from '@/lib/logDiagnostics';
+import { SubscriptionProvider } from '@/lib/SubscriptionProvider';
 import NeuralDiagnostics from '@/components/NeuralDiagnostics';
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -65,8 +66,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <SessionProvider>
-      {children}
-      <NeuralDiagnostics />
+      <SubscriptionProvider>
+        {children}
+        <NeuralDiagnostics />
+      </SubscriptionProvider>
     </SessionProvider>
   );
 }

@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { AdMob, AdOptions } from '@capacitor-community/admob';
-import { Capacitor } from '@capacitor/core';
+import { AdMob } from '@capacitor-community/admob';
 import { NativeBridge } from '@/lib/nativeBridge';
+import { useSubscription } from '@/lib/SubscriptionProvider';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -14,18 +14,19 @@ export function InterstitialAd({
   onComplete: () => void;
   force?: boolean;
 }) {
+  const { adFree } = useSubscription();
   const [visible, setVisible] = useState(false);
   const [countdown, setCountdown] = useState(5);
 
   useEffect(() => {
-    const isAdFree = localStorage.getItem('fe:user-settings:v1')?.includes('"adFree":true');
-    const lastAd = Number(localStorage.getItem('fe:last-interstitial') || 0);
-    const now = Date.now();
-
-    if (isAdFree) {
+    // If the account/app is verified as Ad-Free, skip completely
+    if (adFree) {
        onComplete();
        return;
     }
+
+    const lastAd = Number(localStorage.getItem('fe:last-interstitial') || 0);
+    const now = Date.now();
 
     const adId = NativeBridge.getAdUnitId('interstitial');
     if (adId) {
@@ -41,20 +42,19 @@ export function InterstitialAd({
     }
 
     // Web Implementation (Simulated)
+    // Cooldown logic: only show once every 5 minutes unless forced
     if (force || now - lastAd > 300000) {
       setVisible(true);
       localStorage.setItem('fe:last-interstitial', String(now));
     } else {
       onComplete();
     }
-  }, [force, onComplete]);
+  }, [force, onComplete, adFree]);
 
   useEffect(() => {
     if (!visible) return;
-    if (countdown <= 0) {
-      // Auto-close or allow manual close
-      return;
-    }
+    if (countdown <= 0) return;
+    
     const timer = setInterval(() => setCountdown(c => c - 1), 1000);
     return () => clearInterval(timer);
   }, [visible, countdown]);
@@ -75,7 +75,6 @@ export function InterstitialAd({
             Sponsor Interruption: Universal Signal 0xCC
           </div>
 
-          {/* Ad Content Placeholder */}
           <div className="w-full aspect-video bg-white/5 border border-white/10 rounded-[var(--radius)] flex items-center justify-center mb-10 overflow-hidden relative">
             <div className="absolute inset-0 fe-grid opacity-5" />
             <div className="text-[var(--fg)] opacity-20 fe-hologram text-xs uppercase font-black tracking-[0.5em]">Transmitting Message...</div>

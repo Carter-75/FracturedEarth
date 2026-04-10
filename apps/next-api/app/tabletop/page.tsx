@@ -11,6 +11,7 @@ import { loadLocalSettings, saveRoomPin, clearRoomPin, loadRoomPin } from '@/lib
 import { MatchAction, StateEnvelope } from '@/types/game';
 import { MatchCard, MatchPlayer, cardTheme } from '@/lib/tabletopShared';
 import { MAX_HAND_SIZE, MAX_ACTIONS_PER_TURN } from '@/lib/gameConfig';
+import { InterstitialAd } from '@/components/InterstitialAd';
 import PhaserGame from '@/components/PhaserGame';
 
 // --- UI COMPONENTS ---
@@ -136,6 +137,7 @@ function TabletopGameContent() {
   const [hasMounted, setHasMounted] = useState(false);
   const [local, setLocal] = useState<{ userId: string } | null>(null);
   const [showAbortConfirm, setShowAbortConfirm] = useState(false);
+  const [showPostGameAd, setShowPostGameAd] = useState(false);
 
   useEffect(() => {
     setHasMounted(true);
@@ -148,6 +150,7 @@ function TabletopGameContent() {
   const activePlayer = payload?.players[payload?.activePlayerIndex ?? 0];
   const isMyTurn = activePlayer?.id === userId;
   const opponents = payload?.players.filter(p => p.id !== userId) || [];
+  const winner = payload?.winnerId ? payload.players.find(p => p.id === payload.winnerId) : null;
 
   useEffect(() => {
     if (hasMounted && !loadRoomPin()) {
@@ -261,21 +264,15 @@ function TabletopGameContent() {
          <div className="fe-grid opacity-5" />
       </div>
 
-      {/* TOP HUD: Sector Info & Abort Control */}
-      <header className="absolute top-0 left-0 right-0 p-8 sm:p-12 flex justify-between items-start z-50 pointer-events-none">
-        <div className="flex flex-col gap-3">
-          <div className="fe-hologram text-accent-alt/60 text-[10px] tracking-[0.5em] mb-2 uppercase">Neural_Link_Active</div>
-          <h1 className="fe-display-italic text-4xl sm:text-6xl font-black italic tracking-tighter text-fg animate-flicker uppercase leading-[0.8]">
-            Sector_{code}
-          </h1>
-        </div>
+      {/* SUBTLE OVERLAYS (Shifted down for Banner Ad) */}
+      <div className="absolute top-[calc(1rem+80px)] right-8 z-[100] flex gap-4 pointer-events-auto">
         <button 
           onClick={() => setShowAbortConfirm(true)} 
-          className="pointer-events-auto px-8 py-3 border border-danger/30 rounded-full bg-danger/5 text-danger/60 hover:text-danger hover:bg-danger/10 transition-all font-black text-[10px] uppercase tracking-widest backdrop-blur-md"
+          className="px-5 py-2 border border-danger/20 rounded-full text-[10px] font-black tracking-[0.3em] uppercase transition-all hover:bg-danger/10 hover:border-danger text-danger/60 hover:text-danger backdrop-blur-md"
         >
           Abort_Link
         </button>
-      </header>
+      </div>
 
       {/* GAME ENGINE VIEWPORT */}
       <div className="flex-1 relative">
@@ -292,7 +289,7 @@ function TabletopGameContent() {
       <footer className="absolute bottom-0 left-0 right-0 p-8 flex flex-col items-center gap-8 pointer-events-none z-50">
         
         {/* Active Turn Controller */}
-        {isMyTurn && myPlayer && (() => {
+        {isMyTurn && myPlayer && !winner && (() => {
           const maxHand = (MAX_HAND_SIZE + (myPlayer.maxHandModifier || 0) + (myPlayer.triggers.some(t => t.kind === 'HAND_LIMIT_TEMP_1') ? 1 : 0));
           const isOverHandLimit = myPlayer.hand.length > maxHand;
           
@@ -349,6 +346,44 @@ function TabletopGameContent() {
         }}
       />
 
+      {/* WINNER MODAL */}
+      <AnimatePresence>
+        {winner && (
+          <div className="fixed inset-0 z-[2500] flex items-center justify-center p-8">
+             <motion.div 
+               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} 
+               className="absolute inset-0 bg-black/90 backdrop-blur-xl" 
+             />
+             <motion.div 
+               initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }}
+               className="relative z-10 fe-modal-content border-accent/20 max-w-md w-full flex flex-col items-center text-center gap-10 !p-12"
+             >
+                <div className="fe-hologram text-accent text-6xl animate-pulse">{winner.emoji}</div>
+                <div>
+                   <h2 className="fe-display-italic text-4xl md:text-5xl font-black text-fg uppercase italic tracking-tighter mb-4">
+                      {winner.id === userId ? 'Victory_Archived' : 'Link_Lost'}
+                   </h2>
+                   <p className="text-fg/40 text-[10px] uppercase tracking-[0.3em] font-black italic">
+                      Candidate {winner.displayName} has achieved total sector dominance.
+                   </p>
+                </div>
+                
+                <div className="w-full flex flex-col gap-4">
+                   <button 
+                     onClick={() => {
+                        clearRoomPin();
+                        setShowPostGameAd(true);
+                     }}
+                     className="fe-holo-btn !py-6 !text-lg !bg-accent/10 !border-accent !text-accent w-full"
+                   >
+                      Deactivate_Terminal
+                   </button>
+                </div>
+             </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       {/* ABORT CONFIRMATION */}
       <AnimatePresence>
         {showAbortConfirm && (
@@ -370,13 +405,17 @@ function TabletopGameContent() {
                 <button onClick={() => setShowAbortConfirm(false)} className="flex-1 fe-holo-btn !bg-transparent opacity-40 hover:opacity-100 !py-4">Back</button>
                 <button onClick={() => {
                   clearRoomPin();
-                  router.replace('/');
+                  setShowPostGameAd(true);
                 }} className="flex-1 fe-holo-btn !bg-danger/20 !border-danger/40 !text-danger font-black hover:!bg-danger/30 !py-4">Abort</button>
               </div>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
+
+      {showPostGameAd && (
+         <InterstitialAd onComplete={() => router.push('/')} />
+      )}
     </main>
   );
 }

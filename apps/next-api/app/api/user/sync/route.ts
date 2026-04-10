@@ -1,68 +1,55 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import dbConnect from '@/lib/mongodb';
-import User from '@/models/User';
+import { dbConnect } from '@/lib/mongodb';
+import User from '@/lib/models/User';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession();
-    if (!session || !session.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Authentication Required' }, { status: 401 });
     }
 
-    const { guestStats } = await req.json();
+    const { adFree, isLifetime, entitlements } = await req.json();
+    const userId = (session.user as any).id;
+
     await dbConnect();
+    
+    const user = await User.findOneAndUpdate(
+      { id: userId },
+      { 
+        adFree, 
+        isLifetime, 
+        entitlements,
+        updatedAt: new Date()
+      },
+      { upsert: true, new: true }
+    );
 
-    // Find the authenticated user
-    const user = await User.findOne({ email: session.user.email });
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    return NextResponse.json({ success: true, user });
+  } catch (e: any) {
+    console.error('Subscription Sync Error:', e);
+    return NextResponse.json({ error: e.message || 'Sync Failed' }, { status: 500 });
+  }
+}
+
+export async function GET(req: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Authentication Required' }, { status: 401 });
     }
 
-    // Merge Guest stats into the primary account
-    if (guestStats) {
-      if (guestStats.totalWins !== undefined) {
-        // We only add wins from guest if they are higher (or just add them depending on preference)
-        // For now, let's just add them to the account total
-        user.totalWins += guestStats.totalWins;
-      }
-      
-      if (guestStats.emoji && user.emoji === '👤') {
-        user.emoji = guestStats.emoji;
-      }
-      
-      if (guestStats.displayName && (!user.displayName || user.displayName === 'Player')) {
-        user.displayName = guestStats.displayName;
-      }
-      
-      if (guestStats.metadata) {
-        const currentMetadata = user.metadata || new Map();
-        Object.entries(guestStats.metadata).forEach(([key, value]) => {
-          // Merge metadata from guest if it doesn't exist on account
-          if (!currentMetadata.has(key)) {
-            currentMetadata.set(key, value);
-          }
-        });
-        user.metadata = currentMetadata;
-      }
-      
-      user.lastActive = new Date();
-      await user.save();
-    }
-
-    return NextResponse.json({ 
-      message: 'Profile synced successfully',
-      profile: {
-        email: user.email,
-        displayName: user.displayName,
-        emoji: user.emoji,
-        totalWins: user.totalWins,
-        isPro: user.isPro,
-        metadata: user.metadata || {}
-      }
+    const userId = (session.user as any).id;
+    await dbConnect();
+    
+    const user = await User.findOne({ id: userId });
+    return NextResponse.json({
+       adFree: user?.adFree ?? false,
+       isLifetime: user?.isLifetime ?? false
     });
-  } catch (error: any) {
-    console.error('Sync Error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  } catch (e: any) {
+    return NextResponse.json({ error: 'Fetch Failed' }, { status: 500 });
   }
 }

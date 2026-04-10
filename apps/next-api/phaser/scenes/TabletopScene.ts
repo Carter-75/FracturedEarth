@@ -14,11 +14,9 @@ export class TabletopScene extends Phaser.Scene {
   private onAction: ((action: any) => void) | null = null;
   private userId: string = '';
   private tutorialStep: any = null;
-  private isReplaying: boolean = false;
   private isAnimating: boolean = false;
   private processedRevision: number = -1;
-  private opponentPos: Map<string, { x: number, y: number }> = new Map();
-  private replayQueue: any[] = [];
+  private opponentPos: Map<string, { x: number, y: number, angle?: number }> = new Map();
 
   constructor() {
     super('TabletopScene');
@@ -27,7 +25,6 @@ export class TabletopScene extends Phaser.Scene {
   create() {
     this.userId = loadLocalSettings().userId;
 
-    // 1. Check for persistent initial data from Phaser Registry
     const initialData = this.registry.get('INITIAL_DATA');
     if (initialData) {
       this.userId = initialData.userId || this.userId;
@@ -35,7 +32,6 @@ export class TabletopScene extends Phaser.Scene {
       this.updateBoard(initialData.gameState);
     }
 
-    // 2. Listen for future events from PhaserGame React Component
     this.game.events.on('INIT_STATE', ({ gameState, onAction, userId }: any) => {
       this.onAction = onAction;
       if (userId) this.userId = userId;
@@ -43,30 +39,22 @@ export class TabletopScene extends Phaser.Scene {
     });
 
     this.game.events.on('UPDATE_STATE', (gameState: MatchPayload) => {
-      if (!this.isReplaying) this.updateBoard(gameState);
+      this.updateBoard(gameState);
     });
 
     this.game.events.on('SYNC_USER_ID', (userId: string) => {
       if (userId && this.userId !== userId) {
         this.userId = userId;
         if (this.gameState) {
-            this.renderHand(false);
-            this.renderPlayPile();
-            this.renderDecks();
-            this.renderOpponents();
-            this.renderPowerPile();
+            this.updateBoard(this.gameState);
         }
       }
     });
 
-    // PROCESS_REPLAY removed in favor of Live Reactive Polling
-
     this.game.events.on('UPDATE_TUTORIAL_STEP', (step: any) => {
       this.tutorialStep = step;
-      if (!this.isReplaying) this.updateBoard(this.gameState!);
+      if (this.gameState) this.updateBoard(this.gameState);
     });
-
-    // --- REMOVED DRAG-TO-PLAY ---
   }
 
   private async updateBoard(state: MatchPayload) {
@@ -75,38 +63,27 @@ export class TabletopScene extends Phaser.Scene {
     // DIFFING LOGIC for Real-Time Reactions
     if (this.gameState && state.revision !== this.processedRevision && !this.isAnimating) {
         this.isAnimating = true;
-        
         try {
             const prev = this.gameState;
             const activeIdx = state.activePlayerIndex;
             const activePlayer = state.players[activeIdx];
             const prevActive = prev.players.find(p => p.id === activePlayer.id);
 
-            // 1. Detect DRAW (for anyone, including bots)
+            // 1. Detect DRAW
             if (activePlayer.hand.length > (prevActive?.hand.length || 0)) {
-                let tx = undefined;
-                let ty = undefined;
-                
-                if (activePlayer.id === this.userId) {
-                    const pos = this.getCardHandPos(activePlayer.hand.length - 1, activePlayer.hand.length);
-                    tx = pos.x;
-                    ty = pos.y;
-                }
-                
-                await this.animateDraw(activePlayer.id, tx, ty);
+                await this.animateDraw(activePlayer.id);
             }
 
-            // 2. Detect PLAY (new top card or turn pile growth)
+            // 2. Detect PLAY
             if (state.topCard && (!prev.topCard || state.topCard.id !== prev.topCard.id)) {
                 const wasJustDiscarded = state.discardPile.length > prev.discardPile.length && state.topCard?.id === state.discardPile[state.discardPile.length-1]?.id;
-                
-                if (!wasJustDiscarded) {
-                await this.animateBotPlay(activePlayer.id, state.topCard);
+                if (!wasJustDiscarded && activePlayer.id !== this.userId) {
+                    await this.animateBotPlay(activePlayer.id, state.topCard);
                 }
             }
 
             // 3. Detect DISCARD
-            if (state.discardPile.length > prev.discardPile.length) {
+            if (state.discardPile.length > prev.discardPile.length && activePlayer.id !== this.userId) {
                 const newDiscard = state.discardPile[state.discardPile.length - 1];
                 await this.animateBotDiscard(activePlayer.id, newDiscard);
             }
@@ -116,20 +93,53 @@ export class TabletopScene extends Phaser.Scene {
     }
     
     this.processedRevision = state.revision || -1;
-
     const isNewDraw = !!(this.gameState && state.players.find(p => p.id === this.userId)?.hand.length! > this.gameState.players.find(p => p.id === this.userId)?.hand.length!);
     
     this.gameState = state;
-    this.renderHand(isNewDraw);
+    this.renderAll();
+  }
+
+  private renderAll() {
+    this.calculateSeatPositions();
+    this.renderHand();
     this.renderPlayPile();
     this.renderDecks();
     this.renderOpponents();
     this.renderPowerPile();
   }
 
-  // Legacy replay system removed in favor of Live Reactive Polling
+  private calculateSeatPositions() {
+    if (!this.gameState) return;
+    const players = this.gameState.players;
+    const myIdx = players.findIndex(p => p.id === this.userId);
+    const N = players.length;
 
-  private animateDraw(actorId: string, customX?: number, customY?: number): Promise<void> {
+    const width = this.cameras.main.width;
+    const height = this.cameras.main.height;
+
+    // Define 4 relative seats
+    const seatCoordinates = [
+        { x: width / 2, y: height - 120, angle: 0 },    // BOTTOM (Self)
+        { x: 100, y: height / 2, angle: 90 },           // LEFT
+        { x: width / 2, y: 100, angle: 180 },           // TOP
+        { x: width - 100, y: height / 2, angle: -90 }   // RIGHT
+    ];
+
+    this.opponentPos.clear();
+    players.forEach((p, i) => {
+        // Relative seat mapping
+        let seatIdx = (i - myIdx + N) % N;
+        
+        // Adjust mapping for 2 or 3 players to be more natural
+        if (N === 2 && seatIdx === 1) seatIdx = 2; // Map 2nd player to TOP
+        if (N === 3 && seatIdx === 1) seatIdx = 1; // 2nd to LEFT
+        if (N === 3 && seatIdx === 2) seatIdx = 3; // 3rd to RIGHT
+
+        this.opponentPos.set(p.id, seatCoordinates[seatIdx]);
+    });
+  }
+
+  private animateDraw(actorId: string): Promise<void> {
       return new Promise(resolve => {
           const isMe = actorId === this.userId;
           const drawPile = this.decks.find(d => d.name === 'drawPile');
@@ -138,15 +148,16 @@ export class TabletopScene extends Phaser.Scene {
           const temp = new CardBackSprite(this, drawPile.x, drawPile.y);
           temp.setScale(0.7);
           
-          const botPos = this.opponentPos.get(actorId);
-          let targetX = customX ?? (isMe ? this.cameras.main.width / 2 : (botPos?.x || this.cameras.main.width / 2));
-          let targetY = customY ?? (isMe ? this.cameras.main.height - 120 : (botPos?.y || 50));
+          const pos = this.opponentPos.get(actorId);
+          const targetX = pos?.x || this.cameras.main.width / 2;
+          const targetY = pos?.y || 100;
 
           this.tweens.add({
               targets: temp,
               x: targetX,
               y: targetY,
-              alpha: isMe ? 1 : 0, 
+              alpha: isMe ? 1 : 0.5, 
+              scale: isMe ? 0.7 : 0.3,
               duration: 500,
               ease: 'Power2',
               onComplete: () => {
@@ -159,15 +170,15 @@ export class TabletopScene extends Phaser.Scene {
 
   private animateBotDiscard(actorId: string, card: any): Promise<void> {
       return new Promise(resolve => {
-          const botPos = this.opponentPos.get(actorId);
-          const startX = botPos?.x || this.cameras.main.width / 2;
-          const startY = botPos?.y || 50;
+          const pos = this.opponentPos.get(actorId);
+          const startX = pos?.x || this.cameras.main.width / 2;
+          const startY = pos?.y || 100;
           
           const centerX = this.cameras.main.width / 2;
           const centerY = this.cameras.main.height / 2;
           
           const temp = new CardSprite(this, startX, startY, card);
-          temp.setScale(0.5);
+          temp.setScale(0.4);
           temp.setAlpha(0);
 
           this.tweens.add({
@@ -190,18 +201,18 @@ export class TabletopScene extends Phaser.Scene {
 
   private animateBotPlay(actorId: string, card: any): Promise<void> {
       return new Promise(resolve => {
-          const botPos = this.opponentPos.get(actorId);
-          const startX = botPos?.x || this.cameras.main.width / 2;
-          const startY = botPos?.y || 50;
+          const pos = this.opponentPos.get(actorId);
+          const startX = pos?.x || this.cameras.main.width / 2;
+          const startY = pos?.y || 100;
 
           const temp = new CardSprite(this, startX, startY, card);
-          temp.setScale(0.5);
+          temp.setScale(0.4);
           temp.setAlpha(0);
-          temp.setDepth(2000); // Top layer
+          temp.setDepth(2000);
 
           this.tweens.add({
               targets: temp,
-              x: this.cameras.main.width / 2, // Animate to center
+              x: this.cameras.main.width / 2,
               y: this.cameras.main.height / 2,
               alpha: 1,
               scale: 1,
@@ -242,15 +253,10 @@ export class TabletopScene extends Phaser.Scene {
     };
   }
 
-  private sleep(ms: number) {
-      return new Promise(resolve => this.time.delayedCall(ms, resolve));
-  }
-
-  private renderHand(animateNew: boolean = false) {
+  private renderHand() {
     const me = this.gameState?.players.find(p => p.id === this.userId);
     if (!me) return;
 
-    // Clean up old sprites that are no longer in hand
     this.hand = this.hand.filter(sprite => {
         if (!me.hand.find(c => c.id === sprite.cardData.id)) {
             sprite.destroy();
@@ -261,29 +267,15 @@ export class TabletopScene extends Phaser.Scene {
 
     me.hand.forEach((card, i) => {
        const { x: targetX, y: targetY, angle: targetAngle } = this.getCardHandPos(i, me.hand.length);
-
        let sprite = this.hand.find(s => s.cardData.id === card.id);
        
        if (!sprite) {
-          // New card (drawn)
-          // Align spawn point with where animateDraw finished for a seamless transition
           sprite = new CardSprite(this, targetX, targetY, card);
           sprite.setAlpha(0); 
           sprite.setAngle(targetAngle);
           this.hand.push(sprite);
-
-          if (animateNew) {
-            this.tweens.add({
-                targets: sprite,
-                alpha: 1,
-                duration: 300,
-                ease: 'Power2.easeOut'
-            });
-          } else {
-             sprite.setAlpha(1);
-          }
+          this.tweens.add({ targets: sprite, alpha: 1, duration: 300 });
        } else {
-          // Existing card (re-position)
           this.tweens.add({
             targets: sprite,
             x: targetX,
@@ -295,26 +287,10 @@ export class TabletopScene extends Phaser.Scene {
        }
 
         sprite.setDepth(i + 100);
-        
-        // --- TUTORIAL LOCKDOWN ---
-        if (this.tutorialStep) {
-            const isExpectedAction = this.tutorialStep.expectedActionType === 'PLAY_CARD';
-            const isExpectedCard = this.tutorialStep.expectedCardId === card.id;
-            
-            if (isExpectedAction && isExpectedCard) {
-                sprite.setLocked(false);
-                sprite.setHighlighted(true);
-            } else {
-                sprite.setLocked(true);
-                sprite.setHighlighted(false);
-            }
-        } else {
-            // Standard state
-            sprite.setLocked(false);
-            sprite.setHighlighted(false);
-        }
+        sprite.setLocked(this.tutorialStep ? (this.tutorialStep.expectedCardId !== card.id) : false);
+        sprite.setHighlighted(this.tutorialStep ? (this.tutorialStep.expectedCardId === card.id) : false);
 
-        // Click-to-Detail Interaction (No more dragging)
+        sprite.off('pointerdown');
         sprite.on('pointerdown', () => {
            this.game.events.emit('OPEN_CARD_DETAIL', card);
         });
@@ -330,20 +306,10 @@ export class TabletopScene extends Phaser.Scene {
     const centerY = this.cameras.main.height / 2 - 20;
 
     cards.forEach((card, i) => {
-       const sprite = new CardSprite(this, centerX, centerY - 100, card);
+       const sprite = new CardSprite(this, centerX, centerY, card);
        sprite.setScale(0.8);
-       sprite.setAlpha(0);
-       
-       this.tweens.add({
-         targets: sprite,
-         y: centerY + (i * 2),
-         x: centerX + (i * 2),
-         alpha: 1,
-         angle: (i - (cards.length - 1) / 2) * 5,
-         duration: 400,
-         ease: 'Back.easeOut'
-       });
-
+       sprite.setAlpha(1);
+       sprite.setAngle((i - (cards.length - 1) / 2) * 5);
        sprite.setDepth(i + 50);
        this.playPile.push(sprite);
     });
@@ -374,77 +340,46 @@ export class TabletopScene extends Phaser.Scene {
 
     const width = this.cameras.main.width;
     const height = this.cameras.main.height;
-
     const centerX = width / 2;
     const centerY = height / 2;
 
-    // 1. Draw Pile (Right Side of Center)
     const drawPile = this.add.container(centerX + 80, centerY);
+    drawPile.name = 'drawPile';
+    
     const count = this.gameState?.drawPile.length || 0;
     const isMyTurn = this.gameState?.players[this.gameState.activePlayerIndex].id === this.userId;
     
     if (count > 0) {
-        // Visual stack
         for (let i = 0; i < Math.min(3, count); i++) {
             const back = new CardBackSprite(this, -i * 2, -i * 2);
             back.setScale(0.7);
-            
-            // TURN INDICATOR: Gray out if not my turn
-            if (!isMyTurn) {
-                back.setTint(0x777777);
-            } else {
-                back.clearTint();
-            }
-            
+            if (!isMyTurn) back.setTint(0x777777);
             drawPile.add(back);
         }
         
-        // Interaction (Only on my turn and if I haven't drawn yet)
         if (isMyTurn && !this.gameState?.hasDrawnThisTurn) {
-            // --- TUTORIAL LOCKDOWN ---
-            const drawAllowed = this.tutorialStep ? this.tutorialStep.expectedActionType === 'DRAW_CARD' : true;
-
             drawPile.setSize(100, 150);
             drawPile.setInteractive({ useHandCursor: true });
-            
-            if (drawAllowed) {
-                drawPile.on('pointerdown', () => {
-                    if (this.onAction) this.onAction({ type: 'DRAW_CARD' });
-                });
-                // Hover effect
-                drawPile.on('pointerover', () => { drawPile.setScale(1.05); });
-                drawPile.on('pointerout', () => { drawPile.setScale(1); });
-            } else {
-                drawPile.setAlpha(0.3);
-                // Child elements are already tinted in loop
-            }
+            drawPile.on('pointerdown', () => {
+                if (this.onAction) this.onAction({ type: 'DRAW_CARD' });
+            });
+            drawPile.on('pointerover', () => { drawPile.setScale(1.05); });
+            drawPile.on('pointerout', () => { drawPile.setScale(1); });
         }
-    } else {
-        // Empty frame
-        const frame = this.add.graphics();
-        frame.lineStyle(1, 0x333333, 1);
-        frame.strokeRoundedRect(-49, -73, 98, 147, 8);
-        drawPile.add(frame);
     }
 
     const countText = this.add.text(0, 110, `${count} CORE_UNITS`, {
-        fontFamily: 'Inter',
-        fontSize: '12px',
-        fontStyle: '900',
-        color: isMyTurn ? '#00ffcc' : '#777777'
+        fontFamily: 'Inter', fontSize: '12px', fontStyle: '900', color: isMyTurn ? '#f59e0b' : '#777777'
     }).setOrigin(0.5);
     drawPile.add(countText);
     this.decks.push(drawPile);
 
-    // 2. Discard Pile (Left Side of Center)
     const discardPile = this.add.container(centerX - 80, centerY);
     const top = this.gameState?.discardPile[this.gameState.discardPile.length - 1];
     if (top) {
         const sprite = new CardSprite(this, 0, 0, top);
         sprite.setScale(0.7);
         discardPile.add(sprite);
-    } else {
-        discardPile.add(this.add.graphics().lineStyle(1, 0x333333).strokeRoundedRect(-49, -73, 98, 147, 8));
     }
     discardPile.add(this.add.text(0, 100, `DISCARD`, { fontFamily: 'Inter', fontSize: '10px', color: '#ff4444' }).setOrigin(0.5));
     this.decks.push(discardPile);
@@ -456,43 +391,39 @@ export class TabletopScene extends Phaser.Scene {
     if (!this.gameState) return;
 
     const others = this.gameState.players.filter(p => p.id !== this.userId);
-    const width = this.cameras.main.width;
-    
-    const opponentCount = others.length;
-    const opponentSpacing = width / (opponentCount + 1);
+    others.forEach((player) => {
+        const pos = this.opponentPos.get(player.id);
+        if (!pos) return;
 
-    others.forEach((player, oppIndex) => {
-        const startX = opponentSpacing * (oppIndex + 1);
-        const startY = 80;
+        const startX = pos.x;
+        const startY = pos.y;
+        const angle = pos.angle || 0;
         
-        this.opponentPos.set(player.id, { x: startX, y: startY });
-        
-        const cardSpacing = 20;
+        const cardSpacing = 15;
         const totalW = (player.hand.length - 1) * cardSpacing;
 
-        player.hand.forEach((card, i) => {
-            const back = new CardBackSprite(this, startX - (totalW/2) + (i * cardSpacing), startY);
-            back.setScale(0.3);
-            back.setAngle(180);
+        player.hand.forEach((_, i) => {
+            let cx = startX;
+            let cy = startY;
+            
+            // Adjust fan direction based on seat
+            if (angle === 90 || angle === -90) { // LEFT/RIGHT
+                cy = startY - (totalW/2) + (i * cardSpacing);
+            } else { // TOP
+                cx = startX - (totalW/2) + (i * cardSpacing);
+            }
+
+            const back = new CardBackSprite(this, cx, cy);
+            back.setScale(0.25);
+            back.setAngle(angle + 180);
             back.setDepth(i + 1);
             this.opponents.push(back);
         });
 
-        const nameText = this.add.text(startX, startY + 50, player.displayName, { 
-            fontFamily: 'Inter', 
-            fontSize: '12px', 
-            fontStyle: '900',
-            color: '#ffffff' 
-        }).setOrigin(0.5).setAlpha(0.8).setDepth(100);
-        
-        const healthText = this.add.text(startX, startY + 65, `${player.health}HP | ${player.survivalPoints} NRG`, {
-            fontFamily: 'Inter',
-            fontSize: '10px',
-            color: '#00ffcc'
+        const nameText = this.add.text(startX, startY + (angle === 180 ? -60 : 60), player.displayName, { 
+            fontFamily: 'Inter', fontSize: '10px', fontStyle: '900', color: '#ffffff' 
         }).setOrigin(0.5).setAlpha(0.6).setDepth(100);
-
         this.opponents.push(nameText);
-        this.opponents.push(healthText);
     });
   }
 }

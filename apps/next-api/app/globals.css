@@ -78,10 +78,10 @@
 }
 
 @layer components {
-  /* Layout Root with Safe Area Handling */
+  /* Layout Root with Safe Area Handling + Ad Banner Space */
   .fe-layout-root {
     @apply relative w-full h-screen flex flex-col overflow-hidden;
-    padding-top: var(--sat);
+    padding-top: calc(var(--sat) + var(--header-height));
     padding-right: var(--sar);
     padding-bottom: var(--sab);
     padding-left: var(--sal);
@@ -95,11 +95,13 @@
   }
   .fe-content-scroll::-webkit-scrollbar { display: none; }
 
-  /* Physical Scene */
+  /* Physical Scene (Full Screen, bypasses root padding) */
   .fe-scene {
-    @apply relative w-full h-full overflow-hidden flex items-center justify-center;
+    @apply fixed inset-0 overflow-hidden flex items-center justify-center;
+    top: calc(var(--sat) + var(--header-height)); /* Still respect banner */
     perspective: 2000px;
     background-color: var(--bg);
+    z-index: 10;
   }
 
   /* Cinematic Effects */

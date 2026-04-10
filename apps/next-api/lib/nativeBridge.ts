@@ -1,16 +1,10 @@
 'use client';
 
 import { Capacitor } from '@capacitor/core';
-import { Purchases } from '@revenuecat/purchases-capacitor';
+import { Purchases, CustomerInfo } from '@revenuecat/purchases-capacitor';
 import { AdMob } from '@capacitor-community/admob';
 
 export const REVENUECAT_API_KEY = 'test_MIAdeZbJZTOYchrbHnqlaKoeggM';
-
-export interface NativeBridgeState {
-  isAvailable: boolean;
-  platform: string;
-  adMobReady: boolean;
-}
 
 /**
  * Official Google AdMob IDs (Android/iOS)
@@ -41,6 +35,8 @@ export async function initializeNativeBridge() {
     try {
       console.log('Initializing Native Bridge: RevenueCat...');
       await Purchases.configure({ apiKey: REVENUECAT_API_KEY });
+      // Set debug logs only in non-prod (simulated here)
+      await Purchases.setLogLevel({ level: 'DEBUG' });
       console.log('RevenueCat configured successfully.');
 
       console.log('Initializing Native Bridge: AdMob...');
@@ -69,4 +65,39 @@ export const NativeBridge = {
   isNative: Capacitor.isNativePlatform(),
   getAdUnitId,
   isAdMobReady: () => adMobInitialized,
+  
+  /**
+   * Check if a customer has an active ad-free entitlement
+   */
+  async checkAdFreeEntitlement(): Promise<{ adFree: boolean; isLifetime: boolean }> {
+    if (!this.isNative) return { adFree: false, isLifetime: false };
+    try {
+      const info = await Purchases.getCustomerInfo();
+      const entitlements = info.entitlements.active;
+      
+      const hasLifetime = !!entitlements['eternal_protocol'] || !!entitlements['lifetime'];
+      const hasStandard = !!entitlements['standard_sync'] || !!entitlements['strategic_pulse'] || !!entitlements['ad_free'];
+      
+      return {
+        adFree: hasLifetime || hasStandard,
+        isLifetime: hasLifetime
+      };
+    } catch (e) {
+      console.error('Error checking entitlements', e);
+      return { adFree: false, isLifetime: false };
+    }
+  },
+
+  /**
+   * Sync local user ID to RevenueCat for cross-platform matching
+   */
+  async syncUserId(userId: string) {
+    if (!this.isNative || !userId) return;
+    try {
+      await Purchases.logIn({ appUserID: userId });
+      console.log(`RevenueCat synced with User ID: ${userId}`);
+    } catch (e) {
+       console.error('RevenueCat sync failed', e);
+    }
+  }
 };

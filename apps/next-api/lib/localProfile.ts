@@ -7,6 +7,8 @@ export interface LocalUserSettings {
   theme: ThemeName;
   soundEnabled: boolean;
   adFree?: boolean;
+  isLifetime?: boolean;
+  subLastCheck?: number;
   roomPin?: LocalRoomPin | null;
 }
 
@@ -61,8 +63,6 @@ export function loadLocalSettings(): LocalUserSettings {
     const parsed = JSON.parse(raw) as Partial<LocalUserSettings>;
     let userId = (parsed.userId || '').trim();
     
-    // 🔥 AUDIT FIX: Eliminate the "web_player" collision vector once and for all.
-    // Any legacy user with the generic ID is force-migrated to a new unique guest entry.
     if (!userId || userId === 'web_player') {
       userId = generateGuestId();
       const updated = {
@@ -83,6 +83,8 @@ export function loadLocalSettings(): LocalUserSettings {
         : defaultSettings.theme,
       soundEnabled: parsed.soundEnabled ?? defaultSettings.soundEnabled,
       adFree: parsed.adFree ?? false,
+      isLifetime: parsed.isLifetime ?? false,
+      subLastCheck: parsed.subLastCheck ?? 0,
     };
   } catch {
     return defaultSettings;
@@ -152,7 +154,6 @@ export function saveRoomPin(input: {
 }): void {
   if (typeof window === 'undefined') return;
   const now = Date.now();
-  // Standardize on 1 minute for all resumes
   const ttlMs = input.ttlMs ?? 60_000;
   const value: LocalRoomPin = {
     code: input.code.trim().toUpperCase(),

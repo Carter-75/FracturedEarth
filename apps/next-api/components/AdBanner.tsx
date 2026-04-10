@@ -4,32 +4,21 @@ import { useEffect, useState } from 'react';
 import { AdMob, BannerAdSize, BannerAdPosition } from '@capacitor-community/admob';
 import { Capacitor } from '@capacitor/core';
 import { NativeBridge } from '@/lib/nativeBridge';
+import { useSubscription } from '@/lib/SubscriptionProvider';
 
 import { useSession, signIn, signOut } from 'next-auth/react';
 
 export function AdBanner() {
-  const [adFree, setAdFree] = useState(false);
+  const { adFree } = useSubscription();
   const [hasMounted, setHasMounted] = useState(false);
   const { data: session, status } = useSession();
 
   useEffect(() => {
     setHasMounted(true);
-    const settings = localStorage.getItem('fe:user-settings:v1');
-    let isAdFree = false;
-    if (settings) {
-       try {
-         const parsed = JSON.parse(settings);
-         if (parsed.adFree) isAdFree = true;
-       } catch (e) {}
-    }
-    setAdFree(isAdFree);
     
-    // Header height is already handled in globals.css/layout.root for safe areas
-    // but we can toggle visibility here if needed.
-
-    // Show real AdMob banner if on native app
+    // Show real AdMob banner if on native app and NOT ad-free
     const adId = NativeBridge.getAdUnitId('banner');
-    if (!isAdFree && adId) {
+    if (!adFree && adId) {
       AdMob.showBanner({
         adId, 
         adSize: BannerAdSize.ADAPTIVE_BANNER,
@@ -38,8 +27,8 @@ export function AdBanner() {
       }).catch(e => console.error('Failed to show native banner', e));
     }
 
-    // Initialize Web AdSense if not native
-    if (!isAdFree && !Capacitor.isNativePlatform()) {
+    // Initialize Web AdSense if not native and NOT ad-free
+    if (!adFree && !Capacitor.isNativePlatform()) {
       try {
         (window as any).adsbygoogle = (window as any).adsbygoogle || [];
         (window as any).adsbygoogle.push({});
@@ -53,10 +42,9 @@ export function AdBanner() {
          AdMob.removeBanner().catch(() => {});
       }
     };
-  }, []);
+  }, [adFree]); // Re-run if ad-free status changes (e.g. after purchase)
 
   if (!hasMounted) return null;
-  if (adFree && status !== 'unauthenticated') return null;
 
   const isNative = Capacitor.isNativePlatform();
 
@@ -76,9 +64,17 @@ export function AdBanner() {
                   data-ad-format="horizontal"
                   data-full-width-responsive="true"></ins>
            )}
-           {isNative && !adFree && (
-             <div className="flex items-center gap-2 text-fg-subtle/30 text-[8px] uppercase tracking-tighter">
-                <span className="animate-pulse">🛰️</span> Neural_Link_Stabilizer: Active
+           {(isNative || adFree) && (
+             <div className="flex items-center gap-3">
+                <div className={`w-2 h-2 rounded-full ${adFree ? 'bg-emerald-500 shadow-[0_0_10px_#10b981]' : 'bg-accent animate-pulse shadow-[0_0_10px_var(--accent)]'}`} />
+                <div className="flex flex-col">
+                   <span className="fe-hologram text-[8px] text-accent/60 uppercase tracking-[0.2em] font-black">
+                      {adFree ? 'Eternal_Link_Stabilized' : 'Neural_Link_Stabilizer'}
+                   </span>
+                   <span className="text-[6px] text-fg/20 uppercase tracking-[0.4em] font-black -mt-1">
+                      {adFree ? 'Sponsor Interference Nullified' : 'Signal_Strength: Optimized'}
+                   </span>
+                </div>
              </div>
            )}
         </div>
@@ -98,18 +94,18 @@ export function AdBanner() {
           ) : (
             <button 
               onClick={() => signIn('google')}
-              className="fe-btn !py-1.5 !px-3 !text-[8px] !border-accent/10 !text-accent/60 hover:!text-accent transition-all font-black"
+              className="fe-btn !py-1.5 !px-3 !text-[8px] !border-accent/10 !text-accent/60 hover:!text-accent transition-all font-black uppercase text-[7px]"
             >
                Sign_In
             </button>
           )}
 
-          <a 
+          <Link 
             href="/store"
-            className="fe-btn !py-1.5 !px-3 !text-[8px] !border-accent-alt/10 !text-accent-alt/60 hover:!text-accent-alt transition-all font-black"
+            className="fe-btn !py-1.5 !px-3 !text-[8px] !border-accent-alt/10 !text-accent-alt/60 hover:!text-accent-alt transition-all font-black uppercase"
           >
              Sector_Pass
-          </a>
+          </Link>
         </div>
     </div>
   );
