@@ -1,7 +1,7 @@
 'use client';
 
 import { Capacitor } from '@capacitor/core';
-import { Purchases, CustomerInfo } from '@revenuecat/purchases-capacitor';
+import { Purchases, CustomerInfo, LOG_LEVEL } from '@revenuecat/purchases-capacitor';
 import { AdMob } from '@capacitor-community/admob';
 
 export const REVENUECAT_API_KEY = 'test_MIAdeZbJZTOYchrbHnqlaKoeggM';
@@ -36,7 +36,7 @@ export async function initializeNativeBridge() {
       console.log('Initializing Native Bridge: RevenueCat...');
       await Purchases.configure({ apiKey: REVENUECAT_API_KEY });
       // Set debug logs only in non-prod (simulated here)
-      await Purchases.setLogLevel({ level: 'DEBUG' });
+      await Purchases.setLogLevel({ level: LOG_LEVEL.DEBUG });
       console.log('RevenueCat configured successfully.');
 
       console.log('Initializing Native Bridge: AdMob...');

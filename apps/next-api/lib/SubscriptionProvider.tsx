@@ -110,7 +110,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     if (status !== 'loading') {
        init();
     }
-  }, [status, session, refreshEntitlements]);
+  }, [status, session, refreshEntitlements, updateState]);
 
   return (
     <SubscriptionContext.Provider value={{ adFree, isLifetime, loading, refreshEntitlements }}>
