@@ -53,8 +53,9 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
 
   const refreshEntitlements = useCallback(async () => {
     if (NativeBridge.isNative) {
-      console.log('SubscriptionProvider: Auto-restoring/Checking native entitlements...');
+      console.log('SubscriptionProvider: Auto-restoring native entitlements...');
       try {
+        await NativeBridge.purchases.restorePurchases();
         const result = await NativeBridge.checkAdFreeEntitlement();
         updateState(result.adFree, result.isLifetime);
         
@@ -85,8 +86,8 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
       setLoading(true);
       
       // 1. Sync User ID to RevenueCat if native
-      if (NativeBridge.isNative && session?.user?.id) {
-        await NativeBridge.syncUserId(session.user.id);
+      if (NativeBridge.isNative && (session?.user as any)?.id) {
+        await NativeBridge.syncUserId((session?.user as any).id);
       }
 
       // 2. 24h Refresh Logic
@@ -95,7 +96,12 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
 
       // Always refresh on native to stay in sync with App Store
       if (needsRefresh || NativeBridge.isNative) {
-        await refreshEntitlements();
+        if (NativeBridge.isNative || status === 'authenticated') {
+          await refreshEntitlements();
+        } else {
+          // If on web, signed out, and 24h passed: we can't verify, so revert to ads
+          updateState(false, false);
+        }
       }
       
       setLoading(false);
