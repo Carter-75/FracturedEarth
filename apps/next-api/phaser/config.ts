@@ -7,8 +7,8 @@ export function createGame(parent: HTMLElement, initialData?: any) {
   const config: Phaser.Types.Core.GameConfig = {
     type: Phaser.AUTO,
     parent: parent,
-    width: window.innerWidth,
-    height: window.innerHeight,
+    width: parent.clientWidth || window.innerWidth,
+    height: parent.clientHeight || window.innerHeight,
     transparent: true,
     physics: {
       default: 'arcade',

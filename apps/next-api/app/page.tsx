@@ -55,11 +55,8 @@ export default function HomePage() {
 
   return (
     <main className="fe-scene min-h-full flex flex-col items-center justify-start py-20 px-6 text-center select-none overflow-y-auto overflow-x-hidden">
-      {/* Absolute Overlays (Top-Right / Bottom-Left) */}
-      <div className="absolute top-8 right-8 z-[100] flex gap-4 pointer-events-auto">
-        <Link href="/login" className="px-5 py-2 border border-accent/30 rounded-full text-[10px] font-black tracking-[0.3em] uppercase transition-all hover:bg-accent/10 hover:border-accent text-accent backdrop-blur-md">Sign_In</Link>
-        <Link href="/store" className="px-5 py-2 border border-accent-alt/30 rounded-full text-[10px] font-black tracking-[0.3em] uppercase transition-all hover:bg-accent-alt/10 hover:border-accent-alt text-accent-alt backdrop-blur-md">Sector_Pass</Link>
-      </div>
+      {/* Hero Content Layer */}
+
 
       {/* Cinematic Background Layer */}
       <div className="fixed inset-0 z-0">

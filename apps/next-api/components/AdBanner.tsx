@@ -50,29 +50,29 @@ export function AdBanner() {
   const isNative = Capacitor.isNativePlatform();
 
   return (
-    <div className="fixed top-0 left-0 right-0 h-[var(--header-height)] z-[1000] bg-surface/60 backdrop-blur-2xl border-b border-white/5 flex items-center justify-between px-4 sm:px-6 overflow-hidden group transition-all duration-500">
+    <div className="fixed top-0 left-0 right-0 h-[var(--header-height)] z-[1000] bg-surface/60 backdrop-blur-2xl border-b border-white/5 flex items-center justify-between px-3 sm:px-4 overflow-hidden group transition-all duration-500">
         {/* Cinematic Layering */}
-        <div className="absolute inset-0 fe-scanline opacity-10" />
+        <div className="absolute inset-0 fe-scanline opacity-5" />
         <div className="absolute inset-0 bg-gradient-to-r from-accent/5 via-transparent to-accent-alt/5 pointer-events-none" />
         
         {/* Ad Content Group */}
         <div className="relative flex-1 flex items-center h-full">
            {!isNative && !adFree && process.env.NEXT_PUBLIC_ADSENSE_BANNER_ID && (
              <ins className="adsbygoogle"
-                  style={{ display: 'block', width: '100%', height: '50px' }}
+                  style={{ display: 'block', width: '100%', height: '40px' }}
                   data-ad-client={process.env.NEXT_PUBLIC_ADSENSE_BANNER_ID}
                   data-ad-slot="auto"
                   data-ad-format="horizontal"
                   data-full-width-responsive="true"></ins>
            )}
            {(isNative || adFree) && (
-             <div className="flex items-center gap-3">
-                <div className={`w-2 h-2 rounded-full ${adFree ? 'bg-emerald-500 shadow-[0_0_10px_#10b981]' : 'bg-accent animate-pulse shadow-[0_0_10px_var(--accent)]'}`} />
+             <div className="flex items-center gap-2">
+                <div className={`w-1.5 h-1.5 rounded-full ${adFree ? 'bg-emerald-500 shadow-[0_0_10px_#10b981]' : 'bg-accent animate-pulse shadow-[0_0_10px_var(--accent)]'}`} />
                 <div className="flex flex-col">
-                   <span className="fe-hologram text-[8px] text-accent/60 uppercase tracking-[0.2em] font-black">
+                   <span className="fe-hologram text-[7px] text-accent/60 uppercase tracking-[0.2em] font-black leading-none">
                       {adFree ? 'Eternal_Link_Stabilized' : 'Neural_Link_Stabilizer'}
                    </span>
-                   <span className="text-[6px] text-fg/20 uppercase tracking-[0.4em] font-black -mt-1">
+                   <span className="text-[5px] text-fg/20 uppercase tracking-[0.4em] font-black mt-0.5 leading-none">
                       {adFree ? 'Sponsor Interference Nullified' : 'Signal_Strength: Optimized'}
                    </span>
                 </div>
@@ -81,13 +81,13 @@ export function AdBanner() {
         </div>
 
         {/* Global Action Bar */}
-        <div className="relative z-10 flex items-center gap-2 pl-4">
+        <div className="relative z-10 flex items-center gap-1.5 pl-2">
           {status === 'authenticated' ? (
-            <div className="flex items-center gap-3">
-              <span className="hidden sm:inline fe-hologram text-[8px] text-fg-subtle/60 uppercase italic tracking-widest">{session.user?.name}</span>
+            <div className="flex items-center gap-2">
+              <span className="hidden md:inline fe-hologram text-[7px] text-fg-subtle/60 uppercase italic tracking-widest">{session.user?.name}</span>
               <button 
                 onClick={() => signOut()}
-                className="fe-btn !py-1.5 !px-3 !text-[8px] !border-danger/10 !text-danger/40 hover:!text-danger transition-all font-black"
+                className="fe-btn !py-1 !px-2 !text-[7px] !border-danger/10 !text-danger/40 hover:!text-danger transition-all font-black"
               >
                  Exit_Link
               </button>
@@ -95,7 +95,7 @@ export function AdBanner() {
           ) : (
             <button 
               onClick={() => signIn('google')}
-              className="fe-btn !py-1.5 !px-3 !text-[8px] !border-accent/10 !text-accent/60 hover:!text-accent transition-all font-black uppercase text-[7px]"
+              className="fe-btn !py-1 !px-2 !text-[7px] !border-accent/10 !text-accent/60 hover:!text-accent transition-all font-black uppercase"
             >
                Sign_In
             </button>
@@ -103,9 +103,9 @@ export function AdBanner() {
 
           <Link 
             href="/store"
-            className="fe-btn !py-1.5 !px-3 !text-[8px] !border-accent-alt/10 !text-accent-alt/60 hover:!text-accent-alt transition-all font-black uppercase"
+            className="fe-btn !py-1 !px-2 !text-[7px] !border-accent-alt/20 !text-accent-alt/60 hover:!text-accent-alt transition-all font-black uppercase whitespace-nowrap"
           >
-             Sector_Pass
+             Pass_Link
           </Link>
         </div>
     </div>

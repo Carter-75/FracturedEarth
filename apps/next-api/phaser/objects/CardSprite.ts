@@ -84,6 +84,35 @@ export class CardSprite extends Phaser.GameObjects.Container {
     this.setSize(width, height);
     this.setInteractive({ useHandCursor: true });
     
+    // Hover Effects
+    this.on('pointerover', () => {
+        this.scene.tweens.add({
+            targets: this,
+            scaleX: 1.05,
+            scaleY: 1.05,
+            y: this.y - 20,
+            duration: 200,
+            ease: 'Power2'
+        });
+        this.frame.lineStyle(3, hexColor, 1);
+        this.frame.strokeRoundedRect(-width/2, -height/2, width, height, 12);
+        this.setDepth(1000); // Bring hovered card to front
+    });
+
+    this.on('pointerout', () => {
+        // We'll let the TabletopScene handle the return position during renderHand
+        // but for immediate feedback we can tween back scale
+        this.scene.tweens.add({
+            targets: this,
+            scaleX: 1,
+            scaleY: 1,
+            duration: 200,
+            ease: 'Power2'
+        });
+        this.frame.lineStyle(2, hexColor, 0.3);
+        this.frame.strokeRoundedRect(-width/2, -height/2, width, height, 12);
+    });
+
     // Default Scale
     this.setScale(1);
 

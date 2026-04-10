@@ -117,12 +117,12 @@ export class TabletopScene extends Phaser.Scene {
     const width = this.cameras.main.width;
     const height = this.cameras.main.height;
 
-    // Define 4 relative seats
+    // Define 4 relative seats (Inward from edges to avoid clipping)
     const seatCoordinates = [
-        { x: width / 2, y: height - 120, angle: 0 },    // BOTTOM (Self)
-        { x: 100, y: height / 2, angle: 90 },           // LEFT
-        { x: width / 2, y: 100, angle: 180 },           // TOP
-        { x: width - 100, y: height / 2, angle: -90 }   // RIGHT
+        { x: width / 2, y: height - 150, angle: 0 },    // BOTTOM (Self)
+        { x: 150, y: height / 2, angle: 90 },           // LEFT
+        { x: width / 2, y: 150, angle: 180 },           // TOP
+        { x: width - 150, y: height / 2, angle: -90 }   // RIGHT
     ];
 
     this.opponentPos.clear();
@@ -240,7 +240,7 @@ export class TabletopScene extends Phaser.Scene {
     const width = this.cameras.main.width;
     const height = this.cameras.main.height;
     const startX = width / 2;
-    const startY = height - 120;
+    const startY = height - 150;
     
     const baseSpacing = 70;
     const spacing = total > 5 ? (baseSpacing * 5) / total : baseSpacing;
@@ -286,7 +286,7 @@ export class TabletopScene extends Phaser.Scene {
           });
        }
 
-        sprite.setDepth(i + 100);
+        sprite.setDepth(i + 500);
         sprite.setLocked(this.tutorialStep ? (this.tutorialStep.expectedCardId !== card.id) : false);
         sprite.setHighlighted(this.tutorialStep ? (this.tutorialStep.expectedCardId === card.id) : false);
 
@@ -310,7 +310,7 @@ export class TabletopScene extends Phaser.Scene {
        sprite.setScale(0.8);
        sprite.setAlpha(1);
        sprite.setAngle((i - (cards.length - 1) / 2) * 5);
-       sprite.setDepth(i + 50);
+       sprite.setDepth(i + 400);
        this.playPile.push(sprite);
     });
   }
@@ -323,7 +323,7 @@ export class TabletopScene extends Phaser.Scene {
     this.powerPile = [];
 
     const startX = 250;
-    const startY = this.cameras.main.height - 120;
+    const startY = this.cameras.main.height - 150;
     const spacing = 30;
 
     me.powers.forEach((card, i) => {
@@ -367,11 +367,8 @@ export class TabletopScene extends Phaser.Scene {
             drawPile.on('pointerout', () => { drawPile.setScale(1); });
         }
     }
-
-    const countText = this.add.text(0, 110, `${count} CORE_UNITS`, {
-        fontFamily: 'Inter', fontSize: '12px', fontStyle: '900', color: isMyTurn ? '#f59e0b' : '#777777'
-    }).setOrigin(0.5);
-    drawPile.add(countText);
+    
+    drawPile.setDepth(10);
     this.decks.push(drawPile);
 
     const discardPile = this.add.container(centerX - 80, centerY);
@@ -381,7 +378,8 @@ export class TabletopScene extends Phaser.Scene {
         sprite.setScale(0.7);
         discardPile.add(sprite);
     }
-    discardPile.add(this.add.text(0, 100, `DISCARD`, { fontFamily: 'Inter', fontSize: '10px', color: '#ff4444' }).setOrigin(0.5));
+    
+    discardPile.setDepth(10);
     this.decks.push(discardPile);
   }
 

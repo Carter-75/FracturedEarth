@@ -84,7 +84,7 @@ export default function PhaserGame({ roomCode, gameState, userId, onAction, onCa
       id="phaser-container" 
       ref={containerRef} 
       className="absolute inset-0 z-20 pointer-events-auto"
-      style={{ width: '100vw', height: '100vh' }}
+      style={{ width: '100%', height: '100%' }}
     />
   );
 }

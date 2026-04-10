@@ -34,7 +34,7 @@
     --radius-full: 9999px;
     --radius: 2rem; /* Map to theme radius */
     
-    --header-height: clamp(56px, 8vh, 72px);
+    --header-height: clamp(44px, 5vh, 56px);
     
     /* Safe Area Insets */
     --sat: env(safe-area-inset-top, 0px);
@@ -141,6 +141,11 @@
     @apply border-white/20 bg-black/40 backdrop-blur-xl hover:bg-white/10 transition-all font-display italic uppercase tracking-[0.2em] text-sm shadow-[0_0_40px_rgba(255,255,255,0.05)] border;
     border-radius: var(--radius);
     padding: 1.25rem 2.5rem;
+  }
+
+  /* Compact Link Buttons */
+  .fe-btn {
+    @apply px-4 py-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-md transition-all hover:bg-white/10 hover:border-white/20 active:scale-95 flex items-center justify-center gap-2;
   }
 
   /* Panels & Cards */
