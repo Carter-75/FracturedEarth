@@ -22,7 +22,7 @@ export function cardTheme(type: CardType) {
         ring: 'border-emerald-500', 
         tint: 'text-emerald-300',
         bg: '/assets/type-bgs/survival.png',
-        glow: 'var(--accent-glow)'
+        glow: 'rgba(16, 185, 129, 0.5)'
       };
     case 'POWER':
       return { 
@@ -43,10 +43,10 @@ export function cardTheme(type: CardType) {
     case 'CHAOS':
       return { 
         icon: '⚡', 
-        ring: 'border-amber-500', 
-        tint: 'text-amber-300',
+        ring: 'border-accent', 
+        tint: 'text-accent',
         bg: '/assets/type-bgs/chaos.png',
-        glow: 'rgba(245, 158, 11, 0.5)'
+        glow: 'rgba(var(--accent-rgb), 0.5)'
       };
     case 'DISASTER':
       return { 
@@ -86,7 +86,7 @@ export function cardTheme(type: CardType) {
         ring: 'border-slate-500', 
         tint: 'text-slate-200',
         bg: '/assets/type-bgs/survival.png',
-        glow: 'rgba(255, 255, 255, 0.5)'
+        glow: 'rgba(var(--fg-rgb), 0.5)'
       };
   }
 }

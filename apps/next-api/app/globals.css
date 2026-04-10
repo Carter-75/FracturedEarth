@@ -16,78 +16,71 @@
     --sp-16: 64px;
     --sp-20: 80px;
 
-    /* Luxury Color System - Precision Gray & Technical Accents */
-    --bg-base: #020305;
-    --bg-surface: #0a0b0e;
-    --bg-surface-raised: #14161a;
-    --bg-surface-elevated: #1e2126;
+    /* Neural Link Aesthetic - Vibrant & High Contrast */
+    /* Theme Injectors will override these */
+    --bg: #020408;
+    --fg: #f8fafc;
+    --accent: #f59e0b;
+    --accent-soft: #38bdf8;
+    --panel: rgba(10, 15, 25, 0.8);
+    --panel-alt: rgba(15, 20, 35, 0.9);
+    --border: rgba(255, 255, 255, 0.08);
+    --muted: #64748b;
     
-    --fg-main: #f8fafc;
-    --fg-muted: #94a3b8;
-    --fg-subtle: #475569;
-    
-    --accent-primary: #f59e0b; /* Amber Technical */
-    --accent-secondary: #0ea5e9; /* Sky Blue */
-    --border-subtle: rgba(255, 255, 255, 0.04);
-    --border-active: rgba(245, 158, 11, 0.3);
-    
-    /* Semantic Colors */
-    --color-success: #10b981;
-    --color-danger: #ef4444;
-    --color-warning: #f59e0b;
-    --color-info: #3b82f6;
-
     /* Global Tokens */
     --radius-sm: 4px;
     --radius-md: 8px;
     --radius-lg: 12px;
     --radius-full: 9999px;
+    --radius: 2rem; /* Map to theme radius */
     
     --header-height: clamp(56px, 8vh, 72px);
     
-    /* Safe Area Insets (Capacitor + Browser Fallback) */
+    /* Safe Area Insets */
     --sat: env(safe-area-inset-top, 0px);
     --sar: env(safe-area-inset-right, 0px);
     --sab: env(safe-area-inset-bottom, 0px);
     --sal: env(safe-area-inset-left, 0px);
 
     /* Fluid Game Units */
-    --card-w: clamp(140px, 20vw, 180px);
-    --card-h: calc(var(--card-w) * 1.44);
+    --card-w: clamp(4rem, 15vmin, 12rem);
+    --card-h: calc(var(--card-w) * 1.4);
     
     /* Typography */
-    --font-primary: var(--font-geometric);
+    --font-body: var(--font-body);
     --font-display: var(--font-display);
+    
+    /* Theme Injection Fallbacks */
+    --text-transform: uppercase;
+    --glow-strength: 0.4;
+    --scanline-opacity: 0.04;
+    --accent-rgb: 245, 158, 11;
   }
 
   * {
-    @apply border-border-subtle;
+    border-color: var(--border);
     -webkit-tap-highlight-color: transparent;
   }
 
   body {
-    @apply bg-[var(--bg-base)] text-[var(--fg-main)] select-none;
-    font-family: var(--font-primary), system-ui, sans-serif;
+    @apply bg-[var(--bg)] text-[var(--fg)] select-none overflow-hidden transition-colors duration-500;
+    font-family: var(--font-body), system-ui, sans-serif;
     touch-action: pan-y;
-    overflow-x: hidden;
-    overflow-y: auto;
+    background-image: 
+      radial-gradient(circle at 50% -20%, rgba(var(--accent-rgb), 0.15), transparent 60%),
+      radial-gradient(circle at 50% 120%, rgba(var(--accent-rgb), 0.1), transparent 60%);
   }
 
-  /* Optimized Background with Depth Layers */
-  .fe-main-bg {
-    @apply fixed inset-0 z-0 pointer-events-none;
-    background: 
-      radial-gradient(circle at 50% 10%, rgba(245, 158, 11, 0.15), transparent 80%),
-      radial-gradient(circle at 10% 90%, rgba(14, 165, 233, 0.15), transparent 80%),
-      radial-gradient(circle at 90% 90%, rgba(168, 85, 247, 0.1), transparent 80%),
-      var(--bg-base);
+  h1, h2, h3, .fe-hologram {
+    font-family: var(--font-display), serif;
+    text-transform: var(--text-transform);
   }
 }
 
 @layer components {
   /* Layout Root with Safe Area Handling */
   .fe-layout-root {
-    @apply relative w-full min-h-full flex flex-col;
+    @apply relative w-full h-screen flex flex-col overflow-hidden;
     padding-top: var(--sat);
     padding-right: var(--sar);
     padding-bottom: var(--sab);
@@ -95,107 +88,107 @@
   }
 
   .fe-content-scroll {
-    @apply flex-1 overflow-y-auto overflow-x-hidden;
+    @apply flex-1 overflow-y-auto overflow-x-hidden relative;
     scrollbar-width: none;
     -ms-overflow-style: none;
     -webkit-overflow-scrolling: touch;
   }
   .fe-content-scroll::-webkit-scrollbar { display: none; }
 
-  /* Precision Technical Button */
-  .fe-btn {
-    @apply relative px-6 py-3 flex items-center justify-center gap-3 transition-all duration-200 uppercase font-bold tracking-widest text-[10px] sm:text-xs overflow-hidden;
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-sm);
-    background: var(--bg-surface);
+  /* Physical Scene */
+  .fe-scene {
+    @apply relative w-full h-full overflow-hidden flex items-center justify-center;
+    perspective: 2000px;
+    background-color: var(--bg);
   }
 
-  .fe-btn:not(:disabled) {
-    @apply hover:bg-[var(--bg-surface-raised)] hover:border-[var(--border-active)] active:scale-[0.98];
+  /* Cinematic Effects */
+  .fe-scanline {
+    @apply absolute inset-0 pointer-events-none z-[1000];
+    opacity: var(--scanline-opacity);
+    background: linear-gradient(to bottom, transparent 50%, var(--fg) 50%);
+    background-size: 100% 4px;
   }
 
-  .fe-btn:disabled {
-    @apply opacity-30 grayscale cursor-not-allowed;
+  .fe-vignette {
+    @apply absolute inset-0 pointer-events-none z-[999];
+    background: radial-gradient(circle, transparent 40%, rgba(0,0,0,0.8) 100%);
+  }
+
+  .fe-grid {
+    @apply absolute inset-0 pointer-events-none opacity-[0.05];
+    background-image: 
+      linear-gradient(rgba(var(--accent-rgb), 0.5) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(var(--accent-rgb), 0.5) 1px, transparent 1px);
+    background-size: 50px 50px;
+  }
+
+  /* Cinematic Buttons */
+  .fe-holo-btn {
+    @apply px-8 py-3 bg-white/5 backdrop-blur-md border border-[var(--border)] rounded-full transition-all duration-300 active:scale-95 flex items-center justify-center gap-3 font-black tracking-[0.3em] uppercase text-xs;
+    text-shadow: 0 0 10px currentColor;
+    box-shadow: 0 0 calc(var(--glow-strength) * 50px) rgba(var(--accent-rgb), 0.1);
+  }
+
+  .fe-holo-btn:hover {
+    @apply text-white bg-white/10 border-[var(--accent)];
+    box-shadow: 0 0 calc(var(--glow-strength) * 80px) rgba(var(--accent-rgb), 0.2);
   }
 
   .fe-btn-pill {
-    @apply rounded-full px-10 py-4 border-white/20 bg-black/40 backdrop-blur-xl hover:bg-white/10 transition-all font-display italic uppercase tracking-widest text-sm shadow-[0_0_40px_rgba(255,255,255,0.05)];
+    @apply border-white/20 bg-black/40 backdrop-blur-xl hover:bg-white/10 transition-all font-display italic uppercase tracking-[0.2em] text-sm shadow-[0_0_40px_rgba(255,255,255,0.05)] border;
+    border-radius: var(--radius);
+    padding: 1.25rem 2.5rem;
   }
 
-  .fe-btn-primary {
-    @apply text-accent;
-    border: 1px solid rgba(245, 158, 11, 0.4);
-    background: rgba(245, 158, 11, 0.03);
-  }
-  
-  .fe-btn-primary:hover {
-    background: rgba(245, 158, 11, 0.1);
-    box-shadow: 0 0 20px rgba(245, 158, 11, 0.1);
+  /* Panels & Cards */
+  .fe-modal-content {
+    background-color: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    @apply w-full max-w-xl p-6 md:p-12 shadow-2xl relative overflow-hidden transition-all duration-500;
+    box-shadow: 0 0 100px rgba(0, 0, 0, 0.8), inset 0 0 30px rgba(255, 255, 255, 0.02);
   }
 
-  /* Luxury Card/Panel Styling */
-  .fe-card {
-    @apply p-6 bg-[var(--bg-surface)] border border-[var(--border-subtle)] transition-all duration-300;
+  .fe-card-physical {
+    background-color: var(--panel-alt);
+    border: 1px solid var(--border);
     border-radius: var(--radius-md);
+    @apply relative overflow-hidden transition-all duration-300;
+    width: var(--card-w);
+    height: var(--card-h);
     box-shadow: 
-      0 10px 30px -10px rgba(0,0,0,0.5),
-      inset 0 1px 1px rgba(255,255,255,0.02);
+      -5px 10px 20px rgba(0,0,0,0.6),
+      inset 0 1px 0 rgba(255,255,255,0.1);
   }
 
-  .fe-card:hover {
-    @apply bg-[var(--bg-surface-raised)];
-    border-color: rgba(255, 255, 255, 0.08);
-  }
-
-  /* Holographic Elements */
   .fe-hologram {
-    @apply relative font-black tracking-[0.2em] uppercase;
-    text-shadow: 0 0 12px currentColor;
-    font-family: var(--font-geometric);
+    @apply font-black tracking-[0.3em] uppercase;
+    text-shadow: 0 0 calc(var(--glow-strength) * 30px) currentColor;
   }
 
   .fe-display-italic {
     font-family: var(--font-display);
     @apply italic uppercase;
   }
-
-  /* Physical Game Props */
-  .fe-tabletop-surface {
-    @apply absolute left-1/2 top-1/2 w-[200vw] h-[200vh] transition-all duration-1000;
-    transform: translate(-50%, -50%) rotateX(60deg) translateZ(-100px);
-    background: 
-      linear-gradient(rgba(245, 158, 11, 0.05) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(245, 158, 11, 0.05) 1px, transparent 1px),
-      linear-gradient(rgba(255, 255, 255, 0.02) 2px, transparent 2px),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.02) 2px, transparent 2px);
-    background-size: 40px 40px, 40px 40px, 200px 200px, 200px 200px;
-    background-color: var(--bg-base);
-  }
-
-  .fe-scanline {
-    @apply fixed inset-0 pointer-events-none z-[9999];
-    background: linear-gradient(to bottom, transparent 50%, rgba(255,255,255,0.01) 50%);
-    background-size: 100% 4px;
-    opacity: 0.6;
-  }
 }
 
 /* Luxury Animations */
-@keyframes flicker {
-  0%, 19.999%, 22%, 62.999%, 64%, 64.999%, 70%, 100% { opacity: 1; transform: scale(1); }
-  20%, 21.999%, 63%, 63.999%, 65%, 69.999% { opacity: 0.8; transform: scale(1.01); }
+@keyframes holographic-flicker {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  98% { opacity: 0.8; transform: scale(1.002); }
+  99% { opacity: 1; transform: scale(0.998); }
 }
 
 .animate-flicker {
-  animation: flicker 6s infinite;
+  animation: holographic-flicker 4s infinite;
 }
 
-@keyframes pulse-soft {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 0.6; }
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(1deg); }
 }
 
-.animate-pulse-soft {
-  animation: pulse-soft 4s ease-in-out infinite;
+.animate-float {
+  animation: float 6s ease-in-out infinite;
 }
-

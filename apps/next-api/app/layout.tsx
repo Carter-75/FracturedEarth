@@ -1,5 +1,4 @@
-import type { Metadata, Viewport } from 'next';
-import { Outfit, Cinzel } from 'next/font/google';
+
 import './globals.css';
 import { Providers } from '@/components/Providers';
 import { TutorialLaunchGate } from '@/components/TutorialLaunchGate';
@@ -8,10 +7,10 @@ import { SectorPassPopup } from '@/components/SectorPassPopup';
 import { Analytics } from '@vercel/analytics/next';
 import React from 'react';
 
-const outfit = Outfit({ 
+const spectral = Spectral({ 
   subsets: ['latin'], 
-  variable: '--font-geometric',
-  weight: ['300', '400', '500', '600', '700', '800', '900'] 
+  variable: '--font-body',
+  weight: ['400', '500', '600', '700'] 
 });
 
 const cinzel = Cinzel({
@@ -40,7 +39,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${outfit.variable} ${cinzel.variable} dark`}>
+    <html lang="en" className={`${spectral.variable} ${cinzel.variable} dark`}>
       <head>
         {(process.env.NEXT_PUBLIC_ADSENSE_BANNER_ID && 
           process.env.NEXT_PUBLIC_ADSENSE_BANNER_ID !== 'ca-pub-0000000000000000') && (
