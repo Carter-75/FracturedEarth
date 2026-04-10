@@ -1,4 +1,5 @@
-
+import { Spectral, Cinzel } from 'next/font/google';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Providers } from '@/components/Providers';
 import { TutorialLaunchGate } from '@/components/TutorialLaunchGate';
