@@ -28,6 +28,7 @@ dist/
 .vercel/
 **/.vercel/
 apps/angular-mobile/src/app/config.ts
+apps/angular-app/public/env.js
 
 # IDE / Editor
 .idea/

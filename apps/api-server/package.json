@@ -1,0 +1,15 @@
+{
+  "name": "@fractured-earth/api-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@fractured-earth/game-core": "*"
+  },
+  "scripts": {
+    "dev": "npm run build && node dist/server.js",
+    "build": "npm run build --workspace @fractured-earth/game-core && tsc -p tsconfig.json",
+    "start": "node dist/server.js",
+    "lint": "tsc -p tsconfig.json --noEmit"
+  }
+}

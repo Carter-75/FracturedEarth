@@ -1,6 +1,6 @@
 {
-  "buildCommand": "cd apps/next-api && npm run build",
-  "outputDirectory": "apps/next-api/.next",
-  "installCommand": "npm install --legacy-peer-deps",
-  "framework": "nextjs"
+  "buildCommand": "cd apps/angular-app && npm run build",
+  "outputDirectory": "apps/angular-app/dist/angular-app/browser",
+  "installCommand": "npm install",
+  "framework": null
 }

@@ -1,0 +1,4763 @@
+{
+  "SURVIVAL": [
+    {
+      "id": "survival_hydroponic_bay",
+      "name": "Hydroponic Bay",
+      "type": "SURVIVAL",
+      "description": "+4 Points; maximizes yield when Health is 5.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 4,
+            "target": "self"
+          }
+        },
+        {
+          "type": "IF_HEALTH",
+          "params": {
+            "op": "==",
+            "amount": 5,
+            "target": "self"
+          },
+          "then": [
+            {
+              "type": "MODIFY_POINTS",
+              "params": {
+                "amount": 2,
+                "target": "self"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "survival_deep_core_drill",
+      "name": "Deep Core Drill",
+      "type": "SURVIVAL",
+      "description": "+3 Points; doubles output (6) if Health ≤3.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 3,
+            "target": "self"
+          }
+        },
+        {
+          "type": "IF_HEALTH",
+          "params": {
+            "op": "<=",
+            "amount": 3,
+            "target": "self"
+          },
+          "then": [
+            {
+              "type": "MODIFY_POINTS",
+              "params": {
+                "amount": 3,
+                "target": "self"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "survival_bunker_shelter",
+      "name": "Bunker Shelter",
+      "type": "SURVIVAL",
+      "description": "+2 Health.",
+      "primitives": [
+        {
+          "type": "MODIFY_HEALTH",
+          "params": {
+            "amount": 2,
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "survival_biodome",
+      "name": "Bio-Dome",
+      "type": "SURVIVAL",
+      "description": "+2 Health if first card played this turn.",
+      "primitives": [
+        {
+          "type": "IF_FIRST_CARD",
+          "params": {},
+          "then": [
+            {
+              "type": "MODIFY_HEALTH",
+              "params": {
+                "amount": 2,
+                "target": "self"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "survival_energy_siphon",
+      "name": "Energy Siphon",
+      "type": "SURVIVAL",
+      "description": "+5 Points; +1 Pt for each pinned Power card.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 5,
+            "target": "self"
+          }
+        },
+        {
+          "type": "MODIFY_POINTS_SCALED",
+          "params": {
+            "scaleBy": "pinned_powers",
+            "multiplier": 1,
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "survival_scavenged_tech",
+      "name": "Scavenged Tech",
+      "type": "SURVIVAL",
+      "description": "Draw 2 cards.",
+      "primitives": [
+        {
+          "type": "DRAW_CARDS",
+          "params": {
+            "amount": 2,
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "survival_archive_01",
+      "name": "Archive 01",
+      "type": "SURVIVAL",
+      "description": "Draw 3 cards.",
+      "primitives": [
+        {
+          "type": "DRAW_CARDS",
+          "params": {
+            "amount": 3,
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "survival_nanoforge",
+      "name": "Nano-Forge",
+      "type": "SURVIVAL",
+      "description": "Upgrade one pinned Power card (temporarily doubles effect).",
+      "primitives": [
+        {
+          "type": "ADD_TRIGGER",
+          "params": {
+            "triggerKind": "TEMP_DOUBLE_POWER_EFFECT",
+            "duration": "turn",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "survival_solar_collector",
+      "name": "Solar Collector",
+      "type": "SURVIVAL",
+      "description": "+3 Points; if next card is Chaos, negate effect.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 3,
+            "target": "self"
+          }
+        },
+        {
+          "type": "ADD_TRIGGER",
+          "params": {
+            "triggerKind": "NEGATE_NEXT_NEGATIVE_EFFECT",
+            "duration": "next_event",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "survival_medic_drone",
+      "name": "Medic Drone",
+      "type": "SURVIVAL",
+      "description": "Heal 1 Health and prevent next point loss.",
+      "primitives": [
+        {
+          "type": "MODIFY_HEALTH",
+          "params": {
+            "amount": 1,
+            "target": "self"
+          }
+        },
+        {
+          "type": "ADD_TRIGGER",
+          "params": {
+            "triggerKind": "PREVENT_NEXT_POINT_LOSS",
+            "duration": "next_event",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "survival_hydro_filter",
+      "name": "Hydro Filter",
+      "type": "SURVIVAL",
+      "description": "Block first Disaster damage this turn.",
+      "primitives": [
+        {
+          "type": "ADD_TRIGGER",
+          "params": {
+            "triggerKind": "NEGATE_NEXT_DISASTER",
+            "duration": "round",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "survival_quantum_harvester",
+      "name": "Quantum Harvester",
+      "type": "SURVIVAL",
+      "description": "+4 Points; discard one card to double points.",
+      "primitives": [
+        {
+          "type": "IF_HAND_SIZE",
+          "params": { "op": ">=", "amount": 1 },
+          "then": [
+            {
+              "type": "DISCARD_CARDS",
+              "params": { "amount": 1, "target": "self" }
+            },
+            {
+              "type": "ADD_TRIGGER",
+              "params": {
+                "triggerKind": "DOUBLE_NEXT_POINTS",
+                "duration": "next_event",
+                "target": "self"
+              }
+            },
+            {
+              "type": "MODIFY_POINTS",
+              "params": { "amount": 4, "target": "self" }
+            }
+          ],
+          "else": [
+            {
+              "type": "MODIFY_POINTS",
+              "params": { "amount": 4, "target": "self" }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "survival_oasis_reservoir",
+      "name": "Oasis Reservoir",
+      "type": "SURVIVAL",
+      "description": "+2 Health; draw 1 card.",
+      "primitives": [
+        {
+          "type": "MODIFY_HEALTH",
+          "params": {
+            "amount": 2,
+            "target": "self"
+          }
+        },
+        {
+          "type": "DRAW_CARDS",
+          "params": {
+            "amount": 1,
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "survival_terraform_rig",
+      "name": "Terraform Rig",
+      "type": "SURVIVAL",
+      "description": "+3 Points; if hand <3 cards, draw 1.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 3,
+            "target": "self"
+          }
+        },
+        {
+          "type": "IF_HAND_SIZE",
+          "params": {
+            "op": "<",
+            "amount": 3
+          },
+          "then": [
+            {
+              "type": "DRAW_CARDS",
+              "params": {
+                "amount": 1,
+                "target": "self"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "survival_bioreactor",
+      "name": "Bio-Reactor",
+      "type": "SURVIVAL",
+      "description": "+5 Points; reduce incoming Disaster effect by 1.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 5,
+            "target": "self"
+          }
+        },
+        {
+          "type": "ADD_TRIGGER",
+          "params": {
+            "triggerKind": "REDUCE_INCOMING_DISASTER_1",
+            "duration": "round",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "survival_nutrient_mixer",
+      "name": "Nutrient Mixer",
+      "type": "SURVIVAL",
+      "description": "+2 Points; discard 1 to draw 2.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 2,
+            "target": "self"
+          }
+        },
+        {
+          "type": "IF_HAND_SIZE",
+          "params": { "op": ">=", "amount": 1 },
+          "then": [
+            {
+              "type": "DISCARD_CARDS",
+              "params": { "amount": 1, "target": "self" }
+            },
+            {
+              "type": "DRAW_CARDS",
+              "params": { "amount": 2, "target": "self" }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "survival_automated_farm",
+      "name": "Automated Farm",
+      "type": "SURVIVAL",
+      "description": "+3 Health if no other Survival card played.",
+      "primitives": [
+        {
+          "type": "IF_NO_OTHER_SURVIVAL",
+          "params": {},
+          "then": [
+            {
+              "type": "MODIFY_HEALTH",
+              "params": {
+                "amount": 3,
+                "target": "self"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "survival_energy_nexus",
+      "name": "Energy Nexus",
+      "type": "SURVIVAL",
+      "description": "+3 Points; +1 if Chaos card played previously.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 3,
+            "target": "self"
+          }
+        },
+        {
+          "type": "IF_CHAOS_PLAYED",
+          "params": {},
+          "then": [
+            {
+              "type": "MODIFY_POINTS",
+              "params": {
+                "amount": 1,
+                "target": "self"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "survival_lifesupport_array",
+      "name": "Lifesupport Array",
+      "type": "SURVIVAL",
+      "description": "+1 Health per pinned Adapt card.",
+      "primitives": [
+        {
+          "type": "MODIFY_HEALTH_SCALED",
+          "params": {
+            "scaleBy": "pinned_adapt",
+            "multiplier": 1,
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "survival_nanomed_kit",
+      "name": "Nano-Med Kit",
+      "type": "SURVIVAL",
+      "description": "Heal 2 Health; discard after use.",
+      "primitives": [
+        {
+          "type": "MODIFY_HEALTH",
+          "params": {
+            "amount": 2,
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "survival_neural_interface",
+      "name": "Neural Interface",
+      "type": "SURVIVAL",
+      "description": "Draw 1; gain 1 point.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 1,
+            "target": "self"
+          }
+        },
+        {
+          "type": "DRAW_CARDS",
+          "params": {
+            "amount": 1,
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "survival_micro_reactor",
+      "name": "Micro Reactor",
+      "type": "SURVIVAL",
+      "description": "+2 Points; prevent next negative card effect.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 2,
+            "target": "self"
+          }
+        },
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "prevent_negative",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "survival_data_uplink",
+      "name": "Data Uplink",
+      "type": "SURVIVAL",
+      "description": "Draw 2; opponent discards 1.",
+      "primitives": [
+        {
+          "type": "DRAW_CARDS",
+          "params": {
+            "amount": 2,
+            "target": "self"
+          }
+        },
+        {
+          "type": "DISCARD_CARDS",
+          "params": {
+            "amount": 1,
+            "target": "target_opponent"
+          }
+        }
+      ]
+    },
+    {
+      "id": "survival_pulse_generator",
+      "name": "Pulse Generator",
+      "type": "SURVIVAL",
+      "description": "+3 Points; can redirect next Disaster.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 3,
+            "target": "self"
+          }
+        },
+        {
+          "type": "ADD_TRIGGER",
+          "params": {
+            "triggerKind": "REDIRECT_NEXT_DISASTER",
+            "duration": "round",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "survival_gravity_well",
+      "name": "Gravity Well",
+      "type": "SURVIVAL",
+      "description": "Prevent opponent from drawing next card.",
+      "primitives": [
+        {
+          "type": "ADD_TRIGGER",
+          "params": {
+            "triggerKind": "PREVENT_OPPONENT_DRAW_1",
+            "duration": "next_event",
+            "target": "target_opponent"
+          }
+        }
+      ]
+    },
+    {
+      "id": "survival_subsurface_driller",
+      "name": "Subsurface Driller",
+      "type": "SURVIVAL",
+      "description": "+3 Points; can steal 1 point from target.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 3,
+            "target": "self"
+          }
+        },
+        {
+          "type": "STEAL_POINTS",
+          "params": {
+            "amount": 1,
+            "target": "target_opponent"
+          }
+        }
+      ]
+    },
+    {
+      "id": "survival_power_conduit",
+      "name": "Power Conduit",
+      "type": "SURVIVAL",
+      "description": "+2 Points; hand limit temporarily +1.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 2,
+            "target": "self"
+          }
+        },
+        {
+          "type": "ADD_TRIGGER",
+          "params": {
+            "triggerKind": "HAND_LIMIT_TEMP_1",
+            "duration": "turn",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "survival_shielded_habitat",
+      "name": "Shielded Habitat",
+      "type": "SURVIVAL",
+      "description": "+2 Health; protects next turn.",
+      "primitives": [
+        {
+          "type": "MODIFY_HEALTH",
+          "params": {
+            "amount": 2,
+            "target": "self"
+          }
+        },
+        {
+          "type": "ADD_TRIGGER",
+          "params": {
+            "triggerKind": "NEGATE_NEXT_DISASTER",
+            "duration": "round",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "survival_rescue_beacon",
+      "name": "Rescue Beacon",
+      "type": "SURVIVAL",
+      "description": "Draw 1; revive 1 Health if needed.",
+      "primitives": [
+        {
+          "type": "MODIFY_HEALTH",
+          "params": {
+            "amount": 1,
+            "target": "self"
+          }
+        },
+        {
+          "type": "DRAW_CARDS",
+          "params": {
+            "amount": 1,
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "survival_life_pod",
+      "name": "Life Pod",
+      "type": "SURVIVAL",
+      "description": "+1 Health; next Disaster negated.",
+      "primitives": [
+        {
+          "type": "MODIFY_HEALTH",
+          "params": {
+            "amount": 1,
+            "target": "self"
+          }
+        },
+        {
+          "type": "ADD_TRIGGER",
+          "params": {
+            "triggerKind": "NEGATE_NEXT_DISASTER",
+            "duration": "next_event",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "survival_hydroponic_lab",
+      "name": "Hydroponic Lab",
+      "type": "SURVIVAL",
+      "description": "+3 Points; discard 1 to draw 2.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 3,
+            "target": "self"
+          }
+        },
+        {
+          "type": "IF_HAND_SIZE",
+          "params": { "op": ">=", "amount": 1 },
+          "then": [
+            {
+              "type": "DISCARD_CARDS",
+              "params": { "amount": 1, "target": "self" }
+            },
+            {
+              "type": "DRAW_CARDS",
+              "params": { "amount": 2, "target": "self" }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "survival_thermal_plant",
+      "name": "Thermal Plant",
+      "type": "SURVIVAL",
+      "description": "+2 Points; block Chaos effect once.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 2,
+            "target": "self"
+          }
+        },
+        {
+          "type": "ADD_TRIGGER",
+          "params": {
+            "triggerKind": "NEGATE_NEXT_NEGATIVE_EFFECT",
+            "duration": "round",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "survival_solar_panel_array",
+      "name": "Solar Panel Array",
+      "type": "SURVIVAL",
+      "description": "+3 Points; draw 1 card if hand <5.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 3,
+            "target": "self"
+          }
+        },
+        {
+          "type": "IF_HAND_SIZE",
+          "params": {
+            "op": "<",
+            "amount": 5
+          },
+          "then": [
+            {
+              "type": "DRAW_CARDS",
+              "params": {
+                "amount": 1,
+                "target": "self"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "survival_wind_turbine",
+      "name": "Wind Turbine",
+      "type": "SURVIVAL",
+      "description": "+2 Points; temporary hand +1.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 2,
+            "target": "self"
+          }
+        },
+        {
+          "type": "ADD_TRIGGER",
+          "params": {
+            "triggerKind": "HAND_LIMIT_TEMP_1",
+            "duration": "turn",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "survival_water_purifier",
+      "name": "Water Purifier",
+      "type": "SURVIVAL",
+      "description": "Heal 1 Health; prevent next Catac effect.",
+      "primitives": [
+        {
+          "type": "MODIFY_HEALTH",
+          "params": {
+            "amount": 1,
+            "target": "self"
+          }
+        },
+        {
+          "type": "ADD_TRIGGER",
+          "params": {
+            "triggerKind": "NEGATE_NEXT_CATAC_EFFECT",
+            "duration": "round",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "survival_emergency_shelter",
+      "name": "Emergency Shelter",
+      "type": "SURVIVAL",
+      "description": "+2 Health; can block next Disaster.",
+      "primitives": [
+        {
+          "type": "MODIFY_HEALTH",
+          "params": {
+            "amount": 2,
+            "target": "self"
+          }
+        },
+        {
+          "type": "ADD_TRIGGER",
+          "params": {
+            "triggerKind": "NEGATE_NEXT_DISASTER",
+            "duration": "round",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "survival_micro_greenhouse",
+      "name": "Micro Greenhouse",
+      "type": "SURVIVAL",
+      "description": "+3 Points; discard 1 to draw 1.",
+      "primitives": [
+      {
+        "type": "DISCARD_AND_DRAW",
+        "params": {
+          "discardAmount": 1,
+          "drawAmount": 1,
+          "target": "self"
+        }
+      }
+      ]
+    },
+    {
+      "id": "survival_energy_core",
+      "name": "Energy Core",
+      "type": "SURVIVAL",
+      "description": "+5 Points; reset hand to 5 if lower.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 5,
+            "target": "self"
+          }
+        },
+        {
+          "type": "ENSURE_HAND_SIZE",
+          "params": {
+            "amount": 5,
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "survival_repair_drone",
+      "name": "Repair Drone",
+      "type": "SURVIVAL",
+      "description": "Heal 1 Health; discard after use.",
+      "primitives": [
+        {
+          "type": "MODIFY_HEALTH",
+          "params": {
+            "amount": 1,
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "survival_life_support_matrix",
+      "name": "Life Support Matrix",
+      "type": "SURVIVAL",
+      "description": "+2 Health; prevent first Disaster next turn.",
+      "primitives": [
+        {
+          "type": "MODIFY_HEALTH",
+          "params": {
+            "amount": 2,
+            "target": "self"
+          }
+        },
+        {
+          "type": "ADD_TRIGGER",
+          "params": {
+            "triggerKind": "NEGATE_NEXT_DISASTER",
+            "duration": "round",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "survival_nano_farm",
+      "name": "Nano Farm",
+      "type": "SURVIVAL",
+      "description": "+3 Points; +1 if hand ≤3.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 3,
+            "target": "self"
+          }
+        },
+        {
+          "type": "IF_HAND_SIZE",
+          "params": {
+            "op": "<=",
+            "amount": 3
+          },
+          "then": [
+            {
+              "type": "MODIFY_POINTS",
+              "params": {
+                "amount": 1,
+                "target": "self"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "survival_resource_cache",
+      "name": "Resource Cache",
+      "type": "SURVIVAL",
+      "description": "Draw 1; +2 Points.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": { "amount": 2, "target": "self" }
+        },
+        {
+          "type": "DRAW_CARDS",
+          "params": { "amount": 1, "target": "self" }
+        }
+      ]
+    },
+    {
+      "id": "survival_hydro_plant",
+      "name": "Hydro Plant",
+      "type": "SURVIVAL",
+      "description": "+2 Points; block next Disaster.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 2,
+            "target": "self"
+          }
+        },
+        {
+          "type": "ADD_TRIGGER",
+          "params": {
+            "triggerKind": "NEGATE_NEXT_DISASTER",
+            "duration": "round",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "survival_oxygen_generator",
+      "name": "Oxygen Generator",
+      "type": "SURVIVAL",
+      "description": "+2 Health; discard 1 to draw 1.",
+      "primitives": [
+        {
+          "type": "MODIFY_HEALTH",
+          "params": { "amount": 2, "target": "self" }
+        },
+        {
+          "type": "IF_HAND_SIZE",
+          "params": { "op": ">=", "amount": 1 },
+          "then": [
+            {
+              "type": "DISCARD_CARDS",
+              "params": { "amount": 1, "target": "self" }
+            },
+            {
+              "type": "DRAW_CARDS",
+              "params": { "amount": 1, "target": "self" }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "survival_automated_medic",
+      "name": "Automated Medic",
+      "type": "SURVIVAL",
+      "description": "+1 Health; prevent next Catac effect.",
+      "primitives": [
+        {
+          "type": "MODIFY_HEALTH",
+          "params": {
+            "amount": 1,
+            "target": "self"
+          }
+        },
+        {
+          "type": "ADD_TRIGGER",
+          "params": {
+            "triggerKind": "NEGATE_NEXT_CATAC_EFFECT",
+            "duration": "round",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "survival_fusion_reactor",
+      "name": "Fusion Reactor",
+      "type": "SURVIVAL",
+      "description": "+4 Points; discard 1 card to gain +2 Points.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": { "amount": 4, "target": "self" }
+        },
+        {
+          "type": "IF_HAND_SIZE",
+          "params": { "op": ">=", "amount": 1 },
+          "then": [
+            {
+              "type": "DISCARD_CARDS",
+              "params": { "amount": 1, "target": "self" }
+            },
+            {
+              "type": "MODIFY_POINTS",
+              "params": { "amount": 2, "target": "self" }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "survival_subsurface_lab",
+      "name": "Subsurface Lab",
+      "type": "SURVIVAL",
+      "description": "Draw 2; +1 Health.",
+      "primitives": [
+        {
+          "type": "DRAW_CARDS",
+          "params": {
+            "amount": 2,
+            "target": "self"
+          }
+        },
+        {
+          "type": "MODIFY_HEALTH",
+          "params": {
+            "amount": 1,
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "survival_energy_collector",
+      "name": "Energy Collector",
+      "type": "SURVIVAL",
+      "description": "+3 Points; can negate one Chaos card.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 3,
+            "target": "self"
+          }
+        },
+        {
+          "type": "ADD_TRIGGER",
+          "params": {
+            "triggerKind": "NEGATE_NEXT_NEGATIVE_EFFECT",
+            "duration": "round",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "survival_water_reservoir",
+      "name": "Water Reservoir",
+      "type": "SURVIVAL",
+      "description": "Heal 2 Health; discard after use.",
+      "primitives": [
+        {
+          "type": "MODIFY_HEALTH",
+          "params": { "amount": 2, "target": "self" }
+        }
+      ]
+    },
+    {
+      "id": "survival_mineral_extractor",
+      "name": "Mineral Extractor",
+      "type": "SURVIVAL",
+      "description": "+2 Points; next Catac effect negated.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 2,
+            "target": "self"
+          }
+        },
+        {
+          "type": "ADD_TRIGGER",
+          "params": {
+            "triggerKind": "NEGATE_NEXT_CATAC_EFFECT",
+            "duration": "round",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "survival_biorecovery_pod",
+      "name": "Bio-Recovery Pod",
+      "type": "SURVIVAL",
+      "description": "+1 Health; draw 1 card.",
+      "primitives": [
+        {
+          "type": "MODIFY_HEALTH",
+          "params": {
+            "amount": 1,
+            "target": "self"
+          }
+        },
+        {
+          "type": "DRAW_CARDS",
+          "params": {
+            "amount": 1,
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "survival_ai_med_bay",
+      "name": "AI Med Bay",
+      "type": "SURVIVAL",
+      "description": "+2 Health; prevent one negative effect.",
+      "primitives": [
+        {
+          "type": "MODIFY_HEALTH",
+          "params": {
+            "amount": 2,
+            "target": "self"
+          }
+        },
+        {
+          "type": "ADD_TRIGGER",
+          "params": {
+            "triggerKind": "NEGATE_NEXT_NEGATIVE_EFFECT",
+            "duration": "round",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "survival_resource_drone",
+      "name": "Resource Drone",
+      "type": "SURVIVAL",
+      "description": "Draw 2; discard 1 if hand >5.",
+      "primitives": [
+        {
+          "type": "DRAW_CARDS",
+          "params": {
+            "amount": 2,
+            "target": "self"
+          }
+        },
+        {
+          "type": "IF_HAND_SIZE",
+          "params": {
+            "op": ">=",
+            "amount": 6
+          },
+          "then": [
+            {
+              "type": "DISCARD_CARDS",
+              "params": {
+                "amount": 1,
+                "target": "self"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "survival_solar_array",
+      "name": "Solar Array",
+      "type": "SURVIVAL",
+      "description": "+3 Points; block one disaster.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 3,
+            "target": "self"
+          }
+        },
+        {
+          "type": "ADD_TRIGGER",
+          "params": {
+            "triggerKind": "NEGATE_NEXT_DISASTER",
+            "duration": "round",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "survival_energy_field",
+      "name": "Energy Field",
+      "type": "SURVIVAL",
+      "description": "+2 Points; redirect next negative card.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 2,
+            "target": "self"
+          }
+        },
+        {
+          "type": "ADD_TRIGGER",
+          "params": {
+            "triggerKind": "REDIRECT_NEXT_NEGATIVE",
+            "duration": "round",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "survival_life_support_hub",
+      "name": "Life Support Hub",
+      "type": "SURVIVAL",
+      "description": "+1 Health; +1 if Chaos played last turn.",
+      "primitives": [
+        {
+          "type": "MODIFY_HEALTH",
+          "params": {
+            "amount": 1,
+            "target": "self"
+          }
+        },
+        {
+          "type": "IF_CHAOS_PLAYED",
+          "params": {},
+          "then": [
+            {
+              "type": "MODIFY_HEALTH",
+              "params": {
+                "amount": 1,
+                "target": "self"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "survival_nano_repair_kit",
+      "name": "Nano Repair Kit",
+      "type": "SURVIVAL",
+      "description": "Heal 1; discard 1.",
+      "primitives": [
+        {
+          "type": "IF_HAND_SIZE",
+          "params": { "op": ">=", "amount": 1 },
+          "then": [
+            {
+              "type": "DISCARD_CARDS",
+              "params": { "amount": 1, "target": "self" }
+            },
+            {
+              "type": "MODIFY_HEALTH",
+              "params": { "amount": 1, "target": "self" }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "survival_hydro_farm",
+      "name": "Hydro Farm",
+      "type": "SURVIVAL",
+      "description": "+3 Points; draw 1 if hand ≤4.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 3,
+            "target": "self"
+          }
+        },
+        {
+          "type": "IF_HAND_SIZE",
+          "params": {
+            "op": "<=",
+            "amount": 4
+          },
+          "then": [
+            {
+              "type": "DRAW_CARDS",
+              "params": {
+                "amount": 1,
+                "target": "self"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "survival_power_booster",
+      "name": "Power Booster",
+      "type": "SURVIVAL",
+      "description": "+2 Points; block first Catac.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 2,
+            "target": "self"
+          }
+        },
+        {
+          "type": "ADD_TRIGGER",
+          "params": {
+            "triggerKind": "NEGATE_NEXT_CATAC_EFFECT",
+            "duration": "round",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "survival_emergency_reactor",
+      "name": "Emergency Reactor",
+      "type": "SURVIVAL",
+      "description": "+4 Points; discard 1 to draw 2.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": { "amount": 4, "target": "self" }
+        },
+        {
+          "type": "IF_HAND_SIZE",
+          "params": { "op": ">=", "amount": 1 },
+          "then": [
+            {
+              "type": "DISCARD_CARDS",
+              "params": { "amount": 1, "target": "self" }
+            },
+            {
+              "type": "DRAW_CARDS",
+              "params": { "amount": 2, "target": "self" }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "survival_medic_pod",
+      "name": "Medic Pod",
+      "type": "SURVIVAL",
+      "description": "Heal 2 Health; prevent one negative effect.",
+      "primitives": [
+        {
+          "type": "MODIFY_HEALTH",
+          "params": {
+            "amount": 2,
+            "target": "self"
+          }
+        },
+        {
+          "type": "ADD_TRIGGER",
+          "params": {
+            "triggerKind": "NEGATE_NEXT_NEGATIVE_EFFECT",
+            "duration": "round",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "survival_resource_array",
+      "name": "Resource Array",
+      "type": "SURVIVAL",
+      "description": "+3 Points; discard 1 to draw 1.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": { "amount": 3, "target": "self" }
+        },
+        {
+          "type": "IF_HAND_SIZE",
+          "params": { "op": ">=", "amount": 1 },
+          "then": [
+            {
+              "type": "DISCARD_CARDS",
+              "params": { "amount": 1, "target": "self" }
+            },
+            {
+              "type": "DRAW_CARDS",
+              "params": { "amount": 1, "target": "self" }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "survival_bio_lab",
+      "name": "Bio Lab",
+      "type": "SURVIVAL",
+      "description": "+2 Health; draw 1 if hand ≤3.",
+      "primitives": [
+        {
+          "type": "MODIFY_HEALTH",
+          "params": {
+            "amount": 2,
+            "target": "self"
+          }
+        },
+        {
+          "type": "IF_HAND_SIZE",
+          "params": {
+            "op": "<=",
+            "amount": 3
+          },
+          "then": [
+            {
+              "type": "DRAW_CARDS",
+              "params": {
+                "amount": 1,
+                "target": "self"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "survival_solar_reactor",
+      "name": "Solar Reactor",
+      "type": "SURVIVAL",
+      "description": "+4 Points; temporary hand +1.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 4,
+            "target": "self"
+          }
+        },
+        {
+          "type": "ADD_TRIGGER",
+          "params": {
+            "triggerKind": "HAND_LIMIT_TEMP_1",
+            "duration": "turn",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "survival_oxygen_pod",
+      "name": "Oxygen Pod",
+      "type": "SURVIVAL",
+      "description": "+1 Health; redirect next negative card.",
+      "primitives": [
+        {
+          "type": "MODIFY_HEALTH",
+          "params": {
+            "amount": 1,
+            "target": "self"
+          }
+        },
+        {
+          "type": "ADD_TRIGGER",
+          "params": {
+            "triggerKind": "REDIRECT_NEXT_NEGATIVE",
+            "duration": "round",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "survival_repair_hub",
+      "name": "Repair Hub",
+      "type": "SURVIVAL",
+      "description": "Heal 1 Health; discard 1 card.",
+      "primitives": [
+        {
+          "type": "MODIFY_HEALTH",
+          "params": { "amount": 1, "target": "self" }
+        },
+        {
+          "type": "IF_HAND_SIZE",
+          "params": { "op": ">=", "amount": 1 },
+          "then": [
+            {
+              "type": "DISCARD_CARDS",
+              "params": { "amount": 1, "target": "self" }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "survival_nano_shield",
+      "name": "Nano Shield",
+      "type": "SURVIVAL",
+      "description": "+2 Points; block first Catac.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 2,
+            "target": "self"
+          }
+        },
+        {
+          "type": "ADD_TRIGGER",
+          "params": {
+            "triggerKind": "NEGATE_NEXT_CATAC_EFFECT",
+            "duration": "round",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "survival_hydration_station",
+      "name": "Hydration Station",
+      "type": "SURVIVAL",
+      "description": "+2 Health; draw 1 card.",
+      "primitives": [
+        {
+          "type": "MODIFY_HEALTH",
+          "params": {
+            "amount": 2,
+            "target": "self"
+          }
+        },
+        {
+          "type": "DRAW_CARDS",
+          "params": {
+            "amount": 1,
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "survival_energy_grid",
+      "name": "Energy Grid",
+      "type": "SURVIVAL",
+      "description": "+3 Points; discard 1 to draw 1.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": { "amount": 3, "target": "self" }
+        },
+        {
+          "type": "IF_HAND_SIZE",
+          "params": { "op": ">=", "amount": 1 },
+          "then": [
+            {
+              "type": "DISCARD_CARDS",
+              "params": { "amount": 1, "target": "self" }
+            },
+            {
+              "type": "DRAW_CARDS",
+              "params": { "amount": 1, "target": "self" }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "survival_micro_medbay",
+      "name": "Micro Medbay",
+      "type": "SURVIVAL",
+      "description": "Heal 1; prevent next Disaster.",
+      "primitives": [
+        {
+          "type": "MODIFY_HEALTH",
+          "params": {
+            "amount": 1,
+            "target": "self"
+          }
+        },
+        {
+          "type": "ADD_TRIGGER",
+          "params": {
+            "triggerKind": "NEGATE_NEXT_DISASTER",
+            "duration": "round",
+            "target": "self"
+          }
+        }
+      ]
+},
+    {
+      "id": "survival_bio_reactor_core",
+      "name": "Bio Reactor Core",
+      "type": "SURVIVAL",
+      "description": "+4 Points; discard 1 to gain +1 Health.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 4,
+            "target": "self"
+          }
+        },
+        {
+          "type": "IF_HAND_SIZE",
+          "params": {
+            "op": ">=",
+            "amount": 1
+          },
+          "then": [
+            {
+              "type": "DISCARD_CARDS",
+              "params": {
+                "amount": 1,
+                "target": "self"
+              }
+            },
+            {
+              "type": "MODIFY_HEALTH",
+              "params": {
+                "amount": 1,
+                "target": "self"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "survival_ai_field_med",
+      "name": "AI Field Med",
+      "type": "SURVIVAL",
+      "description": "+2 Health; block one Catac.",
+      "primitives": [
+        {
+          "type": "MODIFY_HEALTH",
+          "params": {
+            "amount": 2,
+            "target": "self"
+          }
+        },
+        {
+          "type": "ADD_TRIGGER",
+          "params": {
+            "triggerKind": "NEGATE_NEXT_CATAC_EFFECT",
+            "duration": "round",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "survival_hydro_nexus",
+      "name": "Hydro Nexus",
+      "type": "SURVIVAL",
+      "description": "+3 Points; discard 1 to draw 1.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 3,
+            "target": "self"
+          }
+        },
+        {
+          "type": "DISCARD_CARDS",
+          "params": {
+            "amount": 1,
+            "target": "self"
+          }
+        },
+        {
+          "type": "DRAW_CARDS",
+          "params": {
+            "amount": 1,
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "survival_resource_depot",
+      "name": "Resource Depot",
+      "type": "SURVIVAL",
+      "description": "Draw 2; +1 Point.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 1,
+            "target": "self"
+          }
+        },
+        {
+          "type": "DRAW_CARDS",
+          "params": {
+            "amount": 2,
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "survival_fusion_plant",
+      "name": "Fusion Plant",
+      "type": "SURVIVAL",
+      "description": "+5 Points; hand temporary +1.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 5,
+            "target": "self"
+          }
+        },
+        {
+          "type": "ADD_TRIGGER",
+          "params": {
+            "triggerKind": "HAND_LIMIT_TEMP_1",
+            "duration": "turn",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "survival_life_hub",
+      "name": "Life Hub",
+      "type": "SURVIVAL",
+      "description": "Heal 1 Health; prevent next Disaster.",
+      "primitives": [
+        {
+          "type": "MODIFY_HEALTH",
+          "params": {
+            "amount": 1,
+            "target": "self"
+          }
+        },
+        {
+          "type": "ADD_TRIGGER",
+          "params": {
+            "triggerKind": "NEGATE_NEXT_DISASTER",
+            "duration": "round",
+            "target": "self"
+          }
+        }
+      ]
+    }
+  ],
+  "DISASTER": [
+    {
+      "id": "disaster_megaquake",
+      "name": "Mega-Quake",
+      "type": "DISASTER",
+      "description": "All opponents lose 3 Health; can be blocked by Kinetic Dampener.",
+      "disasterKind": "EARTHQUAKE",
+      "primitives": [
+        {
+          "type": "IF_UNBLOCKED",
+          "params": {
+            "target": "all_opponents"
+          },
+          "then": [
+            {
+              "type": "MODIFY_HEALTH",
+              "params": {
+                "amount": -3,
+                "target": "target_player"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "disaster_solar_scorch",
+      "name": "Solar Scorch",
+      "type": "DISASTER",
+      "description": "Target loses 4 Points; blocked by Thermal Layer.",
+      "disasterKind": "WILDFIRE",
+      "primitives": [
+        {
+          "type": "IF_UNBLOCKED",
+          "params": { "target": "inherited" },
+          "then": [
+            {
+              "type": "MODIFY_POINTS",
+              "params": {
+                "amount": -4,
+                "target": "target_player"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "disaster_viral_strain",
+      "name": "Viral Strain",
+      "type": "DISASTER",
+      "description": "Target cannot regain Health next turn; blocked by Stasis Field.",
+      "disasterKind": "PLAGUE",
+      "primitives": [
+        {
+          "type": "IF_UNBLOCKED",
+          "params": { "target": "inherited" },
+          "then": [
+            {
+              "type": "ADD_TRIGGER",
+              "params": {
+                "triggerKind": "PREVENT_HEALTH_REGAIN",
+                "duration": "turn",
+                "target": "target_player"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "disaster_abyssal_surge",
+      "name": "Abyssal Surge",
+      "type": "DISASTER",
+      "description": "All opponents lose 2 Health; blocked by Hydro-Gate.",
+      "disasterKind": "FLOOD",
+      "primitives": [
+        {
+          "type": "IF_UNBLOCKED",
+          "params": { "target": "all_opponents" },
+          "then": [
+            {
+              "type": "MODIFY_HEALTH",
+              "params": {
+                "amount": -2,
+                "target": "target_player"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "disaster_void_meteor",
+      "name": "Void Meteor",
+      "type": "DISASTER",
+      "description": "All opponents lose 5 Points; cannot be blocked.",
+      "disasterKind": "GLOBAL",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": -5,
+            "target": "all_opponents"
+          }
+        }
+      ]
+    },
+    {
+      "id": "disaster_shatter_vault",
+      "name": "Shatter Vault",
+      "type": "DISASTER",
+      "description": "Destroy one pinned Power card of target.",
+      "primitives": [
+        {
+          "type": "DESTROY_PINNED",
+          "params": {
+            "amount": 1,
+            "target": "target_player"
+          }
+        }
+      ]
+    },
+    {
+      "id": "disaster_acid_rain",
+      "name": "Acid Rain",
+      "type": "DISASTER",
+      "description": "Target loses 1 Point per turn for 3 turns; blocked by Hydro-Gate.",
+      "disasterKind": "FLOOD",
+      "primitives": [
+        {
+          "type": "IF_UNBLOCKED",
+          "params": { "target": "inherited" },
+          "then": [
+            {
+              "type": "ADD_TRIGGER",
+              "params": {
+                "triggerKind": "LOSE_1_PT_PER_TURN_3",
+                "duration": "round",
+                "target": "target_player"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "disaster_absolute_zero",
+      "name": "Absolute Zero",
+      "type": "DISASTER",
+      "description": "Target loses 5 Health; cannot be blocked.",
+      "disasterKind": "GLOBAL",
+      "primitives": [
+        {
+          "type": "MODIFY_HEALTH",
+          "params": {
+            "amount": -5,
+            "target": "target_player"
+          }
+        }
+      ]
+    },
+    {
+      "id": "disaster_plasma_blast",
+      "name": "Plasma Blast",
+      "type": "DISASTER",
+      "description": "Target loses 3 Points; blocked by Thermal Layer.",
+      "disasterKind": "WILDFIRE",
+      "primitives": [
+        {
+          "type": "IF_UNBLOCKED",
+          "params": { "target": "inherited" },
+          "then": [
+            {
+              "type": "MODIFY_POINTS",
+              "params": {
+                "amount": -3,
+                "target": "target_player"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "disaster_toxic_cloud",
+      "name": "Toxic Cloud",
+      "type": "DISASTER",
+      "description": "Target discards 2 cards; blocked by Stasis Field.",
+      "disasterKind": "PLAGUE",
+      "primitives": [
+        {
+          "type": "IF_UNBLOCKED",
+          "params": { "target": "inherited" },
+          "then": [
+            {
+              "type": "DISCARD_CARDS",
+              "params": { "amount": 2, "target": "target_player" }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "disaster_sandstorm",
+      "name": "Sandstorm",
+      "type": "DISASTER",
+      "description": "Skip target’s next turn; blocked by Kinetic Dampener.",
+      "disasterKind": "EARTHQUAKE",
+      "primitives": [
+        {
+          "type": "IF_UNBLOCKED",
+          "params": {
+            "target": "inherited"
+          },
+          "then": [
+            {
+              "type": "APPLY_BUFF",
+              "params": {
+                "buffId": "skip_next",
+                "target": "target_player"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "disaster_electromagnetic_pulse",
+      "name": "Electromagnetic Pulse",
+      "type": "DISASTER",
+      "description": "All pinned Power cards disabled for 1 turn.",
+      "primitives": [
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "disable_powers_1_turn",
+            "target": "all"
+          }
+        }
+      ]
+    },
+    {
+      "id": "disaster_gravity_collapse",
+      "name": "Gravity Collapse",
+      "type": "DISASTER",
+      "description": "All opponents discard 1 card; cannot be blocked.",
+      "disasterKind": "GLOBAL",
+      "primitives": [
+        {
+          "type": "DISCARD_CARDS",
+          "params": {
+            "amount": 1,
+            "target": "all_opponents"
+          }
+        }
+      ]
+    },
+    {
+      "id": "disaster_radiation_leak",
+      "name": "Radiation Leak",
+      "type": "DISASTER",
+      "description": "Target loses 2 Health; next Catac effect negated.",
+      "disasterKind": "FLOOD",
+      "primitives": [
+        {
+          "type": "IF_UNBLOCKED",
+          "params": {
+            "target": "inherited"
+          },
+          "then": [
+            {
+              "type": "MODIFY_HEALTH",
+              "params": {
+                "amount": -2,
+                "target": "target_player"
+              }
+            },
+            {
+              "type": "ADD_TRIGGER",
+              "params": {
+                "triggerKind": "NEGATE_NEXT_CATAC_EFFECT",
+                "duration": "round",
+                "target": "target_player"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "disaster_storm_surge",
+      "name": "Storm Surge",
+      "type": "DISASTER",
+      "description": "All players lose 2 Points; blocked by Hydro-Gate.",
+      "disasterKind": "FLOOD",
+      "primitives": [
+        {
+          "type": "IF_UNBLOCKED",
+          "params": {
+            "target": "all"
+          },
+          "then": [
+            {
+              "type": "MODIFY_POINTS",
+              "params": {
+                "amount": -2,
+                "target": "inherited"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "disaster_magnetic_rift",
+      "name": "Magnetic Rift",
+      "type": "DISASTER",
+      "description": "Swap target’s hand with discard pile; blocked by Kinetic Dampener.",
+      "disasterKind": "EARTHQUAKE",
+      "primitives": [
+        {
+          "type": "IF_UNBLOCKED",
+          "params": {
+            "target": "inherited"
+          },
+          "then": [
+            {
+              "type": "SWAP_HAND_WITH_DISCARD",
+              "params": {
+                "target": "target_player"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "disaster_firestorm",
+      "name": "Firestorm",
+      "type": "DISASTER",
+      "description": "Target loses 3 Health; blocked by Thermal Layer.",
+      "disasterKind": "WILDFIRE",
+      "primitives": [
+        {
+          "type": "IF_UNBLOCKED",
+          "params": {
+            "target": "inherited"
+          },
+          "then": [
+            {
+              "type": "MODIFY_HEALTH",
+              "params": {
+                "amount": -3,
+                "target": "target_player"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "disaster_contamination",
+      "name": "Contamination",
+      "type": "DISASTER",
+      "description": "Target cannot play Survival cards next turn; blocked by Stasis Field.",
+      "disasterKind": "PLAGUE",
+      "primitives": [
+        {
+          "type": "IF_UNBLOCKED",
+          "params": {
+            "target": "inherited"
+          },
+          "then": [
+            {
+              "type": "ADD_TRIGGER",
+              "params": {
+                "triggerKind": "DISABLE_SURVIVAL_NEXT_TURN",
+                "duration": "turn",
+                "target": "target_player"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "disaster_volcanic_eruption",
+      "name": "Volcanic Eruption",
+      "type": "DISASTER",
+      "description": "All opponents lose 3 Health; cannot be blocked.",
+      "disasterKind": "GLOBAL",
+      "primitives": [
+        {
+          "type": "MODIFY_HEALTH",
+          "params": {
+            "amount": -3,
+            "target": "all_opponents"
+          }
+        }
+      ]
+    },
+    {
+      "id": "disaster_ice_barrage",
+      "name": "Ice Barrage",
+      "type": "DISASTER",
+      "description": "Target loses 2 Health; blocked by Stasis Field.",
+      "disasterKind": "PLAGUE",
+      "primitives": [
+        {
+          "type": "IF_UNBLOCKED",
+          "params": {
+            "target": "inherited"
+          },
+          "then": [
+            {
+              "type": "MODIFY_HEALTH",
+              "params": {
+                "amount": -2,
+                "target": "target_player"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "disaster_quicksand",
+      "name": "Quicksand",
+      "type": "DISASTER",
+      "description": "Target skips next draw; blocked by Kinetic Dampener.",
+      "disasterKind": "EARTHQUAKE",
+      "primitives": [
+        {
+          "type": "IF_UNBLOCKED",
+          "params": {
+            "target": "inherited"
+          },
+          "then": [
+            {
+              "type": "ADD_TRIGGER",
+              "params": {
+                "triggerKind": "SKIP_NEXT_DRAW",
+                "duration": "round",
+                "target": "target_player"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "disaster_lightning_strike",
+      "name": "Lightning Strike",
+      "type": "DISASTER",
+      "description": "Target loses 3 Points; blocked by Thermal Layer.",
+      "disasterKind": "WILDFIRE",
+      "primitives": [
+        {
+          "type": "IF_UNBLOCKED",
+          "params": { "target": "inherited" },
+          "then": [
+            {
+              "type": "MODIFY_POINTS",
+              "params": {
+                "amount": -3,
+                "target": "target_player"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "disaster_biohazard",
+      "name": "Biohazard",
+      "type": "DISASTER",
+      "description": "Target discards 1 card; blocked by Stasis Field.",
+      "disasterKind": "PLAGUE",
+      "primitives": [
+        {
+          "type": "IF_UNBLOCKED",
+          "params": {
+            "target": "inherited"
+          },
+          "then": [
+            {
+              "type": "DISCARD_CARDS",
+              "params": {
+                "amount": 1,
+                "target": "target_player"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "disaster_tidal_wave",
+      "name": "Tidal Wave",
+      "type": "DISASTER",
+      "description": "All opponents discard 1 card; blocked by Hydro-Gate.",
+      "disasterKind": "FLOOD",
+      "primitives": [
+        {
+          "type": "IF_UNBLOCKED",
+          "params": {
+            "target": "all_opponents"
+          },
+          "then": [
+            {
+              "type": "DISCARD_CARDS",
+              "params": {
+                "amount": 1,
+                "target": "target_player"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "disaster_sand_trap",
+      "name": "Sand Trap",
+      "type": "DISASTER",
+      "description": "Target loses 2 Points; blocked by Kinetic Dampener.",
+      "disasterKind": "EARTHQUAKE",
+      "primitives": [
+        {
+          "type": "IF_UNBLOCKED",
+          "params": {
+            "target": "inherited"
+          },
+          "then": [
+            {
+              "type": "MODIFY_POINTS",
+              "params": {
+                "amount": -2,
+                "target": "target_player"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "disaster_acid_fog",
+      "name": "Acid Fog",
+      "type": "DISASTER",
+      "description": "Target loses 1 Health each turn for 2 turns; blocked by Stasis Field.",
+      "disasterKind": "PLAGUE",
+      "primitives": [
+        {
+          "type": "IF_UNBLOCKED",
+          "params": {
+            "target": "inherited"
+          },
+          "then": [
+            {
+              "type": "ADD_TRIGGER",
+              "params": {
+                "triggerKind": "LOSE_1_HEALTH_PER_TURN_2",
+                "duration": "round",
+                "target": "target_player"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "disaster_corrosive_gas",
+      "name": "Corrosive Gas",
+      "type": "DISASTER",
+      "description": "Target discards 2 cards; cannot be blocked.",
+      "disasterKind": "GLOBAL",
+      "primitives": [
+        {
+          "type": "DISCARD_CARDS",
+          "params": {
+            "amount": 2,
+            "target": "target_player"
+          }
+        }
+      ]
+    },
+    {
+      "id": "disaster_earth_collapse",
+      "name": "Earth Collapse",
+      "type": "DISASTER",
+      "description": "All opponents lose 2 Health; blocked by Kinetic Dampener.",
+      "disasterKind": "EARTHQUAKE",
+      "primitives": [
+        {
+          "type": "IF_UNBLOCKED",
+          "params": {
+            "target": "all_opponents"
+          },
+          "then": [
+            {
+              "type": "MODIFY_HEALTH",
+              "params": {
+                "amount": -2,
+                "target": "target_player"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "disaster_firestorm_flare",
+      "name": "Firestorm Flare",
+      "type": "DISASTER",
+      "description": "Target loses 4 Points; blocked by Thermal Layer.",
+      "disasterKind": "WILDFIRE",
+      "primitives": [
+        {
+          "type": "IF_UNBLOCKED",
+          "params": { "target": "inherited" },
+          "then": [
+            {
+              "type": "MODIFY_POINTS",
+              "params": {
+                "amount": -4,
+                "target": "target_player"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "disaster_plasma_surge",
+      "name": "Plasma Surge",
+      "type": "DISASTER",
+      "description": "Target discards 1 card; all Survival cards negated this turn.",
+      "disasterKind": "FLOOD",
+      "primitives": [
+        {
+          "type": "IF_UNBLOCKED",
+          "params": {
+            "target": "inherited"
+          },
+          "then": [
+            {
+              "type": "DISCARD_CARDS",
+              "params": {
+                "amount": 1,
+                "target": "target_player"
+              }
+            },
+            {
+              "type": "ADD_TRIGGER",
+              "params": {
+                "triggerKind": "NEGATE_ALL_SURVIVAL_THIS_TURN",
+                "duration": "turn",
+                "target": "all"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "disaster_solar_flare",
+      "name": "Solar Flare",
+      "type": "DISASTER",
+      "description": "Heat-based disaster. All others lose 2 Points; drawer loses 3 if epicenter.",
+      "disasterKind": "WILDFIRE",
+      "primitives": [
+        {
+          "type": "IF_UNBLOCKED",
+          "params": { "target": "all_opponents" },
+          "then": [
+            {
+              "type": "MODIFY_POINTS",
+              "params": { "amount": -2, "target": "target_player" }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "disaster_kinetic_impact",
+      "name": "Kinetic Impact",
+      "type": "DISASTER",
+      "description": "Kinetic-based disaster. All targets lose 3 Points.",
+      "disasterKind": "EARTHQUAKE",
+      "primitives": [
+        {
+          "type": "IF_UNBLOCKED",
+          "params": { "target": "all" },
+          "then": [
+            {
+              "type": "MODIFY_POINTS",
+              "params": { "amount": -3, "target": "target_player" }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "POWER": [
+    {
+      "id": "power_kinetic_dampener",
+      "name": "Kinetic Dampener",
+      "type": "POWER",
+      "description": "Blocks first Earth Disaster; pinned until destroyed.",
+      "primitives": [
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "block_first_disaster",
+            "kind": "earth",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "power_thermal_layer",
+      "name": "Thermal Layer",
+      "type": "POWER",
+      "description": "Blocks first Fire Disaster; pinned until destroyed.",
+      "primitives": [
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "block_first_disaster",
+            "kind": "fire",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "power_stasis_field",
+      "name": "Stasis Field",
+      "type": "POWER",
+      "description": "Blocks first Bio Disaster; pinned until destroyed.",
+      "primitives": [
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "block_first_disaster",
+            "kind": "bio",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "power_hydrogate",
+      "name": "Hydro-Gate",
+      "type": "POWER",
+      "description": "Blocks first Hydro Disaster; pinned until destroyed.",
+      "primitives": [
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "block_first_disaster",
+            "kind": "hydro",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "power_magnetic_shield",
+      "name": "Magnetic Shield",
+      "type": "POWER",
+      "description": "Redirects first Chaos or Disaster card; pinned.",
+      "primitives": [
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "redirect_chaos_disaster",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "power_energy_amplifier",
+      "name": "Energy Amplifier",
+      "type": "POWER",
+      "description": "+1 Point each turn while pinned.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 1,
+            "target": "self"
+          }
+        },
+        {
+          "type": "ADD_TRIGGER",
+          "params": {
+            "triggerKind": "POINTS_PER_TURN_1",
+            "duration": "permanent",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "power_structural_matrix",
+      "name": "Structural Matrix",
+      "type": "POWER",
+      "description": "Prevent 1 Health loss per turn.",
+      "primitives": [
+        {
+          "type": "MODIFY_HEALTH",
+          "params": {
+            "amount": 1,
+            "target": "self"
+          }
+        },
+        {
+          "type": "ADD_TRIGGER",
+          "params": {
+            "triggerKind": "REDUCE_INCOMING_DISASTER_1",
+            "duration": "permanent",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "power_defense_node",
+      "name": "Defense Node",
+      "type": "POWER",
+      "description": "Blocks one Catac effect; discarded if used.",
+      "primitives": [
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "block_catac",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "power_gravity_stabilizer",
+      "name": "Gravity Stabilizer",
+      "type": "POWER",
+      "description": "Prevent turn skip effects.",
+      "primitives": [
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "prevent_turn_skip",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "power_fire_containment",
+      "name": "Fire Containment",
+      "type": "POWER",
+      "description": "Blocks next Fire Disaster; pinned.",
+      "primitives": [
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "block_next_disaster",
+            "kind": "fire",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "power_thermal_shield",
+      "name": "Thermal Shield",
+      "type": "POWER",
+      "description": "Tutorial: Blocks Heat-based disasters indefinitely.",
+      "primitives": [
+        {
+          "type": "ADD_TRIGGER",
+          "params": {
+            "triggerKind": "NEGATE_NEXT_DISASTER",
+            "kind": "HEATING_01",
+            "duration": "permanent",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "power_biocontainment",
+      "name": "Bio-Containment",
+      "type": "POWER",
+      "description": "Blocks next Bio Disaster; pinned.",
+      "primitives": [
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "block_next_disaster",
+            "kind": "bio",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "power_aqua_barrier",
+      "name": "Aqua Barrier",
+      "type": "POWER",
+      "description": "Blocks next Hydro Disaster; pinned.",
+      "primitives": [
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "block_next_disaster",
+            "kind": "hydro",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "power_energy_buffer",
+      "name": "Energy Buffer",
+      "type": "POWER",
+      "description": "+1 Point per Survival card played.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 1,
+            "target": "self"
+          }
+        },
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "points_per_survival_1",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "power_shield_generator",
+      "name": "Shield Generator",
+      "type": "POWER",
+      "description": "Prevents next Catac negative effect.",
+      "primitives": [
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "prevent_catac_effect",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "power_nano_barrier",
+      "name": "Nano Barrier",
+      "type": "POWER",
+      "description": "Redirect one Disaster to another target.",
+      "primitives": [
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "redirect_disaster",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "power_reflex_array",
+      "name": "Reflex Array",
+      "type": "POWER",
+      "description": "Draw 1 card when pinned.",
+      "primitives": [
+        {
+          "type": "DRAW_CARDS",
+          "params": {
+            "amount": 1,
+            "target": "self"
+          }
+        },
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "draw_when_pinned_1",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "power_resource_stabilizer",
+      "name": "Resource Stabilizer",
+      "type": "POWER",
+      "description": "Block next point loss.",
+      "primitives": [
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "block_point_loss",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "power_temporal_anchor",
+      "name": "Temporal Anchor",
+      "type": "POWER",
+      "description": "Prevents next turn order change.",
+      "primitives": [
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "prevent_turn_reverse",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "power_power_grid",
+      "name": "Power Grid",
+      "type": "POWER",
+      "description": "+2 Points if hand ≤3.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 2,
+            "target": "self"
+          }
+        },
+        {
+          "type": "IF_HAND_SIZE",
+          "params": {
+            "op": "<=",
+            "amount": 3,
+            "target": "self"
+          },
+          "then": [
+            {
+              "type": "MODIFY_POINTS",
+              "params": {
+                "amount": 2,
+                "target": "self"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "power_vital_core",
+      "name": "Vital Core",
+      "type": "POWER",
+      "description": "Heal 1 Health each turn.",
+      "primitives": [
+        {
+          "type": "MODIFY_HEALTH",
+          "params": {
+            "amount": 1,
+            "target": "self"
+          }
+        },
+        {
+          "type": "ADD_TRIGGER",
+          "params": {
+            "triggerKind": "HEAL_1_PER_TURN",
+            "duration": "permanent",
+            "target": "self"
+          }
+        }
+      ]
+    }
+  ],
+  "ADAPT": [
+    {
+      "id": "adapt_reflex_coil",
+      "name": "Reflex Coil",
+      "type": "ADAPT",
+      "description": "Blocks Earthquake; draw 1 card.",
+      "primitives": [
+        {
+          "type": "ADD_TRIGGER",
+          "params": {
+            "triggerKind": "BLOCK_EARTHQUAKE_DRAW_1",
+            "duration": "permanent",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "adapt_shadow_step",
+      "name": "Shadow Step",
+      "type": "ADAPT",
+      "description": "Blocks Wildfire; draw 1 card.",
+      "primitives": [
+        {
+          "type": "ADD_TRIGGER",
+          "params": {
+            "triggerKind": "BLOCK_WILDFIRE_DRAW_1",
+            "duration": "permanent",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "adapt_phase_shift",
+      "name": "Phase Shift",
+      "type": "ADAPT",
+      "description": "Evade next high-tier disaster.",
+      "primitives": [
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "evade_hightier_disaster",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "adapt_emergency_override",
+      "name": "Emergency Override",
+      "type": "ADAPT",
+      "description": "Cancel one Disaster card targeting you.",
+      "primitives": [
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "cancel_disaster_target",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "adapt_nano_patch",
+      "name": "Nano Patch",
+      "type": "ADAPT",
+      "description": "Heal 1 Health; discarded after use.",
+      "primitives": [
+        {
+          "type": "MODIFY_HEALTH",
+          "params": {
+            "amount": 1,
+            "target": "self"
+          }
+        },
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "discard_after_use",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "adapt_temporal_shift",
+      "name": "Temporal Shift",
+      "type": "ADAPT",
+      "description": "Skip your turn to negate Catac effect.",
+      "primitives": [
+        {
+          "type": "SKIP_TURN",
+          "params": {
+            "target": "self"
+          }
+        },
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "negate_catac",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "adapt_surge_capacitor",
+      "name": "Surge Capacitor",
+      "type": "ADAPT",
+      "description": "+2 Points if used immediately after Survival card.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 2,
+            "target": "self"
+          }
+        },
+        {
+          "type": "IF_PREVIOUS_CARD_TYPE",
+          "params": {
+            "cardType": "SURVIVAL"
+          },
+          "then": [
+            {
+              "type": "MODIFY_POINTS",
+              "params": {
+                "amount": 2,
+                "target": "self"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "adapt_shield_patch",
+      "name": "Shield Patch",
+      "type": "ADAPT",
+      "description": "Blocks next negative card effect; discarded after use.",
+      "primitives": [
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "block_negative_effect",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "adapt_repair_module",
+      "name": "Repair Module",
+      "type": "ADAPT",
+      "description": "Restore 1 Health; discard after use.",
+      "primitives": [
+        {
+          "type": "MODIFY_HEALTH",
+          "params": {
+            "amount": 1,
+            "target": "self"
+          }
+        },
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "discard_after_use",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "adapt_energy_flux",
+      "name": "Energy Flux",
+      "type": "ADAPT",
+      "description": "Convert Disaster loss into Points.",
+      "primitives": [
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "convert_disaster_to_points",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "adapt_quantum_dodge",
+      "name": "Quantum Dodge",
+      "type": "ADAPT",
+      "description": "Evade next Chaos effect.",
+      "primitives": [
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "evade_chaos",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "adapt_bio_shield",
+      "name": "Bio Shield",
+      "type": "ADAPT",
+      "description": "Block 1 Health loss from Disaster.",
+      "primitives": [
+        {
+          "type": "MODIFY_HEALTH",
+          "params": {
+            "amount": 1,
+            "target": "self"
+          }
+        },
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "block_health_loss",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "adapt_chaos_repeater",
+      "name": "Chaos Repeater",
+      "type": "ADAPT",
+      "description": "Redirect Chaos effect to another player.",
+      "primitives": [
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "redirect_chaos",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "adapt_protective_field",
+      "name": "Protective Field",
+      "type": "ADAPT",
+      "description": "Block next negative effect; discarded.",
+      "primitives": [
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "block_negative_effect",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "adapt_emergency_medkit",
+      "name": "Emergency Medkit",
+      "type": "ADAPT",
+      "description": "Heal 2 Health; discard after use.",
+      "primitives": [
+        {
+          "type": "MODIFY_HEALTH",
+          "params": { "amount": 2, "target": "self" }
+        }
+      ]
+    },
+    {
+      "id": "adapt_resource_stabilizer",
+      "name": "Resource Stabilizer",
+      "type": "ADAPT",
+      "description": "+1 Point for each Survival card pinned.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 1,
+            "target": "self"
+          }
+        },
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "points_per_pinned_survival_1",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "adapt_safety_override",
+      "name": "Safety Override",
+      "type": "ADAPT",
+      "description": "Cancel one Catac card.",
+      "primitives": [
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "cancel_catac",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "adapt_nano_barrier",
+      "name": "Nano Barrier",
+      "type": "ADAPT",
+      "description": "Redirect next negative card.",
+      "primitives": [
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "redirect_negative",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "adapt_temporal_shield",
+      "name": "Temporal Shield",
+      "type": "ADAPT",
+      "description": "Prevent turn skip or reverse.",
+      "primitives": [
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "prevent_turn_skip_reverse",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "adapt_evacuation_protocol",
+      "name": "Evacuation Protocol",
+      "type": "ADAPT",
+      "description": "Avoid next Disaster effect.",
+      "primitives": [
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "avoid_disaster",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "adapt_kinetic_field",
+      "name": "Kinetic Field",
+      "type": "ADAPT",
+      "description": "Tutorial: Block next negative effect.",
+      "primitives": [
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "block_negative_effect",
+            "target": "self"
+          }
+        }
+      ]
+    }
+  ],
+  "CHAOS": [
+    {
+      "id": "chaos_orbital_strike",
+      "name": "Orbital Strike",
+      "type": "CHAOS",
+      "description": "+3 Points; all others lose 1 Health.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 3,
+            "target": "self"
+          }
+        },
+        {
+          "type": "MODIFY_HEALTH",
+          "params": {
+            "amount": -1,
+            "target": "all_opponents"
+          }
+        }
+      ]
+    },
+    {
+      "id": "chaos_scavenger_raid",
+      "name": "Scavenger Raid",
+      "type": "CHAOS",
+      "description": "Take 1 card from discard pile.",
+      "primitives": [
+        {
+          "type": "RETURN_FROM_DISCARD",
+          "params": {
+            "amount": 1,
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "chaos_grand_theft",
+      "name": "Grand Theft",
+      "type": "CHAOS",
+      "description": "Steal 5 Points from a target.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 5,
+            "target": "self"
+          }
+        },
+        {
+          "type": "STEAL_POINTS",
+          "params": {
+            "amount": 5,
+            "target": "target_player"
+          }
+        }
+      ]
+    },
+    {
+      "id": "chaos_health_for_points",
+      "name": "Health for Points",
+      "type": "CHAOS",
+      "description": "Lose 1 Health for +10 Points.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 10,
+            "target": "self"
+          }
+        },
+        {
+          "type": "MODIFY_HEALTH",
+          "params": {
+            "amount": -1,
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "chaos_neural_spike",
+      "name": "Neural Spike",
+      "type": "CHAOS",
+      "description": "Confuse opponent; skip their next turn.",
+      "primitives": [
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "skip_next",
+            "target": "target_player"
+          }
+        }
+      ]
+    },
+    {
+      "id": "chaos_temporal_distortion",
+      "name": "Temporal Distortion",
+      "type": "CHAOS",
+      "description": "Reverse turn order until end of round.",
+      "primitives": [
+        {
+          "type": "REVERSE_TURN_ORDER",
+          "params": {
+            "duration": "round"
+          }
+        }
+      ]
+    },
+    {
+      "id": "chaos_point_flux",
+      "name": "Point Flux",
+      "type": "CHAOS",
+      "description": "Randomly add/remove 1–5 Points from each player.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS_RANDOM",
+          "params": {
+            "min": -5,
+            "max": 5,
+            "target": "all"
+          }
+        }
+      ]
+    },
+    {
+      "id": "chaos_card_storm",
+      "name": "Card Storm",
+      "type": "CHAOS",
+      "description": "Shuffle all piles into deck.",
+      "primitives": [
+        {
+          "type": "SHUFFLE_ALL_PILES"
+        }
+      ]
+    },
+    {
+      "id": "chaos_resource_surge",
+      "name": "Resource Surge",
+      "type": "CHAOS",
+      "description": "Draw 3 cards; discard 1.",
+      "primitives": [
+        {
+          "type": "DRAW_CARDS",
+          "params": {
+            "amount": 3,
+            "target": "self"
+          }
+        },
+        {
+          "type": "DISCARD_CARDS",
+          "params": {
+             "amount": 1,
+             "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "chaos_energy_collapse",
+      "name": "Energy Collapse",
+      "type": "CHAOS",
+      "description": "Lose 2 Points; opponents gain 1 each.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": -2,
+            "target": "self"
+          }
+        },
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 1,
+            "target": "all_opponents"
+          }
+        }
+      ]
+    },
+    {
+      "id": "chaos_rule_break",
+      "name": "Rule Break",
+      "type": "CHAOS",
+      "description": "Ignore next rule of your choice.",
+      "primitives": [
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "ignore_rule",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "chaos_global_shakeup",
+      "name": "Global Shakeup",
+      "type": "CHAOS",
+      "description": "Redistribute all Points equally.",
+      "primitives": [
+        {
+          "type": "REDISTRIBUTE_POINTS",
+          "params": {
+            "format": "equal"
+          }
+        }
+      ]
+    },
+    {
+      "id": "chaos_health_gamble",
+      "name": "Health Gamble",
+      "type": "CHAOS",
+      "description": "Roll dice; gain/lose 1–3 Health.",
+      "primitives": [
+        {
+          "type": "MODIFY_HEALTH_RANDOM",
+          "params": {
+            "min": -3,
+            "max": 3,
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "chaos_instant_swap",
+      "name": "Instant Swap",
+      "type": "CHAOS",
+      "description": "Swap hands with a target player.",
+      "primitives": [
+        {
+          "type": "SWAP_HANDS",
+          "params": {
+            "targetA": "self",
+            "targetB": "target_player"
+          }
+        }
+      ]
+    },
+    {
+      "id": "chaos_wild_mutation",
+      "name": "Wild Mutation",
+      "type": "CHAOS",
+      "description": "Randomly swap pinned Power or Adapt cards.",
+      "primitives": [
+        {
+          "type": "SWAP_POWERS_RANDOM",
+          "params": {
+            "target": "all"
+          }
+        }
+      ]
+    },
+    {
+      "id": "chaos_cataclysm_redirect",
+      "name": "Cataclysm Redirect",
+      "type": "CHAOS",
+      "description": "Redirect one Catac card.",
+      "primitives": [
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "redirect_catac",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "chaos_draw_flux",
+      "name": "Draw Flux",
+      "type": "CHAOS",
+      "description": "Everyone draws 1 card.",
+      "primitives": [
+        {
+          "type": "DRAW_CARDS",
+          "params": {
+            "amount": 1,
+            "target": "all"
+          }
+        }
+      ]
+    },
+    {
+      "id": "chaos_survival_override",
+      "name": "Survival Override",
+      "type": "CHAOS",
+      "description": "All Survival cards +1 Point this turn.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 1,
+            "target": "self"
+          }
+        },
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "survival_plus_1_pt",
+            "target": "all"
+          }
+        }
+      ]
+    },
+    {
+      "id": "chaos_catac_amplifier",
+      "name": "Catac Amplifier",
+      "type": "CHAOS",
+      "description": "Next Catac card effect doubled.",
+      "primitives": [
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "double_next_catac",
+            "target": "global"
+          }
+        }
+      ]
+    },
+    {
+      "id": "chaos_temporal_shuffle",
+      "name": "Temporal Shuffle",
+      "type": "CHAOS",
+      "description": "Reshuffle next turn order randomly.",
+      "primitives": [
+        {
+          "type": "RESHUFFLE_TURN_ORDER",
+          "params": {}
+        }
+      ]
+    }
+  ],
+  "ASCENDED": [
+    {
+      "id": "ascended_phoenix_rebirth",
+      "name": "Phoenix Rebirth",
+      "type": "ASCENDED",
+      "description": "Revive to 2 Health when reaching 0.",
+      "tier": 1,
+      "primitives": [
+        {
+          "type": "MODIFY_HEALTH",
+          "params": {
+            "amount": 2,
+            "target": "self"
+          }
+        },
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "revive_2",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "ascended_chrono_echo",
+      "name": "Chrono Echo",
+      "type": "ASCENDED",
+      "description": "Repeat last Survival card effect.",
+      "tier": 1,
+      "primitives": [
+        {
+          "type": "REPEAT_LAST_SURVIVAL",
+          "params": {}
+        }
+      ]
+    },
+    {
+      "id": "ascended_apex_predator",
+      "name": "Apex Predator",
+      "type": "ASCENDED",
+      "description": "Steal next draw phase from opponent.",
+      "tier": 3,
+      "primitives": [
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "steal_draw",
+            "target": "target_player"
+          }
+        }
+      ]
+    },
+    {
+      "id": "ascended_omega_protocol",
+      "name": "Omega Protocol",
+      "type": "ASCENDED",
+      "description": "+15 Points in one turn.",
+      "tier": 5,
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 15,
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "ascended_void_mastery",
+      "name": "Void Mastery",
+      "type": "ASCENDED",
+      "description": "Swap entire hand with opponent.",
+      "tier": 5,
+      "primitives": [
+        {
+          "type": "SWAP_HANDS",
+          "params": {
+            "targetA": "self",
+            "targetB": "target_player"
+          }
+        }
+      ]
+    },
+    {
+      "id": "ascended_singularity",
+      "name": "Singularity",
+      "type": "ASCENDED",
+      "description": "Reset all players to 0 Points.",
+      "tier": 5,
+      "primitives": [
+        {
+          "type": "SET_POINTS",
+          "params": {
+            "amount": 0,
+            "target": "all"
+          }
+        }
+      ]
+    },
+    {
+      "id": "ascended_time_paradox",
+      "name": "Time Paradox",
+      "type": "ASCENDED",
+      "description": "Reverse turn order of match.",
+      "tier": 5,
+      "primitives": [
+        {
+          "type": "REVERSE_TURN_ORDER",
+          "params": {
+            "duration": "permanent"
+          }
+        }
+      ]
+    },
+    {
+      "id": "ascended_quantum_shift",
+      "name": "Quantum Shift",
+      "type": "ASCENDED",
+      "description": "Swap two opponents’ pinned Power cards.",
+      "tier": 4,
+      "primitives": [
+        {
+          "type": "SWAP_PINNED_POWERS",
+          "params": {
+            "targetA": "random_opponent",
+            "targetB": "random_opponent"
+          }
+        }
+      ]
+    },
+    {
+      "id": "ascended_energy_convergence",
+      "name": "Energy Convergence",
+      "type": "ASCENDED",
+      "description": "Draw 5 cards; discard 2.",
+      "tier": 4,
+      "primitives": [
+        {
+          "type": "DRAW_CARDS",
+          "params": {
+            "amount": 5,
+            "target": "self"
+          }
+        },
+        {
+          "type": "DISCARD_CARDS",
+          "params": {
+            "amount": 2,
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "ascended_life_nexus",
+      "name": "Life Nexus",
+      "type": "ASCENDED",
+      "description": "Heal 3 Health instantly.",
+      "tier": 3,
+      "primitives": [
+        {
+          "type": "MODIFY_HEALTH",
+          "params": {
+            "amount": 3,
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "ascended_chaos_engine",
+      "name": "Chaos Engine",
+      "type": "ASCENDED",
+      "description": "Play two Chaos cards immediately.",
+      "tier": 3,
+      "primitives": [
+        {
+          "type": "MODIFY_ACTIONS",
+          "params": {
+            "amount": -2,
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "ascended_adaptive_ascension",
+      "name": "Adaptive Ascension",
+      "type": "ASCENDED",
+      "description": "Upgrade one Adapt card for double effect.",
+      "tier": 2,
+      "primitives": [
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "upgrade_adapt",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "ascended_temporal_rewind",
+      "name": "Temporal Rewind",
+      "type": "ASCENDED",
+      "description": "Discard your hand and draw 5 fresh Core Units.",
+      "tier": 4,
+      "primitives": [
+        {
+          "type": "RESET_HAND_5",
+          "params": {
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "ascended_bio_ascendancy",
+      "name": "Bio Ascendancy",
+      "type": "ASCENDED",
+      "description": "Prevent all Health loss for one turn.",
+      "tier": 2,
+      "primitives": [
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "prevent_health_loss_global",
+            "target": "all"
+          }
+        }
+      ]
+    },
+    {
+      "id": "ascended_power_overload",
+      "name": "Power Overload",
+      "type": "ASCENDED",
+      "description": "All pinned Power cards gain +2 Points.",
+      "tier": 3,
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS_SCALED",
+          "params": {
+            "scaleBy": "all_pinned_powers",
+            "multiplier": 2,
+            "target": "all"
+          }
+        }
+      ]
+    },
+    {
+      "id": "ascended_survival_apex",
+      "name": "Survival Apex",
+      "type": "ASCENDED",
+      "description": "All Survival cards +1 Point this turn.",
+      "tier": 2,
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 1,
+            "target": "self"
+          }
+        },
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "survival_plus_1_pt",
+            "target": "all"
+          }
+        }
+      ]
+    },
+    {
+      "id": "ascended_cataclysm_override",
+      "name": "Cataclysm Override",
+      "type": "ASCENDED",
+      "description": "Cancel next Catac effect globally.",
+      "tier": 5,
+      "primitives": [
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "cancel_next_catac",
+            "target": "global"
+          }
+        }
+      ]
+    },
+    {
+      "id": "ascended_event_manipulator",
+      "name": "Event Manipulator",
+      "type": "ASCENDED",
+      "description": "Redirect any Twist or Catac card.",
+      "tier": 4,
+      "primitives": [
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "redirect_twist_catac",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "ascended_strategic_reposition",
+      "name": "Strategic Reposition",
+      "type": "ASCENDED",
+      "description": "Swap two opponents’ hands.",
+      "tier": 2,
+      "primitives": [
+        {
+          "type": "SWAP_HANDS",
+          "params": {
+            "targetA": "random_opponent",
+            "targetB": "random_opponent"
+          }
+        }
+      ]
+    },
+    {
+      "id": "ascended_ultimate_nexus",
+      "name": "Ultimate Nexus",
+      "type": "ASCENDED",
+      "description": "Draw 5, gain 5 Health, +10 Points.",
+      "tier": 5,
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 10,
+            "target": "self"
+          }
+        },
+        {
+          "type": "MODIFY_HEALTH",
+          "params": {
+            "amount": 5,
+            "target": "self"
+          }
+        }
+      ]
+    }
+  ],
+  "TWIST": [
+    {
+      "id": "twist_blessing_of_unity",
+      "name": "Blessing of Unity",
+      "type": "TWIST",
+      "description": "Everyone draws 3 cards.",
+      "primitives": [
+        {
+          "type": "DRAW_CARDS",
+          "params": {
+            "amount": 3,
+            "target": "all"
+          }
+        }
+      ]
+    },
+    {
+      "id": "twist_risk_factor",
+      "name": "Risk Factor",
+      "type": "TWIST",
+      "description": "50/50 chance gain/lose 3 Points.",
+      "primitives": [
+        {
+          "type": "CHANCE",
+          "params": {
+            "probability": 0.5
+          },
+          "then": [
+            {
+              "type": "MODIFY_POINTS",
+              "params": {
+                "amount": 3,
+                "target": "self"
+              }
+            }
+          ],
+          "else": [
+            {
+              "type": "MODIFY_POINTS",
+              "params": {
+                "amount": -3,
+                "target": "self"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twist_stasis_lock",
+      "name": "Stasis Lock",
+      "type": "TWIST",
+      "description": "Skip your next turn.",
+      "primitives": [
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "skip_next",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "twist_luck_surge",
+      "name": "Luck Surge",
+      "type": "TWIST",
+      "description": "Draw 2 cards; +2 Points.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 2,
+            "target": "self"
+          }
+        },
+        {
+          "type": "DRAW_CARDS",
+          "params": {
+            "amount": 2,
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "twist_minor_luck",
+      "name": "Minor Luck",
+      "type": "TWIST",
+      "description": "Gain 5 Points.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 5,
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "twist_reverse_trick",
+      "name": "Reverse Trick",
+      "type": "TWIST",
+      "description": "Reverse turn order for 1 round.",
+      "primitives": [
+        {
+          "type": "REVERSE_TURN_ORDER",
+          "params": {
+            "duration": "round"
+          }
+        }
+      ]
+    },
+    {
+      "id": "twist_extra_hand",
+      "name": "Extra Hand",
+      "type": "TWIST",
+      "description": "Temporarily increase max hand to 6.",
+      "primitives": [
+        {
+          "type": "MODIFY_MAX_HAND",
+          "params": {
+            "amount": 1,
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "twist_selfswap",
+      "name": "Self-Swap",
+      "type": "TWIST",
+      "description": "Swap two of your own cards.",
+      "primitives": [
+        {
+          "type": "DISCARD_CARDS",
+          "params": {
+            "amount": 2,
+            "target": "self"
+          }
+        },
+        {
+          "type": "DRAW_CARDS",
+          "params": {
+            "amount": 2,
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "twist_quick_draw",
+      "name": "Quick Draw",
+      "type": "TWIST",
+      "description": "Draw 1 card immediately.",
+      "primitives": [
+        {
+          "type": "DRAW_CARDS",
+          "params": {
+            "amount": 1,
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "twist_energy_boost",
+      "name": "Energy Boost",
+      "type": "TWIST",
+      "description": "+3 Points; only affects drawer.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 3,
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "twist_health_spike",
+      "name": "Health Spike",
+      "type": "TWIST",
+      "description": "+1 Health; cannot exceed 5.",
+      "primitives": [
+        {
+          "type": "MODIFY_HEALTH",
+          "params": {
+            "amount": 1,
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "twist_card_exchange",
+      "name": "Card Exchange",
+      "type": "TWIST",
+      "description": "Swap 1 card with discard.",
+      "primitives": [
+        {
+          "type": "DISCARD_CARDS",
+          "params": {
+            "amount": 1,
+            "target": "self"
+          }
+        },
+        {
+          "type": "RETURN_FROM_DISCARD",
+          "params": {
+            "amount": 1,
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "twist_safety_net",
+      "name": "Safety Net",
+      "type": "TWIST",
+      "description": "Prevent next negative card effect.",
+      "primitives": [
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "prevent_negative",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "twist_minor_shuffle",
+      "name": "Minor Shuffle",
+      "type": "TWIST",
+      "description": "Shuffle your hand; draw 1.",
+      "primitives": [
+        {
+          "type": "SHUFFLE_HAND_INTO_DECK",
+          "params": {
+            "target": "self"
+          }
+        },
+        {
+          "type": "DRAW_CARDS",
+          "params": {
+            "amount": 1,
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "twist_lucky_rebound",
+      "name": "Lucky Rebound",
+      "type": "TWIST",
+      "description": "Return one discarded card to hand.",
+      "primitives": [
+        {
+          "type": "RETURN_FROM_DISCARD",
+          "params": {
+            "amount": 1,
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "twist_bonus_action",
+      "name": "Bonus Action",
+      "type": "TWIST",
+      "description": "Play an extra card this turn.",
+      "primitives": [
+        {
+          "type": "MODIFY_ACTIONS",
+          "params": {
+            "amount": -1,
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "twist_turn_skip",
+      "name": "Turn Skip",
+      "type": "TWIST",
+      "description": "Skip target player’s next turn.",
+      "primitives": [
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "skip_next",
+            "target": "target_player"
+          }
+        }
+      ]
+    },
+    {
+      "id": "twist_energy_draw",
+      "name": "Energy Draw",
+      "type": "TWIST",
+      "description": "Draw 2 cards; discard 1.",
+      "primitives": [
+        {
+          "type": "DRAW_CARDS",
+          "params": {
+            "amount": 2,
+            "target": "self"
+          }
+        },
+        {
+          "type": "DISCARD_CARDS",
+          "params": {
+            "amount": 1,
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "twist_point_spike",
+      "name": "Point Spike",
+      "type": "TWIST",
+      "description": "+5 Points; only drawer affected.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": 5,
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "twist_card_rebound",
+      "name": "Card Rebound",
+      "type": "TWIST",
+      "description": "Return a played card from discard to hand.",
+      "primitives": [
+        {
+          "type": "RETURN_FROM_DISCARD",
+          "params": {
+            "amount": 1,
+            "target": "self"
+          }
+        }
+      ]
+    }
+  ],
+  "CATACLYSM": [
+    {
+      "id": "cataclysm_the_apocalypse",
+      "name": "The Apocalypse",
+      "type": "CATACLYSM",
+      "description": "+10 Points, strike all players; discard immediately.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": -10,
+            "target": "all"
+          }
+        },
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": -10,
+            "target": "self"
+          }
+        },
+        {
+          "type": "DISCARD_CARDS",
+          "params": {
+            "amount": 1,
+            "target": "self",
+            "forceAction": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "cataclysm_plague_of_misfortune",
+      "name": "Plague of Misfortune",
+      "type": "CATACLYSM",
+      "description": "Target loses 5 Health; discard immediately.",
+      "primitives": [
+        {
+          "type": "MODIFY_HEALTH",
+          "params": {
+            "amount": -3,
+            "target": "all"
+          }
+        },
+        {
+          "type": "MODIFY_HEALTH",
+          "params": {
+            "amount": -2,
+            "target": "self"
+          }
+        },
+        {
+          "type": "DISCARD_CARDS",
+          "params": {
+            "amount": 1,
+            "target": "self",
+            "forceAction": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "cataclysm_black_hole",
+      "name": "Black Hole",
+      "type": "CATACLYSM",
+      "description": "Swap hand with discard pile; discard.",
+      "primitives": [
+        {
+          "type": "SWAP_HANDS",
+          "params": {
+            "targetA": "self",
+            "targetB": "discard_pile"
+          }
+        },
+        {
+          "type": "DISCARD_CARDS",
+          "params": {
+            "amount": 1,
+            "target": "self",
+            "forceAction": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "cataclysm_wild_fire",
+      "name": "Wild Fire",
+      "type": "CATACLYSM",
+      "description": "All opponents lose 3 Points; discard.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": -2,
+            "target": "all"
+          }
+        },
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": -3,
+            "target": "self"
+          }
+        },
+        {
+          "type": "DISCARD_CARDS",
+          "params": {
+            "amount": 1,
+            "target": "self",
+            "forceAction": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "cataclysm_curse_of_delay",
+      "name": "Curse of Delay",
+      "type": "CATACLYSM",
+      "description": "Skip next turn; discard.",
+      "primitives": [
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "skip_next",
+            "target": "self"
+          }
+        },
+        {
+          "type": "DISCARD_CARDS",
+          "params": {
+            "amount": 1,
+            "target": "self",
+            "forceSelfDrawn": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "cataclysm_instant_trap",
+      "name": "Instant Trap",
+      "type": "CATACLYSM",
+      "description": "Any player draws extra card; discard.",
+      "primitives": [
+        {
+          "type": "DRAW_CARDS",
+          "params": {
+            "amount": 1,
+            "target": "all"
+          }
+        },
+        {
+          "type": "DISCARD_CARDS",
+          "params": {
+            "amount": 1,
+            "target": "self",
+            "forceAction": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "cataclysm_energy_drain",
+      "name": "Energy Drain",
+      "type": "CATACLYSM",
+      "description": "Lose 3 Points; discard.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": -2,
+            "target": "all"
+          }
+        },
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": -3,
+            "target": "self"
+          }
+        },
+        {
+          "type": "DISCARD_CARDS",
+          "params": {
+            "amount": 1,
+            "target": "self",
+            "forceAction": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "cataclysm_structural_collapse",
+      "name": "Structural Collapse",
+      "type": "CATACLYSM",
+      "description": "Target loses pinned Power; discard.",
+      "primitives": [
+        {
+          "type": "DESTROY_PINNED",
+          "params": {
+            "amount": 1,
+            "target": "target_player"
+          }
+        },
+        {
+          "type": "DISCARD_CARDS",
+          "params": {
+            "amount": 1,
+            "target": "self",
+            "forceAction": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "cataclysm_viral_outbreak",
+      "name": "Viral Outbreak",
+      "type": "CATACLYSM",
+      "description": "Target loses 2 Health; discard.",
+      "primitives": [
+        {
+          "type": "MODIFY_HEALTH",
+          "params": {
+            "amount": -2,
+            "target": "target_player"
+          }
+        },
+        {
+          "type": "DISCARD_CARDS",
+          "params": {
+            "amount": 1,
+            "target": "self",
+            "forceAction": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "cataclysm_gravity_rift",
+      "name": "Gravity Rift",
+      "type": "CATACLYSM",
+      "description": "All hands shuffled; discard.",
+      "primitives": [
+        {
+          "type": "SHUFFLE_HAND_INTO_DECK",
+          "params": {
+            "target": "all"
+          }
+        },
+        {
+          "type": "DISCARD_CARDS",
+          "params": {
+            "amount": 1,
+            "target": "self",
+            "forceAction": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "cataclysm_acid_spill",
+      "name": "Acid Spill",
+      "type": "CATACLYSM",
+      "description": "Target loses 2 Points; discard.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": -2,
+            "target": "target_player"
+          }
+        },
+        {
+          "type": "DISCARD_CARDS",
+          "params": {
+            "amount": 1,
+            "target": "self",
+            "forceAction": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "cataclysm_temporal_collapse",
+      "name": "Temporal Collapse",
+      "type": "CATACLYSM",
+      "description": "Skip next 2 draws; discard.",
+      "primitives": [
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "skip_next_draw_2",
+            "target": "self"
+          }
+        },
+        {
+          "type": "DISCARD_CARDS",
+          "params": {
+            "amount": 1,
+            "target": "self",
+            "forceAction": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "cataclysm_resource_failure",
+      "name": "Resource Failure",
+      "type": "CATACLYSM",
+      "description": "Discard 2 Survival cards; discard.",
+      "primitives": [
+        {
+          "type": "DISCARD_CARDS",
+          "params": {
+            "amount": 2,
+            "filter": "SURVIVAL",
+            "target": "self"
+          }
+        },
+        {
+          "type": "DISCARD_CARDS",
+          "params": {
+            "amount": 1,
+            "target": "self",
+            "forceAction": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "cataclysm_firebreak",
+      "name": "Firebreak",
+      "type": "CATACLYSM",
+      "description": "Target cannot play Fire Survival card next turn; discard.",
+      "primitives": [
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "cannot_play_fire",
+            "target": "target_player"
+          }
+        },
+        {
+          "type": "DISCARD_CARDS",
+          "params": {
+            "amount": 1,
+            "target": "self",
+            "forceAction": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "cataclysm_flood_surge",
+      "name": "Flood Surge",
+      "type": "CATACLYSM",
+      "description": "Target loses 3 Points; discard.",
+      "primitives": [
+        {
+          "type": "MODIFY_POINTS",
+          "params": {
+            "amount": -3,
+            "target": "target_player"
+          }
+        },
+        {
+          "type": "DISCARD_CARDS",
+          "params": {
+            "amount": 1,
+            "target": "self",
+            "forceAction": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "cataclysm_bio_contagion",
+      "name": "Bio Contagion",
+      "type": "CATACLYSM",
+      "description": "All opponents lose 1 Health; discard.",
+      "primitives": [
+        {
+          "type": "MODIFY_HEALTH",
+          "params": {
+            "amount": -1,
+            "target": "all"
+          }
+        },
+        {
+          "type": "MODIFY_HEALTH",
+          "params": {
+            "amount": -1,
+            "target": "self"
+          }
+        },
+        {
+          "type": "DISCARD_CARDS",
+          "params": {
+            "amount": 1,
+            "target": "self",
+            "forceAction": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "cataclysm_magnetic_storm",
+      "name": "Magnetic Storm",
+      "type": "CATACLYSM",
+      "description": "Swap pinned Power with opponent; discard.",
+      "primitives": [
+        {
+          "type": "SWAP_PINNED_POWERS",
+          "params": {
+            "targetA": "self",
+            "targetB": "target_player"
+          }
+        },
+        {
+          "type": "DISCARD_CARDS",
+          "params": {
+            "amount": 1,
+            "target": "self",
+            "forceAction": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "cataclysm_cataclysm_pulse",
+      "name": "Cataclysm Pulse",
+      "type": "CATACLYSM",
+      "description": "All discard piles shuffled; discard.",
+      "primitives": [
+        {
+          "type": "SHUFFLE_DISCARD_INTO_DECK",
+          "params": {}
+        },
+        {
+          "type": "DISCARD_CARDS",
+          "params": {
+            "amount": 1,
+            "target": "self",
+            "forceAction": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "cataclysm_sudden_quake",
+      "name": "Sudden Quake",
+      "type": "CATACLYSM",
+      "description": "Target skips next action; discard.",
+      "primitives": [
+        {
+          "type": "APPLY_BUFF",
+          "params": {
+            "buffId": "skip_next_action",
+            "target": "target_player"
+          }
+        },
+        {
+          "type": "DISCARD_CARDS",
+          "params": {
+            "amount": 1,
+            "target": "self",
+            "forceAction": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "cataclysm_void_rift",
+      "name": "Void Rift",
+      "type": "CATACLYSM",
+      "description": "Draw 1, lose 1 Health; discard.",
+      "primitives": [
+        {
+          "type": "MODIFY_HEALTH",
+          "params": {
+            "amount": -1,
+            "target": "target_player"
+          }
+        },
+        {
+          "type": "MODIFY_HEALTH",
+          "params": {
+            "amount": -1,
+            "target": "self"
+          }
+        },
+        {
+          "type": "DISCARD_CARDS",
+          "params": {
+            "amount": 1,
+            "target": "self",
+            "forceAction": true
+          }
+        }
+      ]
+    }
+  ]
+}

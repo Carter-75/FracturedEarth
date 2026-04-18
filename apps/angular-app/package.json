@@ -1,0 +1,16 @@
+{
+  "name": "@fractured-earth/angular-app",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@fractured-earth/game-core": "*"
+  },
+  "scripts": {
+    "ng": "ng",
+    "start": "node ../../scripts/write-runtime-env.mjs && npm run build --workspace @fractured-earth/game-core && ng serve",
+    "build": "node ../../scripts/write-runtime-env.mjs && npm run build --workspace @fractured-earth/game-core && ng build",
+    "test": "vitest run",
+    "lint": "ng build --configuration development"
+  },
+  "packageManager": "npm@11.12.1"
+}

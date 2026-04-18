@@ -1,0 +1,157 @@
+<main class="shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="eyebrow">Fractured Earth // Pure-MEAN Rebuild</span>
+      <h1>Command Grid</h1>
+      <p>{{ statusMessage }}</p>
+    </div>
+
+    <nav class="mode-list">
+      <button (click)="viewMode = 'home'">Home</button>
+      <button (click)="startPractice()">Practice</button>
+      <button [disabled]="!session" (click)="joinQueue()">Play Online</button>
+      <button [disabled]="!session" (click)="createPrivateRoom()">Private Rooms</button>
+      <button (click)="viewMode = 'store'">Store</button>
+      <button (click)="viewMode = 'profile'">Profile</button>
+    </nav>
+
+    <section class="panel auth-panel" *ngIf="!session">
+      <h2>Login</h2>
+      <p class="muted">Use Google to unlock live matchmaking and private rooms.</p>
+      <div #googleButtonHost *ngIf="googleAuthEnabled"></div>
+      <p class="muted" *ngIf="!googleAuthEnabled">Google auth is not configured yet. Guest practice is still available.</p>
+      <div class="divider">or</div>
+      <input [(ngModel)]="guestName" placeholder="Guest commander" />
+      <select [(ngModel)]="guestEmoji">
+        <option value="🌍">🌍</option>
+        <option value="🔥">🔥</option>
+        <option value="⚡">⚡</option>
+        <option value="🌊">🌊</option>
+      </select>
+      <button (click)="continueAsGuest()">Continue as Guest</button>
+    </section>
+
+    <section class="panel auth-panel" *ngIf="session">
+      <h2>Authenticated</h2>
+      <p>{{ session.user.displayName }}</p>
+      <p class="muted">{{ session.user.email }}</p>
+      <button (click)="logout()">Sign Out</button>
+    </section>
+
+    <section class="panel queue-panel" *ngIf="viewMode === 'live'">
+      <h2>Live Queue</h2>
+      <p>{{ queue.length }} commander(s) waiting.</p>
+      <button class="primary" (click)="joinQueue()" [disabled]="!session">Join Queue</button>
+      <button (click)="leaveQueue()">Leave Queue</button>
+    </section>
+
+    <section class="panel queue-panel" *ngIf="viewMode === 'private'">
+      <h2>Private Rooms</h2>
+      <input [(ngModel)]="roomCodeInput" maxlength="6" placeholder="ROOMCODE" />
+      <button class="primary" (click)="joinPrivateRoom()" [disabled]="!session">Join by Code</button>
+      <button (click)="addBot()" [disabled]="!room">Add Bot</button>
+      <button (click)="startRoom()" [disabled]="!room">Start Match</button>
+      <p *ngIf="room" class="muted">Room {{ room.code }} with {{ room.members.length }} member(s).</p>
+    </section>
+  </aside>
+
+  <section class="content">
+    <div class="topline">
+      <div class="chip">{{ bootstrapInfo?.gameModes?.join(' / ') || 'loading modes' }}</div>
+      <div class="chip" *ngIf="snapshot">Match {{ snapshot.matchId }}</div>
+      <div class="chip">{{ catalog.length }} cards loaded</div>
+    </div>
+
+    <section class="hero" *ngIf="!snapshot">
+      <div class="hero-copy">
+        <span class="eyebrow">Mobile-first card battler</span>
+        <h2>Practice with upgraded bots, then jump into live or private synced matches.</h2>
+        <p>
+          One Angular client, one Express + Socket.io backend, one shared rules core. Tutorial and LAN flow are gone;
+          the rebuilt product is practice, live online, and private rooms.
+        </p>
+      </div>
+      <div class="hero-board">
+        <div class="hero-seat seat-top">Rival</div>
+        <div class="hero-seat seat-left">Queue</div>
+        <div class="hero-seat seat-right">Private</div>
+        <div class="hero-seat seat-bottom">You</div>
+        <div class="center-mark">0 · 1 · 2 · 3</div>
+      </div>
+    </section>
+
+    <section class="game-table" *ngIf="snapshot && payload">
+      <header class="table-hud">
+        <div>
+          <span class="eyebrow">Mode</span>
+          <strong>{{ snapshot.mode | uppercase }}</strong>
+        </div>
+        <div>
+          <span class="eyebrow">Round</span>
+          <strong>{{ payload.round }}</strong>
+        </div>
+        <div>
+          <span class="eyebrow">Active</span>
+          <strong>{{ activePlayer?.displayName }}</strong>
+        </div>
+        <div>
+          <span class="eyebrow">Points / Health</span>
+          <strong>{{ myPlayer?.survivalPoints }} / {{ myPlayer?.health }}</strong>
+        </div>
+      </header>
+
+      <div class="seats" *ngIf="payload.players.length">
+        <article class="seat" *ngFor="let player of payload.players">
+          <div class="avatar">{{ player.emoji }}</div>
+          <div>
+            <h3>{{ player.displayName }}</h3>
+            <p>{{ player.survivalPoints }} pts · {{ player.health }} hp · {{ player.hand.length }} cards</p>
+          </div>
+        </article>
+      </div>
+
+      <section class="board">
+        <button
+          class="slot"
+          *ngFor="let slotIndex of slotIndexes"
+          [class.filled]="payload.occupiedSlots[slotIndex]?.cardId"
+          [class.active]="selectedSlot === slotIndex"
+          (click)="selectedSlot = slotIndex; playSelected(slotIndex)"
+        >
+          <span>Slot {{ slotIndex }}</span>
+          <strong>{{ payload.occupiedSlots[slotIndex]?.cardId || 'Deploy here' }}</strong>
+        </button>
+      </section>
+
+      <section class="controls">
+        <button class="primary" (click)="drawCard()">Draw</button>
+        <button (click)="endTurn()">End Turn</button>
+      </section>
+
+      <section class="hand" *ngIf="myPlayer">
+        <article class="card" *ngFor="let card of myPlayer.hand" [class.selected]="selectedCard?.id === card.id" (click)="selectCard(card)">
+          <img [src]="cardThumb(card)" [alt]="card.name" />
+          <div class="card-copy">
+            <span>{{ card.type }}</span>
+            <strong>{{ card.name }}</strong>
+            <p>{{ card.description || card.effect }}</p>
+            <ul class="effect-steps" *ngIf="card.effectSteps?.length">
+              <li *ngFor="let step of card.effectSteps">{{ step }}</li>
+            </ul>
+          </div>
+          <button class="ghost" (click)="discard(card); $event.stopPropagation()">Discard</button>
+        </article>
+      </section>
+    </section>
+
+    <section class="panel page-panel" *ngIf="viewMode === 'store'">
+      <h2>Sector Pass</h2>
+      <p>The monetization surface is preserved as a clean destination instead of a dead-end popup. RevenueCat wiring can bind here next.</p>
+    </section>
+
+    <section class="panel page-panel" *ngIf="viewMode === 'profile'">
+      <h2>Profile + Progress</h2>
+      <p>Mongo-backed identity, entitlements, match history, and reconnect support now live behind one auth model.</p>
+    </section>
+  </section>
+</main>
